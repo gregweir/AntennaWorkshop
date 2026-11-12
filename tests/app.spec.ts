@@ -367,6 +367,29 @@ test('records and visualizes antenna azimuth orientation without reducing the ex
   await expect(project.getByLabel('Project source 1 beamwidth')).toHaveValue('55');
 });
 
+test('duplicates and compares station scenarios without overwriting the baseline', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const project = page.locator('.project-section');
+  await project.getByRole('checkbox', { name: /Station-site source inventory assessed/ }).check();
+  await project.getByRole('button', { name: 'Duplicate as scenario' }).click();
+
+  await expect(project.getByLabel('Project title')).toHaveValue('Home station RF assessment — scenario');
+  await expect(project.getByLabel('Open saved station project').locator('option')).toHaveCount(2);
+  await expect(project.getByLabel('Scenario comparison baseline')).not.toHaveValue('');
+  const comparison = project.getByRole('region', { name: 'Compare saved station scenarios' });
+  await expect(comparison).toContainText('Baseline: Home station RF assessment');
+  await expect(comparison).toContainText('No calculated change');
+
+  await project.locator('.project-source-editor').first().locator('summary').click();
+  await project.getByRole('spinbutton', { name: 'Project source 1 transmitter output' }).fill('100');
+  await expect(comparison).toContainText('+1.73 percentage points');
+  await expect(comparison).toContainText('Higher in current scenario');
+
+  await project.getByLabel('Open saved station project').selectOption({ label: 'Home station RF assessment' });
+  await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
+});
+
 test('persists and transfers validated station projects', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();

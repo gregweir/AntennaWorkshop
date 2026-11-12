@@ -14,6 +14,7 @@ import {
 } from '../calculators/exposureProject';
 import { EXPOSURE_AGGREGATION_MODEL } from '../calculators/exposureAggregation';
 import { EXPOSURE_SCREEN_MODEL } from '../calculators/exposureScreen';
+import { compareExposureScenarios } from '../calculators/exposureScenarioComparison';
 import { feetToMetres, formatCoordinate, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import {
   createExposureProjectFile,
@@ -33,6 +34,7 @@ import { ExposureProjectDiagram } from './ExposureProjectDiagram';
 import { SiteLayoutEditor } from './SiteLayoutEditor';
 import { AntennaAzimuthDiagram } from './AntennaAzimuthDiagram';
 import { AzimuthRouteOverview, AzimuthRouteSummary } from './SourcePointAzimuth';
+import { ExposureScenarioComparisonPanel } from './ExposureScenarioComparison';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -106,6 +108,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   const [savedProjects, setSavedProjects] = useState(initialState.library);
   const [storageMessage, setStorageMessage] = useState('Changes are saved automatically on this device.');
   const [workflowMessage, setWorkflowMessage] = useState('');
+  const [comparisonProjectId, setComparisonProjectId] = useState('');
   const nextSourceId = useRef(3);
   const nextPointId = useRef(3);
   const importInput = useRef<HTMLInputElement>(null);
@@ -188,6 +191,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   const newProject = () => {
     const file = createExposureProjectFile(starterProject(projectJurisdiction, projectEnvironment), projectId());
     applyProject(file);
+    setComparisonProjectId('');
     setStorageMessage('New project started. Changes are saved automatically.');
   };
 
@@ -197,7 +201,23 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
     setSavedProjects(remaining);
     if (remaining.length) applyProject(remaining[0]);
     else newProject();
+    setComparisonProjectId('');
     setStorageMessage('Project deleted from this device.');
+  };
+
+  const duplicateProject = () => {
+    const baseline = createExposureProjectFile(projectData, currentProjectId);
+    const projects = saveExposureProjectFile(baseline, window.localStorage);
+    setSavedProjects(projects);
+    const duplicate = createExposureProjectFile({
+      ...baseline.project,
+      title: `${baseline.project.title} — scenario`,
+      sources: baseline.project.sources.map((source) => ({ ...source })),
+      evaluationPoints: baseline.project.evaluationPoints.map((point) => ({ ...point }))
+    }, projectId());
+    applyProject(duplicate);
+    setComparisonProjectId(baseline.projectId);
+    setStorageMessage(`Created “${duplicate.project.title}” as an independent scenario. The original is selected as its comparison baseline.`);
   };
 
   const exportProject = () => {
@@ -220,6 +240,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       const imported = parseExposureProjectFile(await file.text());
       const localCopy = createExposureProjectFile(imported.project, projectId());
       applyProject(localCopy);
+      setComparisonProjectId('');
       setStorageMessage(`Imported “${localCopy.project.title}” as a new local project.`);
     } catch (error) {
       setStorageMessage(error instanceof Error ? `Import failed: ${error.message}` : 'Import failed: invalid project file.');
@@ -235,6 +256,16 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       return null;
     }
   }, [projectJurisdiction, projectEnvironment, sourceInventoryComplete, sources, points]);
+  const baselineFile = savedProjects.find((project) => project.projectId === comparisonProjectId) ?? null;
+  const scenarioComparison = useMemo(() => {
+    if (!baselineFile || !result) return { comparison: null, error: '' };
+    try {
+      const baselineResult = calculateExposureProject(baselineFile.project);
+      return { comparison: compareExposureScenarios(baselineResult, result), error: '' };
+    } catch (error) {
+      return { comparison: null, error: error instanceof Error ? error.message : 'The selected scenarios cannot be compared.' };
+    }
+  }, [baselineFile, result]);
 
   const lengthUnit = unitSystem === 'metric' ? 'm' : 'ft';
   const displayLength = (metres: number) => unitSystem === 'metric' ? metres : metresToFeet(metres);
@@ -270,9 +301,10 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
     <div className="project-editor">
       <section className="project-library" aria-labelledby="project-library-heading">
         <div><p className="eyebrow">On-device project library</p><h4 id="project-library-heading">Saved station projects</h4><p>Your station data stays in this browser unless you export a copy.</p></div>
-        <label className="field"><span>Open project</span><select aria-label="Open saved station project" value={currentProjectId} onChange={(event) => { const file = savedProjects.find((project) => project.projectId === event.target.value); if (file) applyProject(file); }}>{savedProjects.map((project) => <option key={project.projectId} value={project.projectId}>{project.project.title}</option>)}</select></label>
+        <label className="field"><span>Open project</span><select aria-label="Open saved station project" value={currentProjectId} onChange={(event) => { const file = savedProjects.find((project) => project.projectId === event.target.value); if (file) { setComparisonProjectId(''); applyProject(file); } }}>{savedProjects.map((project) => <option key={project.projectId} value={project.projectId}>{project.project.title}</option>)}</select></label>
         <div className="project-library-actions">
           <button type="button" onClick={newProject}>New project</button>
+          <button type="button" onClick={duplicateProject}>Duplicate as scenario</button>
           <button type="button" onClick={exportProject}>Export JSON</button>
           <label className="project-import-button">Import JSON<input ref={importInput} aria-label="Import project JSON" type="file" accept="application/json,.json" onChange={importProject} /></label>
           <button type="button" className="project-delete-button" onClick={deleteProject}>Delete project</button>
@@ -335,6 +367,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
         <details><summary>Source contributions</summary><ul>{pointResult.sourceResults.map((sourceResult) => <li key={sourceResult.source.id}><b>{sourceResult.source.label}</b><span>{(sourceResult.screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {sourceResult.screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(sourceResult.horizontalSeparationMetres, unitSystem)} plan / {formatLength(sourceResult.separationDistanceMetres, unitSystem)} 3D separation · far-field check {formatLength(sourceResult.screen.farFieldBoundaryMetres, unitSystem)}</span><AzimuthRouteSummary result={sourceResult} /></li>)}</ul></details>
         <ul className="project-print-contributions">{pointResult.sourceResults.map((sourceResult) => <li key={sourceResult.source.id}><b>{sourceResult.source.label}</b><span>{(sourceResult.screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {sourceResult.screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(sourceResult.horizontalSeparationMetres, unitSystem)} plan / {formatLength(sourceResult.separationDistanceMetres, unitSystem)} 3D separation · far-field check {formatLength(sourceResult.screen.farFieldBoundaryMetres, unitSystem)}</span><AzimuthRouteSummary result={sourceResult} /></li>)}</ul>
       </article>)}</div>
+      <ExposureScenarioComparisonPanel currentTitle={projectTitle || 'Untitled station assessment'} baselineTitle={baselineFile?.project.title ?? null} baselineOptions={savedProjects.filter((project) => project.projectId !== currentProjectId).map((project) => ({ id: project.projectId, title: project.project.title }))} selectedBaselineId={comparisonProjectId} comparison={scenarioComparison.comparison} comparisonError={scenarioComparison.error} onBaselineChange={setComparisonProjectId} />
       <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · E {formatCoordinate(source.eastOffsetMetres, unitSystem)} · N {formatCoordinate(source.northOffsetMetres, unitSystem)} · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high · {source.patternType}{source.patternType === 'directional' || source.patternType === 'bidirectional' ? `, ${source.bearingDegrees.toFixed(0)}° true / ${source.beamwidthDegrees.toFixed(0)}° beamwidth` : ''}{source.linkedModels && <> · linked models: {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion}, {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}</>}</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Pattern graphics are orientation aids only; maximum stated gain is still applied toward every point. Antennas are treated as point sources at the entered coordinates. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not apply pattern attenuation or model terrain, buildings, body coupling, measurement uncertainty, off-site sources, or near fields.</p></article></div>
       <div className="project-provenance"><p><strong>Models:</strong> {EXPOSURE_PROJECT_MODEL.id} {EXPOSURE_PROJECT_MODEL.version} · {EXPOSURE_SCREEN_MODEL.id} {EXPOSURE_SCREEN_MODEL.version} · {EXPOSURE_AGGREGATION_MODEL.id} {EXPOSURE_AGGREGATION_MODEL.version}</p><p><strong>Reviewed:</strong> {EXPOSURE_PROJECT_MODEL.reviewedOn}. This record is a preliminary engineering screen, not certification or a complete compliance determination.</p>{worst && <p><strong>Greatest modelled total:</strong> {worst.point.label}, {(worst.aggregate.totalFractionOfReferenceLevel * 100).toFixed(2)}% of frequency-normalized reference levels.</p>}</div>
     </div>}
