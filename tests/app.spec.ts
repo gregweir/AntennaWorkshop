@@ -42,13 +42,22 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByRole('button', { name: /EFHW/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
   await expect(page.getByRole('heading', { name: 'End-fed half-wave (EFHW)' })).toBeVisible();
-  await expect(page.getByLabel('Transformer impedance ratio')).toHaveValue('49');
+  await expect(page.getByLabel('Transformer impedance ratio', { exact: true })).toHaveValue('49');
   await expect(page.getByRole('img', { name: /Dimensioned end-fed half-wave/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('50.0 Ω');
   await expect(page.locator('.harmonic-panel')).toContainText('14.200 MHz');
   await expect(page.locator('.harmonic-panel')).toContainText('20 m allocation');
+  await expect(page.getByText('Choose the fundamental')).toBeHidden();
+  await page.getByText('Build and tune an EFHW').click();
+  await expect(page.getByText('Choose the fundamental')).toBeVisible();
+  await expect(page.locator('.step-by-step-help')).toContainText('does not design a transformer');
+  await page.getByLabel('Help: Transformer impedance ratio').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Transformer impedance ratio' })).toContainText('7:1 ideal turns ratio');
+  await page.getByLabel('Help: Transformer impedance ratio').click();
   await page.getByRole('button', { name: 'Show advanced' }).click();
-  await expect(page.getByLabel('Estimated antenna end impedance')).toHaveValue('2450');
+  await expect(page.getByLabel('Estimated antenna end impedance', { exact: true })).toHaveValue('2450');
+  await page.getByLabel('Help: Estimated antenna end impedance').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Estimated antenna end impedance' })).toContainText('planning assumption');
 
   await page.getByRole('button', { name: /OCFD/ }).click();
   await expect(page.getByRole('heading', { name: 'Off-centre-fed dipole (OCFD)' })).toBeVisible();

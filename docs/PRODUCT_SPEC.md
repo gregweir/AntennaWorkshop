@@ -46,6 +46,8 @@ Users can begin either by choosing an antenna family or by describing a goal suc
 
 Contextual help must work with touch, keyboard, and pointer input. Complex sections may also provide an optional, collapsible step-by-step guide. Guidance should explain the existing workflow rather than create a separate simplified mode or conceal advanced controls.
 
+The EFHW guide must distinguish impedance ratio from winding turns ratio, treat end impedance and multiband resonances as installation-dependent assumptions, and lead the builder through return-path planning, documented transformer selection, build-long construction, installed measurement, and per-band verification. It must not imply that the calculator designs or power-rates a transformer or prescribes one universal counterpoise.
+
 ## Visual language
 
 Visuals are functional rather than decorative:

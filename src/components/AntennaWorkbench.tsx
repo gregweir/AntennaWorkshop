@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
@@ -25,6 +25,7 @@ import { SlimJimDiagram } from './SlimJimDiagram';
 import { MoxonDiagram } from './MoxonDiagram';
 import { YagiDiagram } from './YagiDiagram';
 import { GroundMountedVerticalDiagram } from './GroundMountedVerticalDiagram';
+import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 type AntennaType = 'dipole' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
 
@@ -146,6 +147,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         ))}
       </div>
 
+      {antennaType === 'efhw' && <StepByStepHelp title="Build and tune an EFHW" intro="Use this sequence to turn the calculated wire length into a measured antenna system. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the fundamental', detail: 'Design for the lowest intended band and select the frequency where you want the first resonance.' },
+        { title: 'Plan the installed shape', detail: 'Choose supports, clearances, transformer location, and an intentional RF return and common-mode-current strategy before cutting wire.' },
+        { title: 'Select a documented transformer', detail: 'Choose an impedance ratio, core, winding, insulation, and enclosure suited to the intended frequencies, power, duty cycle, and environment.' },
+        { title: 'Cut with adjustment room', detail: 'Use the calculated length as a starting point and retain the selected trim allowance; do not cut directly to a presumed final dimension.' },
+        { title: 'Install before measuring', detail: 'Raise the antenna in its intended geometry with the planned return path, feedline routing, and choke in place.' },
+        { title: 'Tune and verify each band', detail: 'Measure the fundamental first, trim in small steps, then check impedance, transformer heating, common-mode current, and pattern suitability on every intended band.' }
+      ]} limit="This calculator does not design a transformer, prescribe a universal counterpoise, calculate component voltage or heating, or guarantee a multiband match or useful radiation pattern." />}
+
       <div className="calculator-layout">
         <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
           <label className="field">
@@ -178,7 +188,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             <NumberField label="Number of ground radials" value={groundRadialCount} min={4} max={240} step={1} unit="wires" help="More radials usually reduce ground-system loss. ARRL construction guidance describes 40 or more for strong performance and 120 quarter-wave radials as a well-developed system." onChange={setGroundRadialCount} />
             <NumberField label="Radial length multiplier" value={groundRadialLengthMultiplier} min={0.25} max={2} step={0.05} unit="× ¼λ" help="1.00 makes each radial the corrected quarter-wave baseline. Soil, space, and radial count affect the best practical layout." onChange={setGroundRadialLengthMultiplier} />
           </>}
-          {antennaType === 'efhw' && <NumberField label="Transformer impedance ratio" value={transformerRatio} min={4} max={100} step={1} unit=": 1" help="49:1 is the documented ARRL starting point for an approximately 2,500 Ω end impedance." onChange={setTransformerRatio} />}
+          {antennaType === 'efhw' && <NumberField label="Transformer impedance ratio" tooltip="This is the impedance transformation ratio, not the winding turns ratio. A 49:1 impedance ratio corresponds to a 7:1 ideal turns ratio and nominally transforms 2,450 Ω toward 50 Ω." value={transformerRatio} min={4} max={100} step={1} unit=": 1" help="49:1 is the documented ARRL starting point for an approximately 2,500 Ω end impedance." onChange={setTransformerRatio} />}
           {antennaType === 'ocfd' && <>
             <NumberField label="Feedpoint position from short end" value={feedpointPercentFromEnd} min={10} max={50} step={0.1} unit="%" help="About one-third from an end is the conventional starting point for a roughly 200 Ω feedpoint." onChange={setFeedpointPercentFromEnd} />
             <NumberField label="Current-balun impedance ratio" value={transformerRatio} min={1} max={25} step={1} unit=": 1" help="4:1 nominally transforms a 200 Ω feedpoint toward 50 Ω coax." onChange={setTransformerRatio} />
@@ -211,10 +221,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           </label>}
 
           {advancedOpen && antennaType !== 'moxon' && antennaType !== 'yagi' && <div className="advanced-fields">
-            {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}
+            {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" tooltip="This value is a planning assumption used only to show nominal transformed resistance. A real feedpoint also has reactance and changes with height, wire shape, ground, nearby objects, return path, frequency, and loss." value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}
             {antennaType === 'ocfd' && <NumberField label="Estimated OCFD feedpoint impedance" value={estimatedOcfdImpedanceOhms} min={20} max={5000} step={10} unit="Ω" help="A nominal planning value; height, split, ground, and frequency change both resistance and reactance." onChange={setEstimatedOcfdImpedanceOhms} />}
-            <NumberField label="Length correction factor" value={lengthCorrectionFactor} min={0.5} max={1.2} step={0.01} unit="ratio" help={`${recommendedFactor.toFixed(2)} is the default practical starting factor for this design; measure and tune after installation.`} onChange={setLengthCorrectionFactor} />
-            <NumberField label="Extra length for trimming" value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />
+            <NumberField label="Length correction factor" tooltip={antennaType === 'efhw' ? "This factor scales the free-space half-wave estimate for practical wire construction. It does not correct the transformer, feedline, return path, or effects of the installed surroundings." : undefined} value={lengthCorrectionFactor} min={0.5} max={1.2} step={0.01} unit="ratio" help={`${recommendedFactor.toFixed(2)} is the default practical starting factor for this design; measure and tune after installation.`} onChange={setLengthCorrectionFactor} />
+            <NumberField label="Extra length for trimming" tooltip={antennaType === 'efhw' ? "This percentage is added after the corrected resonant estimate. Install the antenna before trimming, remove wire in small increments, and remeasure because removed wire cannot be restored easily." : undefined} value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />
           </div>}
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
@@ -319,12 +329,13 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   );
 }
 
-function NumberField({ label, value, min, max, step, unit, help, onChange }: { label: string; value: number; min: number; max: number; step: number; unit: string; help: string; onChange: (value: number) => void }) {
-  return <label className="field">
-    <span>{label}</span>
-    <span className="input-with-unit"><input aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span>
+function NumberField({ label, value, min, max, step, unit, help, tooltip, onChange }: { label: string; value: number; min: number; max: number; step: number; unit: string; help: string; tooltip?: ReactNode; onChange: (value: number) => void }) {
+  const inputId = useId();
+  return <div className="field">
+    <span className={tooltip ? 'field-label-with-help' : undefined}><label htmlFor={inputId}>{label}</label>{tooltip && <HelpTip label={label}>{tooltip}</HelpTip>}</span>
+    <span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span>
     <small>{help}</small>
-  </label>;
+  </div>;
 }
 
 type Calculation = NonNullable<
