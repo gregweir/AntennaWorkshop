@@ -28,8 +28,16 @@ export interface AssessmentChecklistItem {
   detail: string;
 }
 
+export interface AssessmentEvidenceTarget {
+  scopeType: AssessmentEvidenceEntry['scopeType'];
+  scopeId?: string;
+  relatedField: string;
+  label: string;
+}
+
 export interface AssessmentChecklistResult {
   items: AssessmentChecklistItem[];
+  missingEvidenceTargets: AssessmentEvidenceTarget[];
   recordedCount: number;
   attentionCount: number;
   requiredCount: number;
@@ -43,32 +51,25 @@ function evidenceItem(input: AssessmentChecklistInput, category: AssessmentEvide
     : { id: `evidence-${category}`, label, status: 'attention', detail: missingDetail };
 }
 
-interface CriticalEvidenceRequirement {
-  scopeType: AssessmentEvidenceEntry['scopeType'];
-  scopeId?: string;
-  relatedField: string;
-  label: string;
-}
-
-function criticalEvidenceItem(input: AssessmentChecklistInput): AssessmentChecklistItem {
+function criticalEvidenceCoverage(input: AssessmentChecklistInput): { item: AssessmentChecklistItem; missing: AssessmentEvidenceTarget[] } {
   const sourceFields = [
-    ['frequencyMHz', 'frequency'], ['transmitterPowerWatts', 'transmitter output'], ['dutyCyclePercent', 'duty cycle'],
-    ['feedSystemLossDb', 'feed-system loss'], ['antennaGainDbi', 'maximum antenna gain'],
-    ['antennaLargestDimensionMetres', 'largest antenna dimension'], ['antennaCentreHeightMetres', 'antenna centre height'],
-    ['eastOffsetMetres', 'east position'], ['northOffsetMetres', 'north position']
+    ['frequencyMHz', 'Frequency'], ['transmitterPowerWatts', 'Transmitter output'], ['dutyCyclePercent', 'Duty cycle'],
+    ['feedSystemLossDb', 'Feed-system loss'], ['antennaGainDbi', 'Maximum antenna gain'],
+    ['antennaLargestDimensionMetres', 'Largest antenna dimension'], ['antennaCentreHeightMetres', 'Antenna centre height'],
+    ['eastOffsetMetres', 'East position'], ['northOffsetMetres', 'North position']
   ] as const;
-  const pointFields = [['eastOffsetMetres', 'east position'], ['northOffsetMetres', 'north position'], ['heightMetres', 'height']] as const;
-  const requirements: CriticalEvidenceRequirement[] = [
-    { scopeType: 'project', relatedField: 'sourceInventoryComplete', label: 'project source inventory confirmation' },
-    ...input.sources.flatMap((source) => sourceFields.map(([relatedField, label]) => ({ scopeType: 'source' as const, scopeId: source.id, relatedField, label: `${source.label} ${label}` }))),
-    ...input.evaluationPoints.flatMap((point) => pointFields.map(([relatedField, label]) => ({ scopeType: 'point' as const, scopeId: point.id, relatedField, label: `${point.label} ${label}` })))
+  const pointFields = [['eastOffsetMetres', 'East position'], ['northOffsetMetres', 'North position'], ['heightMetres', 'Evaluation-point height']] as const;
+  const requirements: AssessmentEvidenceTarget[] = [
+    { scopeType: 'project', relatedField: 'sourceInventoryComplete', label: 'Whole project · Source inventory confirmation' },
+    ...input.sources.flatMap((source) => sourceFields.map(([relatedField, label]) => ({ scopeType: 'source' as const, scopeId: source.id, relatedField, label: `${source.label} · ${label}` }))),
+    ...input.evaluationPoints.flatMap((point) => pointFields.map(([relatedField, label]) => ({ scopeType: 'point' as const, scopeId: point.id, relatedField, label: `${point.label} · ${label}` })))
   ];
   const missing = requirements.filter((requirement) => !input.evidenceEntries.some((entry) => entry.scopeType === requirement.scopeType && entry.scopeId === requirement.scopeId && entry.relatedField === requirement.relatedField));
   const covered = requirements.length - missing.length;
-  if (!missing.length) return { id: 'critical-input-evidence', label: 'Critical input evidence coverage', status: 'recorded', detail: `All ${requirements.length} critical project, source, and point values have at least one field-specific evidence entry. Content quality is not verified.` };
+  if (!missing.length) return { item: { id: 'critical-input-evidence', label: 'Critical input evidence coverage', status: 'recorded', detail: `All ${requirements.length} critical project, source, and point values have at least one field-specific evidence entry. Content quality is not verified.` }, missing };
   const examples = missing.slice(0, 4).map((requirement) => requirement.label).join('; ');
   const remainder = missing.length > 4 ? `; and ${missing.length - 4} more` : '';
-  return { id: 'critical-input-evidence', label: 'Critical input evidence coverage', status: 'attention', detail: `${covered} of ${requirements.length} critical values have field-specific evidence. Missing: ${examples}${remainder}. General notes do not count as field-specific coverage.` };
+  return { item: { id: 'critical-input-evidence', label: 'Critical input evidence coverage', status: 'attention', detail: `${covered} of ${requirements.length} critical values have field-specific evidence. Missing: ${examples}${remainder}. General notes do not count as field-specific coverage.` }, missing };
 }
 
 function applicabilityItem(result: ExposureProjectResult | null): AssessmentChecklistItem {
@@ -102,6 +103,7 @@ export function calculateAssessmentChecklist(input: AssessmentChecklistInput): A
   } catch (error) {
     inputError = error instanceof Error ? error.message : 'One or more project inputs are invalid.';
   }
+  const criticalEvidence = criticalEvidenceCoverage(input);
   const items: AssessmentChecklistItem[] = [
     inputError
       ? { id: 'input-validity', label: 'Calculation inputs', status: 'required', detail: inputError }
@@ -111,7 +113,7 @@ export function calculateAssessmentChecklist(input: AssessmentChecklistInput): A
       : { id: 'source-inventory', label: 'Station-site source inventory', status: 'required', detail: 'Confirm all relevant transmitters and antennas at this station site before interpreting the calculated subtotal.' },
     applicabilityItem(result),
     outcomeItem(result),
-    criticalEvidenceItem(input),
+    criticalEvidence.item,
     evidenceItem(input, 'assumption', 'Assumptions documented', 'Record assumptions that materially affect power, geometry, gain, duty cycle, or accessibility.', 'Presence is recorded; accuracy and completeness are not verified.'),
     evidenceItem(input, 'measurement', 'Measurements documented', 'Record relevant field measurements and how they were obtained.', 'Presence is recorded; method, calibration, coverage, and uncertainty are not verified.'),
     evidenceItem(input, 'source-reference', 'Source references documented', 'Record the regulations, manuals, specifications, or other sources supporting entered values.', 'Presence is recorded; authority, revision, and applicability are not verified.'),
@@ -120,6 +122,7 @@ export function calculateAssessmentChecklist(input: AssessmentChecklistInput): A
   ];
   return {
     items,
+    missingEvidenceTargets: criticalEvidence.missing,
     recordedCount: items.filter((item) => item.status === 'recorded').length,
     attentionCount: items.filter((item) => item.status === 'attention').length,
     requiredCount: items.filter((item) => item.status === 'required').length,

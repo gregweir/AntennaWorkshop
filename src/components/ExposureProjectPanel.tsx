@@ -15,7 +15,7 @@ import {
 import { EXPOSURE_AGGREGATION_MODEL } from '../calculators/exposureAggregation';
 import { EXPOSURE_SCREEN_MODEL } from '../calculators/exposureScreen';
 import { compareExposureScenarioInputs, compareExposureScenarios } from '../calculators/exposureScenarioComparison';
-import { calculateAssessmentChecklist } from '../calculators/exposureAssessmentChecklist';
+import { calculateAssessmentChecklist, type AssessmentEvidenceTarget } from '../calculators/exposureAssessmentChecklist';
 import { feetToMetres, formatCoordinate, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import {
   createExposureProjectFile,
@@ -38,7 +38,7 @@ import { AntennaAzimuthDiagram } from './AntennaAzimuthDiagram';
 import { AzimuthRouteOverview, AzimuthRouteSummary } from './SourcePointAzimuth';
 import { ExposureScenarioComparisonPanel } from './ExposureScenarioComparison';
 import { ExposureSensitivityExplorer } from './ExposureSensitivityExplorer';
-import { evidenceCategoryLabels, evidenceScopeDescription, ExposureEvidenceLog } from './ExposureEvidenceLog';
+import { evidenceCategoryLabels, evidenceScopeDescription, ExposureEvidenceLog, type EvidenceCaptureRequest } from './ExposureEvidenceLog';
 import { AssessmentReadinessPanel } from './AssessmentReadinessPanel';
 
 interface Props {
@@ -116,8 +116,10 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   const [storageMessage, setStorageMessage] = useState('Changes are saved automatically on this device.');
   const [workflowMessage, setWorkflowMessage] = useState('');
   const [comparisonProjectId, setComparisonProjectId] = useState('');
+  const [evidenceCaptureRequest, setEvidenceCaptureRequest] = useState<EvidenceCaptureRequest | null>(null);
   const nextSourceId = useRef(3);
   const nextPointId = useRef(3);
+  const evidenceCaptureSequence = useRef(0);
   const importInput = useRef<HTMLInputElement>(null);
   const lastExternalJurisdiction = useRef(jurisdiction);
   const lastExternalEnvironment = useRef(environment);
@@ -183,6 +185,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   }, [currentProjectId, projectData]);
 
   const applyProject = (file: ExposureProjectFile) => {
+    setEvidenceCaptureRequest(null);
     setCurrentProjectId(file.projectId);
     setProjectTitle(file.project.title);
     setProjectJurisdiction(file.project.jurisdiction);
@@ -307,6 +310,9 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       ? { ...entry, scopeType: 'project', scopeId: undefined, relatedField: 'general' }
       : entry));
   };
+  const documentEvidenceTarget = (target: AssessmentEvidenceTarget) => {
+    setEvidenceCaptureRequest({ requestId: ++evidenceCaptureSequence.current, target });
+  };
   const status = result ? statusCopy[result.status] : null;
   const worst = result?.pointResults.find((point) => point.point.id === result.worstPointId);
 
@@ -368,12 +374,12 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
         <label className="field"><span>Point height</span><span className="input-with-unit"><input aria-label={`Project point ${index + 1} height`} type="number" min="0" step="0.1" value={Number(displayLength(point.heightMetres).toFixed(3))} onChange={(event) => updatePoint(point.id, { heightMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
         <button type="button" className="remove-source" disabled={points.length === 1} onClick={() => { setPoints((current) => current.filter((candidate) => candidate.id !== point.id)); preserveRemovedScope('point', point.id); }}>Remove point</button>
       </fieldset>)}</div>
-      <ExposureEvidenceLog key={currentProjectId} entries={evidenceEntries} sources={sources} points={points} onChange={setEvidenceEntries} />
+      <ExposureEvidenceLog key={currentProjectId} entries={evidenceEntries} sources={sources} points={points} onChange={setEvidenceEntries} captureRequest={evidenceCaptureRequest} />
       <label className="inventory-confirmation"><input type="checkbox" checked={sourceInventoryComplete} onChange={(event) => setSourceInventoryComplete(event.target.checked)} /><span><strong>Station-site source inventory assessed</strong><small>I have included all relevant transmitters and antennas at this station site. Nearby sources outside the modelled site still require separate assessment.</small></span></label>
     </div>
 
     {!result && <p className="validation-message" role="alert">One or more project inputs are invalid or outside the selected jurisdiction’s power-density model. No project result is produced.</p>}
-    <AssessmentReadinessPanel checklist={assessmentChecklist} />
+    <AssessmentReadinessPanel checklist={assessmentChecklist} onDocumentTarget={documentEvidenceTarget} />
     {result && status && <div className="project-report" aria-label="Printable exposure assessment record">
       <div className="project-report-heading"><div><p className="eyebrow">Assessment record</p><h4>{projectTitle || 'Untitled station assessment'}</h4><p>{projectJurisdiction === 'CA' ? 'Canada' : 'United States'} · {projectEnvironment === 'uncontrolled' ? 'General public / uncontrolled' : 'Occupational / controlled'} · {sources.length} sources · {points.length} locations</p></div><div className="project-actions"><button type="button" onClick={() => window.print()}>Print assessment</button></div></div>
       <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Project outcome</p><h4>{status[0]}</h4><p>{status[1]}</p></div>

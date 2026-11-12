@@ -327,6 +327,21 @@ test('tracks assessment blockers, documentation gaps, and external review separa
   await expect(checklist).toContainText('source-to-point path is inside the conservative far-field boundary');
   await expect(checklist.getByText('Far-field method applicability').locator('..')).toContainText('Action required');
   await expect(checklist.locator('.assessment-check-external-review')).toContainText('near-field method or measurement');
+
+  await checklist.getByLabel('Missing critical value').selectOption({ label: '2 m vertical · Transmitter output' });
+  await checklist.getByRole('button', { name: 'Document selected value' }).click();
+  const evidenceLog = project.locator('.evidence-log');
+  await expect(evidenceLog.getByRole('status')).toContainText('2 m vertical · Transmitter output');
+  await expect(evidenceLog.getByLabel('Evidence scope', { exact: true })).toHaveValue('source');
+  await expect(evidenceLog.getByLabel('Evidence scope item')).toHaveValue('project-source-1');
+  await expect(evidenceLog.getByLabel('Evidence related input')).toHaveValue('transmitterPowerWatts');
+  await evidenceLog.getByLabel('Evidence category').selectOption('source-reference');
+  await evidenceLog.getByLabel('Evidence title').fill('Transmitter power specification');
+  await evidenceLog.getByLabel('Evidence reviewer').fill('Greg Weir, VA1GW');
+  await evidenceLog.getByLabel('Evidence detail').fill('Rated transmitter output confirmed from the current equipment manual.');
+  await evidenceLog.getByRole('button', { name: 'Add to evidence log' }).click();
+  await expect(checklist.getByLabel('Missing critical value').getByRole('option', { name: '2 m vertical · Transmitter output' })).toHaveCount(0);
+  await expect(checklist.locator('.assessment-check-attention').filter({ hasText: 'Critical input evidence coverage' })).toContainText('1 of 25 critical values');
 });
 
 test('edits station geometry with pointer and keyboard controls', async ({ page }) => {

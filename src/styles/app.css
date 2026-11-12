@@ -1365,6 +1365,7 @@ select {
 }
 
 .evidence-form-heading,
+.evidence-capture-message,
 .evidence-detail-field,
 .evidence-reference-field,
 .evidence-form-error,
@@ -1381,6 +1382,15 @@ select {
 .evidence-empty,
 .evidence-entry-list small {
   color: var(--text-secondary);
+}
+
+.evidence-capture-message {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-left: 4px solid var(--accent-technical);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
 }
 
 .evidence-form .field {
@@ -1716,6 +1726,49 @@ select {
 
 .assessment-check-list p {
   margin-top: 0.25rem;
+}
+
+.assessment-check-list li > div > .assessment-evidence-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: end;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+}
+
+.assessment-evidence-guide label {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.assessment-evidence-guide select,
+.assessment-evidence-guide button {
+  min-height: 42px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+}
+
+.assessment-evidence-guide select {
+  width: 100%;
+  padding: 0.55rem;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.assessment-evidence-guide button {
+  padding: 0.55rem 0.7rem;
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 800;
 }
 
 .assessment-checklist-limit {
@@ -4097,6 +4150,10 @@ select {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .assessment-check-list li > div > .assessment-evidence-guide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .azimuth-source-controls,
   .azimuth-preview {
     grid-template-columns: minmax(0, 1fr);
@@ -4212,6 +4269,10 @@ select {
   .exposure-status,
   .sensitivity-explorer {
     display: none;
+  }
+
+  .assessment-evidence-guide {
+    display: none !important;
   }
 
   .project-section > .section-heading,

@@ -45,8 +45,11 @@ describe('assessment review checklist', () => {
     const checklist = calculateAssessmentChecklist(project);
     expect(checklist.items.find((item) => item.id === 'critical-input-evidence')).toMatchObject({ status: 'attention' });
     expect(checklist.items.find((item) => item.id === 'critical-input-evidence')?.detail).toContain('4 of 13 critical values');
+    expect(checklist.missingEvidenceTargets).toHaveLength(9);
+    expect(checklist.missingEvidenceTargets).toContainEqual({ scopeType: 'source', scopeId: 'source', relatedField: 'transmitterPowerWatts', label: 'Vertical · Transmitter output' });
     const generalOnly = calculateAssessmentChecklist({ ...project, evidenceEntries: project.evidenceEntries.map((entry) => ({ ...entry, scopeType: 'project', scopeId: undefined, relatedField: 'general' })) });
     expect(generalOnly.items.find((item) => item.id === 'critical-input-evidence')?.detail).toContain('0 of 13 critical values');
+    expect(generalOnly.missingEvidenceTargets).toHaveLength(13);
   });
 
   it('identifies far-field inapplicability and calls for a suitable external method', () => {

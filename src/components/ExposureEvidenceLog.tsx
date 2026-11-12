@@ -5,14 +5,21 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import type { AssessmentEvidenceTarget } from '../calculators/exposureAssessmentChecklist';
 import type { ExposureEvidenceCategory, ExposureEvidenceEntry, ExposureEvidenceRelatedField, ExposureEvidenceScopeType } from '../projects/exposureProjectFiles';
+
+export interface EvidenceCaptureRequest {
+  requestId: number;
+  target: AssessmentEvidenceTarget;
+}
 
 interface Props {
   entries: ExposureEvidenceEntry[];
   sources: Array<{ id: string; label: string }>;
   points: Array<{ id: string; label: string }>;
   onChange: (entries: ExposureEvidenceEntry[]) => void;
+  captureRequest?: EvidenceCaptureRequest | null;
 }
 
 export const evidenceCategoryLabels: Record<ExposureEvidenceCategory, string> = {
@@ -99,10 +106,27 @@ function validateDraft(draft: EvidenceDraft, sources: Props['sources'], points: 
   return '';
 }
 
-export function ExposureEvidenceLog({ entries, sources, points, onChange }: Props) {
+export function ExposureEvidenceLog({ entries, sources, points, onChange, captureRequest }: Props) {
   const [draft, setDraft] = useState<EvidenceDraft>(emptyDraft);
   const [editingId, setEditingId] = useState('');
   const [error, setError] = useState('');
+  const [captureMessage, setCaptureMessage] = useState('');
+  const formRef = useRef<HTMLFormElement>(null);
+  const categoryRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (!captureRequest) return;
+    const { target } = captureRequest;
+    setDraft({ ...emptyDraft(), scopeType: target.scopeType, scopeId: target.scopeId, relatedField: target.relatedField as ExposureEvidenceRelatedField });
+    setEditingId('');
+    setError('');
+    setCaptureMessage(`Evidence form prepared for ${target.label}. Choose a category and add the supporting record.`);
+    const frame = requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      categoryRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [captureRequest]);
 
   const updateDraft = <K extends keyof EvidenceDraft>(key: K, value: EvidenceDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -112,6 +136,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange }: Prop
     setDraft(emptyDraft());
     setEditingId('');
     setError('');
+    setCaptureMessage('');
   };
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -143,9 +168,10 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange }: Prop
 
   return <section className="evidence-log" aria-labelledby="evidence-log-heading">
     <div className="project-editor-heading"><div><p className="eyebrow">Assessment documentation</p><h4 id="evidence-log-heading">Evidence and review log</h4><p>Link supporting records to the whole project, a transmitter, an evaluation point, or one specific input. Notes improve traceability but do not validate an assumption or establish compliance.</p></div><span className="evidence-count">{entries.length} / 120 entries</span></div>
-    <form className="evidence-form" onSubmit={submit}>
+    <form ref={formRef} className="evidence-form" onSubmit={submit}>
       <div className="evidence-form-heading"><strong>{editingId ? 'Edit evidence entry' : 'Add evidence entry'}</strong><small>Required fields are marked.</small></div>
-      <label className="field"><span>Category *</span><select aria-label="Evidence category" value={draft.category} onChange={(event) => updateDraft('category', event.target.value as ExposureEvidenceCategory)}>{Object.entries(evidenceCategoryLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+      {captureMessage && <p className="evidence-capture-message" role="status" aria-live="polite">{captureMessage}</p>}
+      <label className="field"><span>Category *</span><select ref={categoryRef} aria-label="Evidence category" value={draft.category} onChange={(event) => updateDraft('category', event.target.value as ExposureEvidenceCategory)}>{Object.entries(evidenceCategoryLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       <label className="field"><span>Scope *</span><select aria-label="Evidence scope" value={draft.scopeType} onChange={(event) => { const scopeType = event.target.value as ExposureEvidenceScopeType; setDraft((current) => ({ ...current, scopeType, scopeId: scopeType === 'source' ? sources[0]?.id : scopeType === 'point' ? points[0]?.id : undefined, relatedField: 'general' })); setError(''); }}>{Object.entries(scopeTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       {draft.scopeType !== 'project' && <label className="field"><span>{draft.scopeType === 'source' ? 'Station source' : 'Evaluation point'} *</span><select aria-label="Evidence scope item" value={draft.scopeId ?? ''} onChange={(event) => updateDraft('scopeId', event.target.value)}>{(draft.scopeType === 'source' ? sources : points).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>}
       <label className="field"><span>Related input *</span><select aria-label="Evidence related input" value={draft.relatedField} onChange={(event) => updateDraft('relatedField', event.target.value as ExposureEvidenceRelatedField)}>{relatedFields[draft.scopeType].map((field) => <option value={field} key={field}>{evidenceFieldLabels[field]}</option>)}</select></label>
