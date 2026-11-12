@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ExposureProjectResult } from './exposureProject';
-import { compareExposureScenarios } from './exposureScenarioComparison';
+import { compareExposureScenarioInputs, compareExposureScenarios, type ExposureScenarioInput } from './exposureScenarioComparison';
 
 function result(jurisdiction: 'CA' | 'US', values: Array<[string, string, number]>): ExposureProjectResult {
   return {
@@ -60,5 +60,31 @@ describe('exposure scenario comparison', () => {
 
   it('rejects comparisons across different regulatory contexts', () => {
     expect(() => compareExposureScenarios(result('CA', [['yard', 'Yard', 0.1]]), result('US', [['yard', 'Yard', 0.1]]))).toThrow(/same jurisdiction/i);
+  });
+
+  it('audits changed source inputs and project confirmation by stable identity', () => {
+    const baseline: ExposureScenarioInput = {
+      title: 'Baseline', jurisdiction: 'CA', environment: 'uncontrolled', sourceInventoryComplete: true,
+      sources: [{ id: 'source', label: 'Vertical', frequencyMHz: 146, transmitterPowerWatts: 50, dutyCyclePercent: 50, feedSystemLossDb: 1, antennaGainDbi: 2.15, antennaLargestDimensionMetres: 1, antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0, patternType: 'omnidirectional', bearingDegrees: 0, beamwidthDegrees: 90 }],
+      evaluationPoints: [{ id: 'yard', label: 'Yard', eastOffsetMetres: 15, northOffsetMetres: 0, heightMetres: 1.5 }]
+    };
+    const current: ExposureScenarioInput = {
+      ...baseline,
+      title: 'Power scenario',
+      sourceInventoryComplete: false,
+      sources: [{ ...baseline.sources[0], transmitterPowerWatts: 100, antennaCentreHeightMetres: 12 }]
+    };
+    expect(compareExposureScenarioInputs(baseline, current)).toMatchObject([
+      { entityKind: 'project', fieldKey: 'title', baselineValue: 'Baseline', currentValue: 'Power scenario' },
+      { entityKind: 'project', fieldKey: 'sourceInventoryComplete', baselineValue: true, currentValue: false },
+      { entityKind: 'source', entityId: 'source', fieldKey: 'transmitterPowerWatts', baselineValue: 50, currentValue: 100 },
+      { entityKind: 'source', entityId: 'source', fieldKey: 'antennaCentreHeightMetres', baselineValue: 10, currentValue: 12 }
+    ]);
+  });
+
+  it('audits added and removed entities without pairing by label', () => {
+    const baseline: ExposureScenarioInput = { title: 'One', jurisdiction: 'CA', environment: 'uncontrolled', sourceInventoryComplete: false, sources: [], evaluationPoints: [{ id: 'old', label: 'Same label', eastOffsetMetres: 1, northOffsetMetres: 0, heightMetres: 1.5 }] };
+    const current: ExposureScenarioInput = { ...baseline, evaluationPoints: [{ id: 'new', label: 'Same label', eastOffsetMetres: 1, northOffsetMetres: 0, heightMetres: 1.5 }] };
+    expect(compareExposureScenarioInputs(baseline, current).map((change) => change.changeKind)).toEqual(['removed', 'added']);
   });
 });

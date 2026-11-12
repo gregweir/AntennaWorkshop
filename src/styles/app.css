@@ -1758,6 +1758,79 @@ select {
 .scenario-change-added > strong,
 .scenario-change-removed > strong { color: var(--accent-technical); }
 
+.scenario-input-audit {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.5fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.scenario-input-audit h5 {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.scenario-input-audit > div > p:last-child,
+.scenario-no-changes {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.scenario-input-audit ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scenario-input-change {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--tl-coral);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.scenario-input-change > div:first-child,
+.scenario-input-values {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.scenario-input-change > div:first-child span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.scenario-input-values {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  column-gap: 0.5rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.scenario-input-values span:last-child {
+  color: var(--accent-technical);
+  font-weight: 800;
+}
+
+.scenario-input-values b {
+  color: var(--text-secondary);
+}
+
+.scenario-input-added { border-left-color: var(--success); }
+.scenario-input-removed { border-left-color: var(--danger); }
+
 .project-worst-point {
   border-left: 4px solid var(--tl-coral) !important;
 }
@@ -3133,6 +3206,10 @@ select {
     align-items: stretch;
   }
 
+  .scenario-input-audit {
+    grid-template-columns: 1fr;
+  }
+
   .azimuth-source-editor {
     grid-template-columns: 1fr;
   }
@@ -3302,6 +3379,10 @@ select {
   .azimuth-preview svg {
     max-width: 240px;
     margin-inline: auto;
+  }
+
+  .scenario-input-change {
+    grid-template-columns: 1fr;
   }
 
   .project-library-actions > button,

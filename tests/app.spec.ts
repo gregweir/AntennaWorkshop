@@ -385,6 +385,14 @@ test('duplicates and compares station scenarios without overwriting the baseline
   await project.getByRole('spinbutton', { name: 'Project source 1 transmitter output' }).fill('100');
   await expect(comparison).toContainText('+1.73 percentage points');
   await expect(comparison).toContainText('Higher in current scenario');
+  const inputAudit = comparison.getByRole('region', { name: 'What changed between these projects' });
+  await expect(inputAudit).toContainText('Input audit · 3 changes');
+  await expect(inputAudit).toContainText('Transmitter output');
+  await expect(inputAudit).toContainText('50 W');
+  await expect(inputAudit).toContainText('100 W');
+  await expect(inputAudit).toContainText('Source inventory confirmation');
+  await expect(inputAudit).toContainText('Complete');
+  await expect(inputAudit).toContainText('Incomplete');
 
   await project.getByLabel('Open saved station project').selectOption({ label: 'Home station RF assessment' });
   await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
