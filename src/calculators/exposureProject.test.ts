@@ -20,13 +20,15 @@ const project: ExposureProjectInput = {
       id: 'vhf', label: 'VHF vertical', frequencyMHz: 146,
       transmitterPowerWatts: 50, dutyCyclePercent: 50, feedSystemLossDb: 1,
       antennaGainDbi: 2.15, antennaLargestDimensionMetres: 1,
-      antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0
+      antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0,
+      patternType: 'omnidirectional', bearingDegrees: 0, beamwidthDegrees: 90
     },
     {
       id: 'uhf', label: 'UHF vertical', frequencyMHz: 446,
       transmitterPowerWatts: 25, dutyCyclePercent: 25, feedSystemLossDb: 1.5,
       antennaGainDbi: 5, antennaLargestDimensionMetres: 0.5,
-      antennaCentreHeightMetres: 12, eastOffsetMetres: 4, northOffsetMetres: 3
+      antennaCentreHeightMetres: 12, eastOffsetMetres: 4, northOffsetMetres: 3,
+      patternType: 'directional', bearingDegrees: 45, beamwidthDegrees: 60
     }
   ],
   evaluationPoints: [
@@ -90,5 +92,7 @@ describe('integrated exposure project', () => {
       evaluationPoints: [{ id: 'same', label: 'At centre', eastOffsetMetres: 0, northOffsetMetres: 0, heightMetres: 10 }],
       sources: [project.sources[0]]
     })).toThrow(/coincide/);
+    expect(() => calculateExposureProject({ ...project, sources: [{ ...project.sources[0], patternType: 'directional', bearingDegrees: 360 }] })).toThrow(/bearing/i);
+    expect(() => calculateExposureProject({ ...project, sources: [{ ...project.sources[0], patternType: 'directional', beamwidthDegrees: 0 }] })).toThrow(/beamwidth/i);
   });
 });

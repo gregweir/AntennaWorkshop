@@ -31,6 +31,7 @@ import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/e
 import type { StationSourceTransfer } from '../workflows/stationSourceWorkflow';
 import { ExposureProjectDiagram } from './ExposureProjectDiagram';
 import { SiteLayoutEditor } from './SiteLayoutEditor';
+import { AntennaAzimuthDiagram } from './AntennaAzimuthDiagram';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -47,13 +48,15 @@ const initialSources: ExposureProjectSourceInput[] = [
     id: 'project-source-1', label: '2 m vertical', frequencyMHz: 146,
     transmitterPowerWatts: 50, dutyCyclePercent: 50, feedSystemLossDb: 1,
     antennaGainDbi: 2.15, antennaLargestDimensionMetres: 1,
-    antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0
+    antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0,
+    patternType: 'omnidirectional', bearingDegrees: 0, beamwidthDegrees: 90
   },
   {
     id: 'project-source-2', label: '70 cm vertical', frequencyMHz: 446,
     transmitterPowerWatts: 25, dutyCyclePercent: 25, feedSystemLossDb: 1.5,
     antennaGainDbi: 5, antennaLargestDimensionMetres: 0.5,
-    antennaCentreHeightMetres: 12, eastOffsetMetres: 4, northOffsetMetres: 2
+    antennaCentreHeightMetres: 12, eastOffsetMetres: 4, northOffsetMetres: 2,
+    patternType: 'omnidirectional', bearingDegrees: 0, beamwidthDegrees: 90
   }
 ];
 
@@ -294,6 +297,16 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
           <label className="field"><span>East position</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} east position`} type="number" step="0.1" value={Number(displayLength(source.eastOffsetMetres).toFixed(3))} onChange={(event) => updateSource(source.id, { eastOffsetMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
           <label className="field"><span>North position</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} north position`} type="number" step="0.1" value={Number(displayLength(source.northOffsetMetres).toFixed(3))} onChange={(event) => updateSource(source.id, { northOffsetMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
         </div>
+        <div className="azimuth-source-editor">
+          <div className="azimuth-source-controls">
+            <p className="eyebrow">Plan-view orientation</p>
+            <label className="field"><span>Azimuth pattern</span><select aria-label={`Project source ${index + 1} azimuth pattern`} value={source.patternType} onChange={(event) => updateSource(source.id, { patternType: event.target.value as ExposureProjectSourceInput['patternType'] })}><option value="unknown">Unknown / conservative</option><option value="omnidirectional">Omnidirectional</option><option value="bidirectional">Bidirectional</option><option value="directional">Directional</option></select></label>
+            <label className="field"><span>Maximum-response bearing</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} bearing`} type="number" min="0" max="359.9" step="1" disabled={source.patternType === 'unknown' || source.patternType === 'omnidirectional'} value={source.bearingDegrees} onChange={(event) => updateSource(source.id, { bearingDegrees: Number(event.target.value) })} /><span>° true</span></span></label>
+            <label className="bearing-slider"><span>Rotate pattern</span><input aria-label={`Project source ${index + 1} bearing control`} type="range" min="0" max="359" step="1" disabled={source.patternType === 'unknown' || source.patternType === 'omnidirectional'} value={source.bearingDegrees} onChange={(event) => updateSource(source.id, { bearingDegrees: Number(event.target.value) })} /></label>
+            <label className="field"><span>Approximate horizontal beamwidth</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} beamwidth`} type="number" min="1" max="359.9" step="1" disabled={source.patternType === 'unknown' || source.patternType === 'omnidirectional'} value={source.beamwidthDegrees} onChange={(event) => updateSource(source.id, { beamwidthDegrees: Number(event.target.value) })} /><span>°</span></span><small>Enter the manufacturer’s horizontal half-power beamwidth when known.</small></label>
+          </div>
+          <AntennaAzimuthDiagram source={source} />
+        </div>
         <button type="button" className="remove-source" disabled={sources.length === 1} onClick={() => { setSources((current) => current.filter((candidate) => candidate.id !== source.id)); setSourceInventoryComplete(false); }}>Remove source</button>
       </details>)}</div>
 
@@ -320,7 +333,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
         <details><summary>Source contributions</summary><ul>{pointResult.sourceResults.map(({ source, screen, horizontalSeparationMetres, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(horizontalSeparationMetres, unitSystem)} plan / {formatLength(separationDistanceMetres, unitSystem)} 3D separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul></details>
         <ul className="project-print-contributions">{pointResult.sourceResults.map(({ source, screen, horizontalSeparationMetres, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(horizontalSeparationMetres, unitSystem)} plan / {formatLength(separationDistanceMetres, unitSystem)} 3D separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul>
       </article>)}</div>
-      <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · E {formatCoordinate(source.eastOffsetMetres, unitSystem)} · N {formatCoordinate(source.northOffsetMetres, unitSystem)} · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high{source.linkedModels && <> · linked models: {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion}, {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}</>}</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Maximum stated gain is applied toward every point. Antennas are treated as point sources at the entered coordinates. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not model antenna patterns, terrain, buildings, body coupling, measurement uncertainty, off-site sources, or near fields.</p></article></div>
+      <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · E {formatCoordinate(source.eastOffsetMetres, unitSystem)} · N {formatCoordinate(source.northOffsetMetres, unitSystem)} · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high · {source.patternType}{source.patternType === 'directional' || source.patternType === 'bidirectional' ? `, ${source.bearingDegrees.toFixed(0)}° true / ${source.beamwidthDegrees.toFixed(0)}° beamwidth` : ''}{source.linkedModels && <> · linked models: {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion}, {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}</>}</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Pattern graphics are orientation aids only; maximum stated gain is still applied toward every point. Antennas are treated as point sources at the entered coordinates. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not apply pattern attenuation or model terrain, buildings, body coupling, measurement uncertainty, off-site sources, or near fields.</p></article></div>
       <div className="project-provenance"><p><strong>Models:</strong> {EXPOSURE_PROJECT_MODEL.id} {EXPOSURE_PROJECT_MODEL.version} · {EXPOSURE_SCREEN_MODEL.id} {EXPOSURE_SCREEN_MODEL.version} · {EXPOSURE_AGGREGATION_MODEL.id} {EXPOSURE_AGGREGATION_MODEL.version}</p><p><strong>Reviewed:</strong> {EXPOSURE_PROJECT_MODEL.reviewedOn}. This record is a preliminary engineering screen, not certification or a complete compliance determination.</p>{worst && <p><strong>Greatest modelled total:</strong> {worst.point.label}, {(worst.aggregate.totalFractionOfReferenceLevel * 100).toFixed(2)}% of frequency-normalized reference levels.</p>}</div>
     </div>}
   </section>;

@@ -335,6 +335,33 @@ test('edits station geometry with pointer and keyboard controls', async ({ page 
   await expect(project.locator('.site-layout-status')).toContainText('2 m vertical moved');
 });
 
+test('records and visualizes antenna azimuth orientation without reducing the exposure screen', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  let project = page.locator('.project-section');
+  await project.getByRole('checkbox', { name: /Station-site source inventory assessed/ }).check();
+  await project.locator('.project-source-editor').first().locator('summary').click();
+
+  await project.getByLabel('Project source 1 azimuth pattern').selectOption('directional');
+  await project.getByRole('spinbutton', { name: 'Project source 1 bearing' }).fill('90');
+  await project.getByLabel('Project source 1 beamwidth').fill('55');
+  await expect(project.getByRole('checkbox', { name: /Station-site source inventory assessed/ })).not.toBeChecked();
+  await expect(project.getByRole('img', { name: '2 m vertical azimuth orientation' })).toBeVisible();
+  await expect(project.locator('.azimuth-preview').first()).toContainText('55 degree directional envelope');
+  await expect(project.getByRole('group', { name: 'Editable station site plan' }).locator('.azimuth-pattern-directional')).toHaveCount(1);
+  await expect(project.locator('.project-record-grid')).toContainText('90° true / 55° beamwidth');
+  await expect(project.locator('.project-record-grid')).toContainText('maximum stated gain is still applied toward every point');
+
+  await page.reload();
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  project = page.locator('.project-section');
+  await project.locator('.project-source-editor').first().locator('summary').click();
+  await expect(project.getByLabel('Project source 1 azimuth pattern')).toHaveValue('directional');
+  await expect(project.getByRole('spinbutton', { name: 'Project source 1 bearing' })).toHaveValue('90');
+  await expect(project.getByLabel('Project source 1 beamwidth')).toHaveValue('55');
+});
+
 test('persists and transfers validated station projects', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();

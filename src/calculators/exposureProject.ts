@@ -15,6 +15,7 @@ import {
   type ExposureScreenStatus
 } from './exposureScreen';
 import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/exposureLimits';
+import type { AzimuthPatternType } from '../lib/azimuthPattern';
 
 export interface ExposureProjectSourceInput {
   id: string;
@@ -28,6 +29,9 @@ export interface ExposureProjectSourceInput {
   antennaCentreHeightMetres: number;
   eastOffsetMetres: number;
   northOffsetMetres: number;
+  patternType: AzimuthPatternType;
+  bearingDegrees: number;
+  beamwidthDegrees: number;
   linkedModels?: {
     antennaDesignId: string;
     antennaDesignVersion: string;
@@ -77,8 +81,8 @@ export interface ExposureProjectResult {
 
 export const EXPOSURE_PROJECT_MODEL = {
   id: 'multi-source-multi-point-far-field-project',
-  version: '2.0.0',
-  reviewedOn: '2026-11-11'
+  version: '2.1.0',
+  reviewedOn: '2026-11-12'
 } as const;
 
 function validateIdentity(id: string, label: string, ids: Set<string>, noun: string) {
@@ -114,6 +118,11 @@ export function calculateExposureProject(input: ExposureProjectInput): ExposureP
     validateFinite(source.antennaCentreHeightMetres, 'Antenna centre height', 0, 100_000);
     validateFinite(source.eastOffsetMetres, 'Source east coordinate', -1_000_000, 1_000_000);
     validateFinite(source.northOffsetMetres, 'Source north coordinate', -1_000_000, 1_000_000);
+    if (!['unknown', 'omnidirectional', 'bidirectional', 'directional'].includes(source.patternType)) {
+      throw new RangeError('Antenna azimuth pattern type is not supported.');
+    }
+    validateFinite(source.bearingDegrees, 'Maximum-response bearing', 0, 359.999_999);
+    validateFinite(source.beamwidthDegrees, 'Horizontal beamwidth', 1, 359.999_999);
   }
   const pointIds = new Set<string>();
   for (const point of input.evaluationPoints) {

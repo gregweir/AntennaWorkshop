@@ -7,6 +7,7 @@
 
 import type { ExposureProjectResult } from '../calculators/exposureProject';
 import { formatCoordinate, formatLength, type UnitSystem } from '../lib/units';
+import { AzimuthPatternGlyph } from './AntennaAzimuthDiagram';
 
 interface Props {
   result: ExposureProjectResult;
@@ -48,8 +49,9 @@ export function ExposureProjectDiagram({ result, unitSystem }: Props) {
         <g className="project-north-arrow"><line x1="475" y1="75" x2="475" y2="42" /><path d="M468 51 L475 39 L482 51" /><text x="475" y="30" textAnchor="middle">N</text></g>
         {worst.sourceResults.map(({ source }, index) => <line key={`plan-path-${source.id}`} className={`project-path project-path-${index % 6}`} x1={planX(source.eastOffsetMetres)} y1={planY(source.northOffsetMetres)} x2={planX(worst.point.eastOffsetMetres)} y2={planY(worst.point.northOffsetMetres)} />)}
         {sources.map((source, index) => <g className={`project-source project-source-${index % 6}`} key={source.id} transform={`translate(${planX(source.eastOffsetMetres)} ${planY(source.northOffsetMetres)})`}>
+          <AzimuthPatternGlyph source={source} radius={24} />
           <line x1="-9" y1="0" x2="9" y2="0" /><line x1="0" y1="-9" x2="0" y2="9" /><circle cx="0" cy="0" r="5" />
-          <text x="10" y="-10">{source.label}</text><text x="10" y="3">E {formatCoordinate(source.eastOffsetMetres, unitSystem)} · N {formatCoordinate(source.northOffsetMetres, unitSystem)}</text>
+          <text x="29" y={index % 2 === 0 ? 32 : -27}>{source.label}</text><text x="29" y={index % 2 === 0 ? 45 : -14}>E {formatCoordinate(source.eastOffsetMetres, unitSystem)} · N {formatCoordinate(source.northOffsetMetres, unitSystem)}</text>
         </g>)}
         {result.pointResults.map(({ point, aggregate }) => <g className={`project-point${point.id === result.worstPointId ? ' project-point-worst' : ''}`} key={point.id} transform={`translate(${planX(point.eastOffsetMetres)} ${planY(point.northOffsetMetres)})`}>
           <circle className="project-evaluation-marker" cx="0" cy="0" r="7" /><circle cx="0" cy="0" r="12" />
@@ -81,6 +83,6 @@ export function ExposureProjectDiagram({ result, unitSystem }: Props) {
         </g>
       </svg>
     </div>
-    <figcaption>Site geometry · Plan view preserves entered east/north coordinates. The elevation view collapses each source onto its horizontal path toward the location with the greatest normalized total; dashed lines are calculated source-to-point paths.</figcaption>
+    <figcaption>Site geometry · Plan view preserves entered east/north coordinates and illustrates entered azimuth envelopes. Pattern graphics do not reduce calculated exposure. The elevation view collapses each source onto its horizontal path toward the location with the greatest normalized total; dashed lines are calculated source-to-point paths.</figcaption>
   </figure>;
 }

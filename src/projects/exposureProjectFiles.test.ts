@@ -27,7 +27,8 @@ const project: ExposureProjectData = {
     id: 'source-1', label: '2 m vertical', frequencyMHz: 146, transmitterPowerWatts: 50,
     dutyCyclePercent: 50, feedSystemLossDb: 1, antennaGainDbi: 2.15,
     antennaLargestDimensionMetres: 1, antennaCentreHeightMetres: 10,
-    eastOffsetMetres: 3, northOffsetMetres: -2
+    eastOffsetMetres: 3, northOffsetMetres: -2,
+    patternType: 'directional', bearingDegrees: 75, beamwidthDegrees: 55
   }],
   evaluationPoints: [{ id: 'point-1', label: 'Property line', eastOffsetMetres: 20, northOffsetMetres: 5, heightMetres: 1.5 }]
 };
@@ -68,7 +69,7 @@ describe('exposure project files', () => {
 
   it('rejects unknown versions and invalid calculation inputs', () => {
     const file = createExposureProjectFile(project, 'project-1');
-    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 3 }))).toThrow(/version/i);
+    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 4 }))).toThrow(/version/i);
     expect(() => parseExposureProjectFile(JSON.stringify({
       ...file,
       project: { ...project, sources: [{ ...project.sources[0], frequencyMHz: -1 }] }
@@ -83,14 +84,24 @@ describe('exposure project files', () => {
       savedAt: '2026-11-11T12:00:00Z',
       project: {
         ...project,
-        sources: project.sources.map(({ eastOffsetMetres: _east, northOffsetMetres: _north, ...source }) => source),
+        sources: project.sources.map(({ eastOffsetMetres: _east, northOffsetMetres: _north, patternType: _pattern, bearingDegrees: _bearing, beamwidthDegrees: _beamwidth, ...source }) => source),
         evaluationPoints: [{ id: 'point-1', label: 'Property line', horizontalDistanceMetres: 20, heightMetres: 1.5 }]
       }
     };
     const migrated = parseExposureProjectFile(JSON.stringify(legacy));
-    expect(migrated.schemaVersion).toBe(2);
-    expect(migrated.project.sources[0]).toMatchObject({ eastOffsetMetres: 0, northOffsetMetres: 0 });
+    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.project.sources[0]).toMatchObject({ eastOffsetMetres: 0, northOffsetMetres: 0, patternType: 'unknown', bearingDegrees: 0, beamwidthDegrees: 90 });
     expect(migrated.project.evaluationPoints[0]).toMatchObject({ eastOffsetMetres: 20, northOffsetMetres: 0 });
+  });
+
+  it('migrates version 2 projects without pattern metadata', () => {
+    const legacy = createExposureProjectFile(project, 'legacy-v2', '2026-11-11T12:00:00Z') as unknown as Record<string, unknown>;
+    legacy.schemaVersion = 2;
+    const legacyProject = legacy.project as ExposureProjectData;
+    legacyProject.sources = legacyProject.sources.map(({ patternType: _pattern, bearingDegrees: _bearing, beamwidthDegrees: _beamwidth, ...source }) => source as typeof project.sources[number]);
+    const migrated = parseExposureProjectFile(JSON.stringify(legacy));
+    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.project.sources[0]).toMatchObject({ patternType: 'unknown', bearingDegrees: 0, beamwidthDegrees: 90 });
   });
 
   it('saves, updates, orders, and deletes local projects', () => {

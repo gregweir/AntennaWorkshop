@@ -9,6 +9,7 @@ import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from
 import type { ExposureEvaluationPointInput, ExposureProjectSourceInput } from '../calculators/exposureProject';
 import { formatCoordinate, type UnitSystem } from '../lib/units';
 import { createSitePlanViewport, snapSiteCoordinate, type SitePlanViewport, type SitePosition } from '../lib/sitePlanLayout';
+import { AzimuthPatternGlyph } from './AntennaAzimuthDiagram';
 
 interface Props {
   sources: ExposureProjectSourceInput[];
@@ -114,9 +115,10 @@ export function SiteLayoutEditor({ sources, points, unitSystem, onSourcePosition
         const position = { eastMetres: source.eastOffsetMetres, northMetres: source.northOffsetMetres };
         const canvas = viewport.toCanvas(position);
         return <g key={source.id} className={`site-editor-marker site-editor-source site-editor-source-${index % 6}${dragTarget?.kind === 'source' && dragTarget.id === source.id ? ' site-editor-dragging' : ''}`} transform={`translate(${canvas.x} ${canvas.y})`} role="button" tabIndex={0} aria-label={`${source.label} antenna at east ${formatCoordinate(source.eastOffsetMetres, unitSystem)}, north ${formatCoordinate(source.northOffsetMetres, unitSystem)}`} onPointerDown={(event) => startDrag(event, 'source', source.id)} onPointerMove={(event) => continueDrag(event, 'source', source.id)} onPointerUp={endDrag} onPointerCancel={endDrag} onKeyDown={(event) => nudge(event, 'source', source.id, position)}>
+          <AzimuthPatternGlyph source={source} radius={28} />
           <circle className="site-editor-hit" r="36" /><circle className="site-editor-focus" r="20" />
           <line x1="-10" y1="0" x2="10" y2="0" /><line x1="0" y1="-10" x2="0" y2="10" /><circle r="6" />
-          <text x="13" y="-13">{source.label}</text>
+          <text x="34" y={index % 2 === 0 ? 30 : -20}>{source.label}</text>
         </g>;
       })}
       {points.map((point) => {

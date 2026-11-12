@@ -32,7 +32,7 @@ interface StorageLike {
 }
 
 export const EXPOSURE_PROJECT_FILE_KIND = 'radiobook-antenna-workshop/exposure-project';
-export const EXPOSURE_PROJECT_FILE_VERSION = 2;
+export const EXPOSURE_PROJECT_FILE_VERSION = 3;
 export const EXPOSURE_PROJECT_LIBRARY_KEY = 'radiobook:antenna-workshop:exposure-projects:v1';
 export const EXPOSURE_PROJECT_CURRENT_KEY = 'radiobook:antenna-workshop:current-exposure-project:v1';
 export const EXPOSURE_PROJECT_LIBRARY_LIMIT = 24;
@@ -59,7 +59,7 @@ function text(value: unknown, label: string, maximumLength: number): string {
   return value.trim();
 }
 
-function source(value: unknown, legacyGeometry = false): ExposureProjectSourceInput {
+function source(value: unknown, legacyGeometry = false, legacyPattern = false): ExposureProjectSourceInput {
   if (!value || typeof value !== 'object') throw new TypeError('Every station source must be an object.');
   const candidate = value as Record<string, unknown>;
   const linkedModels = candidate.linkedModels;
@@ -83,6 +83,9 @@ function source(value: unknown, legacyGeometry = false): ExposureProjectSourceIn
     antennaCentreHeightMetres: finiteNumber(candidate.antennaCentreHeightMetres, 'Antenna centre height'),
     eastOffsetMetres: legacyGeometry ? 0 : finiteNumber(candidate.eastOffsetMetres, 'Source east coordinate'),
     northOffsetMetres: legacyGeometry ? 0 : finiteNumber(candidate.northOffsetMetres, 'Source north coordinate'),
+    patternType: legacyPattern ? 'unknown' : candidate.patternType as ExposureProjectSourceInput['patternType'],
+    bearingDegrees: legacyPattern ? 0 : finiteNumber(candidate.bearingDegrees, 'Maximum-response bearing'),
+    beamwidthDegrees: legacyPattern ? 90 : finiteNumber(candidate.beamwidthDegrees, 'Horizontal beamwidth'),
     linkedModels: validatedLinkedModels
   };
 }
@@ -101,7 +104,7 @@ function evaluationPoint(value: unknown, legacyGeometry = false): ExposureEvalua
   };
 }
 
-function projectData(value: unknown, legacyGeometry = false): ExposureProjectData {
+function projectData(value: unknown, legacyGeometry = false, legacyPattern = false): ExposureProjectData {
   if (!value || typeof value !== 'object') throw new TypeError('The project record is missing.');
   const candidate = value as Record<string, unknown>;
   if (!isJurisdiction(candidate.jurisdiction)) throw new TypeError('The project jurisdiction is not supported.');
@@ -115,7 +118,7 @@ function projectData(value: unknown, legacyGeometry = false): ExposureProjectDat
     jurisdiction: candidate.jurisdiction,
     environment: candidate.environment,
     sourceInventoryComplete: candidate.sourceInventoryComplete,
-    sources: candidate.sources.map((item) => source(item, legacyGeometry)),
+    sources: candidate.sources.map((item) => source(item, legacyGeometry, legacyPattern)),
     evaluationPoints: candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry))
   };
   calculateExposureProject(project);
@@ -144,9 +147,9 @@ export function parseExposureProjectFile(serialized: string): ExposureProjectFil
   if (!value || typeof value !== 'object') throw new TypeError('The selected file is not a project record.');
   const candidate = value as Record<string, unknown>;
   if (candidate.kind !== EXPOSURE_PROJECT_FILE_KIND) throw new TypeError('The selected file is not an Antenna Workshop exposure project.');
-  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
+  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
   return createExposureProjectFile(
-    projectData(candidate.project, candidate.schemaVersion === 1),
+    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2),
     text(candidate.projectId, 'Project identifier', 100),
     text(candidate.savedAt, 'Project save date', 100)
   );

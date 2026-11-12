@@ -77,6 +77,9 @@ export function createStationSourceTransfer(
       antennaCentreHeightMetres: system.antennaCentreHeightMetres,
       eastOffsetMetres: system.eastOffsetMetres,
       northOffsetMetres: system.northOffsetMetres,
+      patternType: 'unknown',
+      bearingDegrees: 0,
+      beamwidthDegrees: 90,
       linkedModels: {
         antennaDesignId: design.antennaModelId,
         antennaDesignVersion: design.antennaModelVersion,
