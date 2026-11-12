@@ -18,6 +18,7 @@ import { ExposureScreenPanel } from './ExposureScreenPanel';
 
 interface Props {
   jurisdiction: JurisdictionCode;
+  setJurisdiction: (jurisdiction: JurisdictionCode) => void;
   unitSystem: UnitSystem;
 }
 
@@ -30,7 +31,7 @@ const viewOptions: Array<{ id: ExposureView; title: string; description: string 
   { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields' }
 ];
 
-export function ExposureReferenceWorkbench({ jurisdiction, unitSystem }: Props) {
+export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem }: Props) {
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [environment, setEnvironment] = useState<ExposureEnvironment>('uncontrolled');
   const [view, setView] = useState<ExposureView>('reference');
@@ -89,7 +90,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, unitSystem }: Props) 
       </div>
     </section>}
     {view === 'single' && <ExposureScreenPanel jurisdiction={exposureJurisdiction} environment={environment} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
-    {view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} />}
+    {view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} onJurisdictionChange={setJurisdiction} onEnvironmentChange={setEnvironment} />}
     {view === 'aggregate' && <ExposureAggregationPanel jurisdiction={exposureJurisdiction} environment={environment} />}
   </section>;
 }

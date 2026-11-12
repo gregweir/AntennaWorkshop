@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   calculateExposureProject,
   EXPOSURE_PROJECT_MODEL,
@@ -15,6 +15,18 @@ import {
 import { EXPOSURE_AGGREGATION_MODEL } from '../calculators/exposureAggregation';
 import { EXPOSURE_SCREEN_MODEL } from '../calculators/exposureScreen';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
+import {
+  createExposureProjectFile,
+  deleteExposureProjectFile,
+  exposureProjectFilename,
+  getCurrentExposureProjectId,
+  loadExposureProjectLibrary,
+  parseExposureProjectFile,
+  saveExposureProjectFile,
+  serializeExposureProjectFile,
+  type ExposureProjectData,
+  type ExposureProjectFile
+} from '../projects/exposureProjectFiles';
 import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/exposureLimits';
 import { ExposureProjectDiagram } from './ExposureProjectDiagram';
 
@@ -22,6 +34,8 @@ interface Props {
   jurisdiction: ExposureJurisdiction;
   environment: ExposureEnvironment;
   unitSystem: UnitSystem;
+  onJurisdictionChange: (jurisdiction: ExposureJurisdiction) => void;
+  onEnvironmentChange: (environment: ExposureEnvironment) => void;
 }
 
 const initialSources: ExposureProjectSourceInput[] = [
@@ -44,6 +58,21 @@ const initialPoints: ExposureEvaluationPointInput[] = [
   { id: 'project-point-2', label: 'Property line', horizontalDistanceMetres: 30, heightMetres: 1.5 }
 ];
 
+function projectId() {
+  return globalThis.crypto?.randomUUID?.() ?? `station-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function starterProject(jurisdiction: ExposureJurisdiction, environment: ExposureEnvironment): ExposureProjectData {
+  return {
+    title: 'Home station RF assessment',
+    jurisdiction,
+    environment,
+    sourceInventoryComplete: false,
+    sources: initialSources.map((source) => ({ ...source })),
+    evaluationPoints: initialPoints.map((point) => ({ ...point }))
+  };
+}
+
 const statusCopy = {
   'below-screening-trigger': ['All modelled points are below the screening trigger', 'Every listed location is beyond the conservative far-field boundary and its normalized source total is below the selected review trigger. This is not a compliance determination.'],
   'further-analysis-required': ['Further analysis is required at one or more points', 'At least one location reaches the selected screening trigger. Refine the model, measure the site, or apply appropriate mitigation.'],
@@ -51,20 +80,134 @@ const statusCopy = {
   'method-inapplicable': ['Far-field screening is inapplicable at one or more points', 'At least one source–location path lies inside its conservative far-field boundary. That location requires a suitable near-field method or measurement.']
 } as const;
 
-export function ExposureProjectPanel({ jurisdiction, environment, unitSystem }: Props) {
-  const [projectTitle, setProjectTitle] = useState('Home station RF assessment');
-  const [sources, setSources] = useState(initialSources);
-  const [points, setPoints] = useState(initialPoints);
-  const [sourceInventoryComplete, setSourceInventoryComplete] = useState(false);
+export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, onJurisdictionChange, onEnvironmentChange }: Props) {
+  const initialState = useMemo(() => {
+    const library = loadExposureProjectLibrary(window.localStorage);
+    const currentId = getCurrentExposureProjectId(window.localStorage);
+    const file = library.find((project) => project.projectId === currentId) ?? library[0]
+      ?? createExposureProjectFile(starterProject(jurisdiction, environment), projectId());
+    return { library, file };
+  }, []);
+  const [currentProjectId, setCurrentProjectId] = useState(initialState.file.projectId);
+  const [projectTitle, setProjectTitle] = useState(initialState.file.project.title);
+  const [projectJurisdiction, setProjectJurisdiction] = useState(initialState.file.project.jurisdiction);
+  const [projectEnvironment, setProjectEnvironment] = useState(initialState.file.project.environment);
+  const [sources, setSources] = useState(initialState.file.project.sources);
+  const [points, setPoints] = useState(initialState.file.project.evaluationPoints);
+  const [sourceInventoryComplete, setSourceInventoryComplete] = useState(initialState.file.project.sourceInventoryComplete);
+  const [savedProjects, setSavedProjects] = useState(initialState.library);
+  const [storageMessage, setStorageMessage] = useState('Changes are saved automatically on this device.');
   const nextSourceId = useRef(3);
   const nextPointId = useRef(3);
+  const importInput = useRef<HTMLInputElement>(null);
+  const lastExternalJurisdiction = useRef(jurisdiction);
+  const lastExternalEnvironment = useRef(environment);
+  const projectData = useMemo<ExposureProjectData>(() => ({
+    title: projectTitle || 'Untitled station assessment',
+    jurisdiction: projectJurisdiction,
+    environment: projectEnvironment,
+    sourceInventoryComplete,
+    sources,
+    evaluationPoints: points
+  }), [projectTitle, projectJurisdiction, projectEnvironment, sourceInventoryComplete, sources, points]);
+
+  useEffect(() => {
+    if (jurisdiction === lastExternalJurisdiction.current) return;
+    lastExternalJurisdiction.current = jurisdiction;
+    setProjectJurisdiction(jurisdiction);
+  }, [jurisdiction]);
+
+  useEffect(() => {
+    if (environment === lastExternalEnvironment.current) return;
+    lastExternalEnvironment.current = environment;
+    setProjectEnvironment(environment);
+  }, [environment]);
+
+  useEffect(() => {
+    onJurisdictionChange(projectJurisdiction);
+    onEnvironmentChange(projectEnvironment);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const file = createExposureProjectFile(projectData, currentProjectId);
+      const projects = saveExposureProjectFile(file, window.localStorage);
+      setSavedProjects(projects);
+      const stored = loadExposureProjectLibrary(window.localStorage).some((project) =>
+        project.projectId === file.projectId && project.savedAt === file.savedAt
+      );
+      setStorageMessage(stored
+        ? `Saved locally at ${new Date(file.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
+        : 'Browser storage is unavailable. Export a JSON copy to preserve this project.');
+    } catch {
+      setStorageMessage('This project contains invalid inputs and has not been saved.');
+    }
+  }, [currentProjectId, projectData]);
+
+  const applyProject = (file: ExposureProjectFile) => {
+    setCurrentProjectId(file.projectId);
+    setProjectTitle(file.project.title);
+    setProjectJurisdiction(file.project.jurisdiction);
+    setProjectEnvironment(file.project.environment);
+    setSources(file.project.sources);
+    setPoints(file.project.evaluationPoints);
+    setSourceInventoryComplete(file.project.sourceInventoryComplete);
+    onJurisdictionChange(file.project.jurisdiction);
+    onEnvironmentChange(file.project.environment);
+    nextSourceId.current = file.project.sources.length + 1;
+    nextPointId.current = file.project.evaluationPoints.length + 1;
+  };
+
+  const newProject = () => {
+    const file = createExposureProjectFile(starterProject(projectJurisdiction, projectEnvironment), projectId());
+    applyProject(file);
+    setStorageMessage('New project started. Changes are saved automatically.');
+  };
+
+  const deleteProject = () => {
+    if (!window.confirm(`Delete “${projectTitle || 'Untitled station assessment'}” from this device? Export it first if you need a portable copy.`)) return;
+    const remaining = deleteExposureProjectFile(currentProjectId, window.localStorage);
+    setSavedProjects(remaining);
+    if (remaining.length) applyProject(remaining[0]);
+    else newProject();
+    setStorageMessage('Project deleted from this device.');
+  };
+
+  const exportProject = () => {
+    const file = createExposureProjectFile(projectData, currentProjectId);
+    const url = URL.createObjectURL(new Blob([serializeExposureProjectFile(file)], { type: 'application/json' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = exposureProjectFilename(file.project.title);
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setStorageMessage('Portable project copy exported.');
+  };
+
+  const importProject = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = parseExposureProjectFile(await file.text());
+      const localCopy = createExposureProjectFile(imported.project, projectId());
+      applyProject(localCopy);
+      setStorageMessage(`Imported “${localCopy.project.title}” as a new local project.`);
+    } catch (error) {
+      setStorageMessage(error instanceof Error ? `Import failed: ${error.message}` : 'Import failed: invalid project file.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+
   const result = useMemo(() => {
     try {
-      return calculateExposureProject({ jurisdiction, environment, sourceInventoryComplete, sources, evaluationPoints: points });
+      return calculateExposureProject({ jurisdiction: projectJurisdiction, environment: projectEnvironment, sourceInventoryComplete, sources, evaluationPoints: points });
     } catch {
       return null;
     }
-  }, [jurisdiction, environment, sourceInventoryComplete, sources, points]);
+  }, [projectJurisdiction, projectEnvironment, sourceInventoryComplete, sources, points]);
 
   const lengthUnit = unitSystem === 'metric' ? 'm' : 'ft';
   const displayLength = (metres: number) => unitSystem === 'metric' ? metres : metresToFeet(metres);
@@ -77,14 +220,16 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem }: 
     setPoints((current) => current.map((point) => point.id === id ? { ...point, ...patch } : point));
   };
   const addSource = () => {
-    const id = `project-source-${nextSourceId.current++}`;
+    let id = `project-source-${nextSourceId.current++}`;
+    while (sources.some((source) => source.id === id)) id = `project-source-${nextSourceId.current++}`;
     setSources((current) => [...current, {
       ...initialSources[0], id, label: `Station source ${current.length + 1}`
     }]);
     setSourceInventoryComplete(false);
   };
   const addPoint = () => {
-    const id = `project-point-${nextPointId.current++}`;
+    let id = `project-point-${nextPointId.current++}`;
+    while (points.some((point) => point.id === id)) id = `project-point-${nextPointId.current++}`;
     setPoints((current) => [...current, { id, label: `Evaluation point ${current.length + 1}`, horizontalDistanceMetres: 20, heightMetres: 1.5 }]);
   };
   const status = result ? statusCopy[result.status] : null;
@@ -95,6 +240,17 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem }: 
     <p className="screen-intro">Model several transmitters on one common antenna support across several accessible locations. Calculated source contributions flow directly into the normalized total for each location.</p>
 
     <div className="project-editor">
+      <section className="project-library" aria-labelledby="project-library-heading">
+        <div><p className="eyebrow">On-device project library</p><h4 id="project-library-heading">Saved station projects</h4><p>Your station data stays in this browser unless you export a copy.</p></div>
+        <label className="field"><span>Open project</span><select aria-label="Open saved station project" value={currentProjectId} onChange={(event) => { const file = savedProjects.find((project) => project.projectId === event.target.value); if (file) applyProject(file); }}>{savedProjects.map((project) => <option key={project.projectId} value={project.projectId}>{project.project.title}</option>)}</select></label>
+        <div className="project-library-actions">
+          <button type="button" onClick={newProject}>New project</button>
+          <button type="button" onClick={exportProject}>Export JSON</button>
+          <label className="project-import-button">Import JSON<input ref={importInput} aria-label="Import project JSON" type="file" accept="application/json,.json" onChange={importProject} /></label>
+          <button type="button" className="project-delete-button" onClick={deleteProject}>Delete project</button>
+        </div>
+        <p className="project-storage-message" aria-live="polite">{storageMessage}</p>
+      </section>
       <label className="field project-title-field"><span>Project title</span><input value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} /></label>
       <div className="project-editor-heading"><div><p className="eyebrow">Station sources</p><h4>Transmitters and antennas</h4></div><button type="button" className="add-source" disabled={sources.length >= 8} onClick={addSource}>+ Add station source</button></div>
       <div className="project-source-list">{sources.map((source, index) => <details key={source.id} className="project-source-editor">
@@ -124,7 +280,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem }: 
 
     {!result && <p className="validation-message" role="alert">One or more project inputs are invalid or outside the selected jurisdiction’s power-density model. No project result is produced.</p>}
     {result && status && <div className="project-report" aria-label="Printable exposure assessment record">
-      <div className="project-report-heading"><div><p className="eyebrow">Assessment record</p><h4>{projectTitle || 'Untitled station assessment'}</h4><p>{jurisdiction === 'CA' ? 'Canada' : 'United States'} · {environment === 'uncontrolled' ? 'General public / uncontrolled' : 'Occupational / controlled'} · {sources.length} sources · {points.length} locations</p></div><div className="project-actions"><button type="button" onClick={() => window.print()}>Print assessment</button></div></div>
+      <div className="project-report-heading"><div><p className="eyebrow">Assessment record</p><h4>{projectTitle || 'Untitled station assessment'}</h4><p>{projectJurisdiction === 'CA' ? 'Canada' : 'United States'} · {projectEnvironment === 'uncontrolled' ? 'General public / uncontrolled' : 'Occupational / controlled'} · {sources.length} sources · {points.length} locations</p></div><div className="project-actions"><button type="button" onClick={() => window.print()}>Print assessment</button></div></div>
       <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Project outcome</p><h4>{status[0]}</h4><p>{status[1]}</p></div>
       <ExposureProjectDiagram result={result} unitSystem={unitSystem} />
       <div className="project-point-results">{result.pointResults.map((pointResult) => <article className={pointResult.point.id === result.worstPointId ? 'project-worst-point' : ''} key={pointResult.point.id}>

@@ -27,9 +27,10 @@ The public repository currently includes:
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
 - Official Canadian and United States RF power-density reference levels.
 - Conservative single-source far-field screening, frequency-normalized multiple-source aggregation, and printable multi-point station projects.
+- An on-device station-project library with validated, versioned JSON import and export.
 - An installable PWA shell, persistent preferences, explicit update prompts, and automated unit and browser tests.
 
-Saved projects, printable records, near-field exposure methods, independent RF review, and production deployment remain release blockers.
+Near-field exposure methods, independent RF review, and production deployment remain release blockers.
 
 ## Core experience
 

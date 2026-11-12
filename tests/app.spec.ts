@@ -19,7 +19,7 @@ test('persists jurisdiction, units, and advanced controls', async ({ page }) => 
   await page.getByRole('button', { name: 'Show advanced' }).click();
   await page.reload();
 
-  await expect(page.getByLabel('Station jurisdiction')).toHaveValue('US');
+  await expect(page.locator('.global-controls select')).toHaveValue('US');
   await expect(page.getByRole('button', { name: 'Imperial' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: 'Hide advanced' })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: /Length correction factor/ })).toBeVisible();
@@ -255,6 +255,46 @@ test('calculates a multi-source station project across accessible locations', as
   await expect(page.locator('.tool-nav')).toBeHidden();
   await expect(project.locator('.project-editor')).toBeHidden();
   await expect(project.locator('.project-print-contributions').first()).toBeVisible();
+});
+
+test('persists and transfers validated station projects', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  let project = page.locator('.project-section');
+
+  await project.getByLabel('Project title').fill('Field day station');
+  await page.locator('.global-controls select').selectOption('US');
+  await page.getByLabel('Exposure environment').selectOption('controlled');
+  await project.getByRole('spinbutton', { name: 'Project point 1 horizontal distance' }).fill('42');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('Field day station');
+
+  await page.reload();
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  project = page.locator('.project-section');
+  await expect(project.getByLabel('Project title')).toHaveValue('Field day station');
+  await expect(page.locator('.global-controls select')).toHaveValue('US');
+  await expect(page.getByLabel('Exposure environment')).toHaveValue('controlled');
+  await expect(project.getByRole('spinbutton', { name: 'Project point 1 horizontal distance' })).toHaveValue('42');
+
+  const downloadPromise = page.waitForEvent('download');
+  await project.getByRole('button', { name: 'Export JSON' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('field-day-station.antenna-project.json');
+  const exportedPath = await download.path();
+  expect(exportedPath).not.toBeNull();
+
+  await project.getByRole('button', { name: 'New project' }).click();
+  await expect(project.getByLabel('Project title')).toHaveValue('Home station RF assessment');
+  await expect(project.getByLabel('Open saved station project').locator('option')).toHaveCount(2);
+
+  await project.getByLabel('Import project JSON').setInputFiles(exportedPath!);
+  await expect(project.getByLabel('Project title')).toHaveValue('Field day station');
+  await expect(project.getByLabel('Open saved station project').locator('option')).toHaveCount(3);
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await project.getByRole('button', { name: 'Delete project' }).click();
+  await expect(project.getByLabel('Open saved station project').locator('option')).toHaveCount(2);
 });
 
 test('has no horizontal overflow on a narrow screen', async ({ page }) => {

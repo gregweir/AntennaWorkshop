@@ -665,6 +665,93 @@ select {
   margin-top: 1.25rem;
 }
 
+.project-library {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 0.8fr);
+  gap: 0.9rem 1.25rem;
+  align-items: end;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: inset 4px 0 0 var(--accent-technical);
+}
+
+.project-library h4 {
+  margin: 0.2rem 0 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+}
+
+.project-library p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.project-library .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.project-library select {
+  width: 100%;
+}
+
+.project-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  grid-column: 1 / -1;
+}
+
+.project-library-actions button,
+.project-import-button {
+  min-height: 42px;
+  padding: 0.62rem 0.8rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.project-import-button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.project-import-button:focus-within {
+  outline: 3px solid var(--tl-coral);
+  outline-offset: 2px;
+}
+
+.project-import-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.project-library-actions .project-delete-button {
+  margin-left: auto;
+  border-color: var(--tl-coral);
+}
+
+.project-library .project-storage-message {
+  grid-column: 1 / -1;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
 .project-title-field {
   max-width: 36rem;
   margin: 0;
@@ -2448,9 +2535,20 @@ select {
 
   .exposure-mode-picker,
   .exposure-context-panel,
+  .project-library,
   .project-field-grid,
   .project-point-editor {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-library-actions > button,
+  .project-import-button {
+    flex: 1 1 calc(50% - 0.55rem);
+    justify-content: center;
+  }
+
+  .project-library-actions .project-delete-button {
+    margin-left: 0;
   }
 
   .project-source-editor summary {

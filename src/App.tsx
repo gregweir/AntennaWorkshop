@@ -86,7 +86,7 @@ export function App() {
         ? <AntennaWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} />
         : workshopTool === 'feedline'
           ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} />
-          : <ExposureReferenceWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} />}
+          : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} />}
 
       <section className="roadmap shell" aria-labelledby="roadmap-title">
         <p className="eyebrow">Workshop roadmap</p>
