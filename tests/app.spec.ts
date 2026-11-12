@@ -180,7 +180,7 @@ test('carries an antenna and feed-system source into a station project', async (
   await expect(project.locator('.project-source-editor')).toHaveCount(3);
   const transferred = project.locator('.project-source-editor').last();
   await expect(transferred).toContainText('14.2 MHz · 75 W · linked workflow');
-  await transferred.locator('summary').click();
+  await transferred.locator(':scope > summary').click();
   await expect(transferred).toContainText('half-wave-dipole 1.0.0');
   await expect(transferred.getByLabel('Project source 3 duty cycle')).toHaveValue('25');
   await expect(transferred.getByLabel('Project source 3 feed loss')).toHaveValue('2');
@@ -287,6 +287,16 @@ test('calculates a multi-source station project across accessible locations', as
   await expect(project.locator('.project-point-results article')).toHaveCount(2);
   await expect(project.getByRole('button', { name: 'Print assessment' })).toBeVisible();
 
+  await expect(project.getByText('Set the assessment context')).toBeHidden();
+  await project.getByText('Build a station assessment project').click();
+  await expect(project.getByText('Set the assessment context')).toBeVisible();
+  await expect(project).toContainText('This is a preliminary engineering screen');
+
+  const firstSource = project.locator('.project-source-editor').first();
+  await firstSource.locator(':scope > summary').click();
+  await firstSource.getByLabel('Help: Source 1 largest antenna dimension').click();
+  await expect(project.getByRole('note').filter({ hasText: 'Source 1 largest antenna dimension' })).toContainText('far-field boundary');
+
   await project.getByRole('checkbox', { name: /Station-site source inventory assessed/ }).check();
   await expect(project.locator('.screen-outcome')).toContainText('All modelled points are below the screening trigger');
 
@@ -386,7 +396,7 @@ test('records and visualizes antenna azimuth orientation without reducing the ex
   await page.getByRole('button', { name: /Station project/ }).click();
   let project = page.locator('.project-section');
   await project.getByRole('checkbox', { name: /Station-site source inventory assessed/ }).check();
-  await project.locator('.project-source-editor').first().locator('summary').click();
+  await project.locator('.project-source-editor').first().locator(':scope > summary').click();
 
   await project.getByLabel('Project source 1 azimuth pattern').selectOption('directional');
   await project.getByRole('spinbutton', { name: 'Project source 1 bearing' }).fill('90');
@@ -407,7 +417,7 @@ test('records and visualizes antenna azimuth orientation without reducing the ex
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();
   project = page.locator('.project-section');
-  await project.locator('.project-source-editor').first().locator('summary').click();
+  await project.locator('.project-source-editor').first().locator(':scope > summary').click();
   await expect(project.getByLabel('Project source 1 azimuth pattern')).toHaveValue('directional');
   await expect(project.getByRole('spinbutton', { name: 'Project source 1 bearing' })).toHaveValue('90');
   await expect(project.getByLabel('Project source 1 beamwidth')).toHaveValue('55');
@@ -427,7 +437,7 @@ test('duplicates and compares station scenarios without overwriting the baseline
   await expect(comparison).toContainText('Baseline: Home station RF assessment');
   await expect(comparison).toContainText('No calculated change');
 
-  await project.locator('.project-source-editor').first().locator('summary').click();
+  await project.locator('.project-source-editor').first().locator(':scope > summary').click();
   await project.getByRole('spinbutton', { name: 'Project source 1 transmitter output' }).fill('100');
   await expect(comparison).toContainText('+1.73 percentage points');
   await expect(comparison).toContainText('Higher in current scenario');
@@ -568,7 +578,7 @@ test('records, transfers, and audits assessment evidence', async ({ page }) => {
   expect(exported.project.evidenceEntries).toMatchObject([{ category: 'measurement', title: 'Mast height field check', reviewer: 'Greg Weir, VA1GW', reviewDueOn: '2020-01-01', referenceUrl: 'https://www.radiobook.ca/', scopeType: 'source', scopeId: 'project-source-1', relatedField: 'antennaCentreHeightMetres', qualityChecks: ['measurement-value', 'measurement-method', 'measurement-instrument', 'measurement-uncertainty'] }]);
 
   const firstSource = project.locator('.project-source-editor').first();
-  await firstSource.locator('summary').click();
+  await firstSource.locator(':scope > summary').click();
   await firstSource.getByRole('button', { name: 'Remove source' }).click();
   await expect(evidenceLog.locator('.evidence-scope')).toContainText('Whole project · General / multiple inputs');
 });

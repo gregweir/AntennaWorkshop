@@ -1410,7 +1410,7 @@ select {
 
 .step-by-step-help ol {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
   gap: 0.55rem;
   margin: 0;
   padding: 0;
@@ -1497,6 +1497,12 @@ select {
 .context-help[open] > summary {
   background: var(--tl-navy);
   color: var(--tl-cream);
+}
+
+.context-help > summary span {
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
 }
 
 .context-help-panel {
@@ -3327,6 +3333,13 @@ select {
   border: 1px solid var(--tl-coral);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
+}
+
+.inventory-confirmation-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: start;
 }
 
 .inventory-confirmation input {
