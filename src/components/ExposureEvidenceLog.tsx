@@ -22,6 +22,30 @@ interface Props {
   captureRequest?: EvidenceCaptureRequest | null;
 }
 
+type EvidenceTemplateId = 'source-reference' | 'measurement' | 'assumption' | 'review-note';
+
+interface EvidenceTemplate {
+  id: EvidenceTemplateId;
+  label: string;
+  category: ExposureEvidenceCategory;
+  titleSuffix: string;
+  description: string;
+  detailPlaceholder: string;
+}
+
+const evidenceTemplates: EvidenceTemplate[] = [
+  { id: 'source-reference', label: 'Manufacturer or official source', category: 'source-reference', titleSuffix: 'source reference', description: 'For manuals, regulations, data sheets, and other authoritative published material.', detailPlaceholder: 'Identify the document, issuer, revision or date, page or section, and the value or statement it supports.' },
+  { id: 'measurement', label: 'Field or bench measurement', category: 'measurement', titleSuffix: 'measurement record', description: 'For measured power, dimensions, loss, position, height, or field strength.', detailPlaceholder: 'Record the measured value and units, instrument and calibration status, method, conditions, repeatability, and uncertainty.' },
+  { id: 'assumption', label: 'Conservative assumption', category: 'assumption', titleSuffix: 'assumption basis', description: 'For a documented conservative choice when a verified value is not available.', detailPlaceholder: 'State the assumed value and units, why it is conservative, its source or rationale, and what would require it to be revised.' },
+  { id: 'review-note', label: 'Technical review note', category: 'review-note', titleSuffix: 'review note', description: 'For inventory checks, reviewer conclusions, open questions, and follow-up actions.', detailPlaceholder: 'State what was reviewed, the conclusion, unresolved limitations, required follow-up, and who remains responsible for it.' }
+];
+
+function recommendedTemplateId(relatedField: ExposureEvidenceRelatedField): EvidenceTemplateId {
+  if (relatedField === 'sourceInventoryComplete') return 'review-note';
+  if (['transmitterPowerWatts', 'feedSystemLossDb', 'antennaLargestDimensionMetres', 'antennaCentreHeightMetres', 'eastOffsetMetres', 'northOffsetMetres', 'heightMetres'].includes(relatedField)) return 'measurement';
+  return 'source-reference';
+}
+
 export const evidenceCategoryLabels: Record<ExposureEvidenceCategory, string> = {
   assumption: 'Assumption',
   measurement: 'Measurement',
@@ -110,7 +134,9 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
   const [draft, setDraft] = useState<EvidenceDraft>(emptyDraft);
   const [editingId, setEditingId] = useState('');
   const [error, setError] = useState('');
-  const [captureMessage, setCaptureMessage] = useState('');
+  const [formMessage, setFormMessage] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<EvidenceTemplateId>('assumption');
+  const [detailPlaceholder, setDetailPlaceholder] = useState('State the assumption, measurement method and value, source citation, or review conclusion.');
   const formRef = useRef<HTMLFormElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
 
@@ -118,9 +144,11 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
     if (!captureRequest) return;
     const { target } = captureRequest;
     setDraft({ ...emptyDraft(), scopeType: target.scopeType, scopeId: target.scopeId, relatedField: target.relatedField as ExposureEvidenceRelatedField });
+    setSelectedTemplateId(recommendedTemplateId(target.relatedField as ExposureEvidenceRelatedField));
+    setDetailPlaceholder('State the assumption, measurement method and value, source citation, or review conclusion.');
     setEditingId('');
     setError('');
-    setCaptureMessage(`Evidence form prepared for ${target.label}. Choose a category and add the supporting record.`);
+    setFormMessage(`Evidence form prepared for ${target.label}. Choose a template or category and add the supporting record.`);
     const frame = requestAnimationFrame(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       categoryRef.current?.focus({ preventScroll: true });
@@ -132,11 +160,24 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
     setDraft((current) => ({ ...current, [key]: value }));
     setError('');
   };
+  const applyTemplate = () => {
+    const template = evidenceTemplates.find((candidate) => candidate.id === selectedTemplateId) ?? evidenceTemplates[0];
+    setDraft((current) => ({
+      ...current,
+      category: template.category,
+      title: current.title.trim() || `${evidenceFieldLabels[current.relatedField]} ${template.titleSuffix}`
+    }));
+    setDetailPlaceholder(template.detailPlaceholder);
+    setError('');
+    setFormMessage(`${template.label} template applied. Scope and existing text were preserved; enter the actual supporting evidence.`);
+  };
   const cancel = () => {
     setDraft(emptyDraft());
     setEditingId('');
     setError('');
-    setCaptureMessage('');
+    setFormMessage('');
+    setSelectedTemplateId('assumption');
+    setDetailPlaceholder('State the assumption, measurement method and value, source citation, or review conclusion.');
   };
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -163,6 +204,9 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
   const edit = (entry: ExposureEvidenceEntry) => {
     setEditingId(entry.id);
     setDraft({ category: entry.category, title: entry.title, detail: entry.detail, recordedOn: entry.recordedOn, reviewer: entry.reviewer, referenceUrl: entry.referenceUrl ?? '', scopeType: entry.scopeType, scopeId: entry.scopeId, relatedField: entry.relatedField });
+    setSelectedTemplateId(entry.category);
+    setDetailPlaceholder('State the assumption, measurement method and value, source citation, or review conclusion.');
+    setFormMessage('');
     setError('');
   };
 
@@ -170,15 +214,16 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
     <div className="project-editor-heading"><div><p className="eyebrow">Assessment documentation</p><h4 id="evidence-log-heading">Evidence and review log</h4><p>Link supporting records to the whole project, a transmitter, an evaluation point, or one specific input. Notes improve traceability but do not validate an assumption or establish compliance.</p></div><span className="evidence-count">{entries.length} / 120 entries</span></div>
     <form ref={formRef} className="evidence-form" onSubmit={submit}>
       <div className="evidence-form-heading"><strong>{editingId ? 'Edit evidence entry' : 'Add evidence entry'}</strong><small>Required fields are marked.</small></div>
-      {captureMessage && <p className="evidence-capture-message" role="status" aria-live="polite">{captureMessage}</p>}
+      {formMessage && <p className="evidence-capture-message" role="status" aria-live="polite">{formMessage}</p>}
+      <div className="evidence-template-picker"><div><strong>Reusable starting point</strong><p>Templates set a category, suggest a title, and provide a detail prompt. They never supply an evidence value.</p></div><label className="field"><span>Evidence template</span><select aria-label="Evidence template" value={selectedTemplateId} onChange={(event) => setSelectedTemplateId(event.target.value as EvidenceTemplateId)}>{evidenceTemplates.map((template) => <option value={template.id} key={template.id}>{template.label}</option>)}</select><small>{evidenceTemplates.find((template) => template.id === selectedTemplateId)?.description}</small></label><button type="button" onClick={applyTemplate}>Apply template</button></div>
       <label className="field"><span>Category *</span><select ref={categoryRef} aria-label="Evidence category" value={draft.category} onChange={(event) => updateDraft('category', event.target.value as ExposureEvidenceCategory)}>{Object.entries(evidenceCategoryLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       <label className="field"><span>Scope *</span><select aria-label="Evidence scope" value={draft.scopeType} onChange={(event) => { const scopeType = event.target.value as ExposureEvidenceScopeType; setDraft((current) => ({ ...current, scopeType, scopeId: scopeType === 'source' ? sources[0]?.id : scopeType === 'point' ? points[0]?.id : undefined, relatedField: 'general' })); setError(''); }}>{Object.entries(scopeTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       {draft.scopeType !== 'project' && <label className="field"><span>{draft.scopeType === 'source' ? 'Station source' : 'Evaluation point'} *</span><select aria-label="Evidence scope item" value={draft.scopeId ?? ''} onChange={(event) => updateDraft('scopeId', event.target.value)}>{(draft.scopeType === 'source' ? sources : points).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>}
       <label className="field"><span>Related input *</span><select aria-label="Evidence related input" value={draft.relatedField} onChange={(event) => updateDraft('relatedField', event.target.value as ExposureEvidenceRelatedField)}>{relatedFields[draft.scopeType].map((field) => <option value={field} key={field}>{evidenceFieldLabels[field]}</option>)}</select></label>
-      <label className="field"><span>Title *</span><input aria-label="Evidence title" maxLength={160} value={draft.title} onChange={(event) => updateDraft('title', event.target.value)} /></label>
+      <label className="field evidence-title-field"><span>Title *</span><input aria-label="Evidence title" maxLength={160} value={draft.title} onChange={(event) => updateDraft('title', event.target.value)} /></label>
       <label className="field"><span>Review date *</span><input aria-label="Evidence review date" type="date" value={draft.recordedOn} onChange={(event) => updateDraft('recordedOn', event.target.value)} /></label>
       <label className="field"><span>Reviewer *</span><input aria-label="Evidence reviewer" maxLength={160} placeholder="Name or call sign" value={draft.reviewer} onChange={(event) => updateDraft('reviewer', event.target.value)} /></label>
-      <label className="field evidence-detail-field"><span>Detail *</span><textarea aria-label="Evidence detail" maxLength={4000} rows={4} placeholder="State the assumption, measurement method and value, source citation, or review conclusion." value={draft.detail} onChange={(event) => updateDraft('detail', event.target.value)} /></label>
+      <label className="field evidence-detail-field"><span>Detail *</span><textarea aria-label="Evidence detail" maxLength={4000} rows={4} placeholder={detailPlaceholder} value={draft.detail} onChange={(event) => updateDraft('detail', event.target.value)} /></label>
       <label className="field evidence-reference-field"><span>Reference link</span><input aria-label="Evidence reference link" type="url" maxLength={1000} placeholder="https://…" value={draft.referenceUrl} onChange={(event) => updateDraft('referenceUrl', event.target.value)} /><small>Optional. Link to a regulation, manual, calibration record, or other supporting source.</small></label>
       {error && <p className="validation-message evidence-form-error" role="alert">{error}</p>}
       <div className="evidence-form-actions"><button type="submit" disabled={!editingId && entries.length >= 120}>{editingId ? 'Save evidence changes' : 'Add to evidence log'}</button>{editingId && <button type="button" className="secondary-button" onClick={cancel}>Cancel edit</button>}</div>

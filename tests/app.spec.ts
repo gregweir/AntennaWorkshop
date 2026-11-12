@@ -335,10 +335,15 @@ test('tracks assessment blockers, documentation gaps, and external review separa
   await expect(evidenceLog.getByLabel('Evidence scope', { exact: true })).toHaveValue('source');
   await expect(evidenceLog.getByLabel('Evidence scope item')).toHaveValue('project-source-1');
   await expect(evidenceLog.getByLabel('Evidence related input')).toHaveValue('transmitterPowerWatts');
-  await evidenceLog.getByLabel('Evidence category').selectOption('source-reference');
-  await evidenceLog.getByLabel('Evidence title').fill('Transmitter power specification');
+  await expect(evidenceLog.getByLabel('Evidence template')).toHaveValue('measurement');
+  await evidenceLog.getByRole('button', { name: 'Apply template' }).click();
+  await expect(evidenceLog.getByRole('status')).toContainText('Field or bench measurement template applied');
+  await expect(evidenceLog.getByLabel('Evidence category')).toHaveValue('measurement');
+  await expect(evidenceLog.getByLabel('Evidence title')).toHaveValue('Transmitter output measurement record');
+  await expect(evidenceLog.getByLabel('Evidence detail')).toHaveAttribute('placeholder', /instrument and calibration status/i);
+  await expect(evidenceLog.getByLabel('Evidence scope item')).toHaveValue('project-source-1');
   await evidenceLog.getByLabel('Evidence reviewer').fill('Greg Weir, VA1GW');
-  await evidenceLog.getByLabel('Evidence detail').fill('Rated transmitter output confirmed from the current equipment manual.');
+  await evidenceLog.getByLabel('Evidence detail').fill('Measured transmitter output with a calibrated inline wattmeter and recorded the test conditions.');
   await evidenceLog.getByRole('button', { name: 'Add to evidence log' }).click();
   await expect(checklist.getByLabel('Missing critical value').getByRole('option', { name: '2 m vertical · Transmitter output' })).toHaveCount(0);
   await expect(checklist.locator('.assessment-check-attention').filter({ hasText: 'Critical input evidence coverage' })).toContainText('1 of 25 critical values');

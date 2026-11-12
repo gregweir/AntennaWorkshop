@@ -1366,6 +1366,7 @@ select {
 
 .evidence-form-heading,
 .evidence-capture-message,
+.evidence-template-picker,
 .evidence-detail-field,
 .evidence-reference-field,
 .evidence-form-error,
@@ -1393,9 +1394,49 @@ select {
   font-size: 0.78rem;
 }
 
+.evidence-template-picker {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1.2fr) auto;
+  gap: 0.8rem;
+  align-items: end;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.evidence-template-picker > div p {
+  margin: 0.3rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.evidence-template-picker .field small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.evidence-template-picker > button {
+  min-height: 48px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
 .evidence-form .field {
   min-width: 0;
   margin: 0;
+}
+
+.evidence-title-field {
+  grid-column: span 2;
 }
 
 .evidence-form .field > input,
@@ -4148,6 +4189,14 @@ select {
   .project-point-editor,
   .evidence-form {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .evidence-template-picker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .evidence-title-field {
+    grid-column: 1 / -1;
   }
 
   .assessment-check-list li > div > .assessment-evidence-guide {
