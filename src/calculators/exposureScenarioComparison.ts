@@ -58,6 +58,7 @@ interface ExposureScenarioEvidence {
   scopeType: string;
   scopeId?: string;
   relatedField: string;
+  qualityChecks?: string[];
 }
 
 interface FieldDescriptor<T> {
@@ -139,6 +140,10 @@ function entityChanges<T extends { id: string; label: string }>(entityKind: 'sou
   });
 }
 
+function qualityDescription(checks: string[]) {
+  return [...checks].sort().map((check) => check.replaceAll('-', ' ')).join(', ');
+}
+
 function evidenceChanges(baselineItems: ExposureScenarioEvidence[], currentItems: ExposureScenarioEvidence[]): ExposureScenarioInputChange[] {
   const baselineById = new Map(baselineItems.map((item) => [item.id, item]));
   const currentById = new Map(currentItems.map((item) => [item.id, item]));
@@ -159,7 +164,21 @@ function evidenceChanges(baselineItems: ExposureScenarioEvidence[], currentItems
         changeKind: current ? 'added' as const : 'removed' as const
       }];
     }
-    return fieldChanges('evidence', id, current.title, baseline, current, evidenceFields);
+    const changes = fieldChanges('evidence', id, current.title, baseline, current, evidenceFields);
+    const baselineQuality = qualityDescription(baseline.qualityChecks ?? []);
+    const currentQuality = qualityDescription(current.qualityChecks ?? []);
+    if (baselineQuality !== currentQuality) changes.push({
+      entityKind: 'evidence',
+      entityId: id,
+      entityLabel: current.title,
+      fieldKey: 'qualityChecks',
+      fieldLabel: 'Self-declared quality checks',
+      valueKind: 'text',
+      baselineValue: baselineQuality || null,
+      currentValue: currentQuality || null,
+      changeKind: 'changed'
+    });
+    return changes;
   });
 }
 

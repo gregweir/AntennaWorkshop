@@ -20,6 +20,43 @@ export interface ExposureProjectData extends ExposureProjectInput {
 
 export type ExposureEvidenceCategory = 'assumption' | 'measurement' | 'source-reference' | 'review-note';
 export type ExposureEvidenceScopeType = 'project' | 'source' | 'point';
+export type ExposureEvidenceQualityCheck =
+  | 'assumption-subject' | 'assumption-basis' | 'assumption-conservatism' | 'assumption-review-trigger'
+  | 'measurement-value' | 'measurement-instrument' | 'measurement-method' | 'measurement-uncertainty'
+  | 'source-identity' | 'source-revision' | 'source-location' | 'source-applicability'
+  | 'review-scope' | 'review-conclusion' | 'review-limitations' | 'review-follow-up';
+
+export interface ExposureEvidenceQualityPrompt {
+  id: ExposureEvidenceQualityCheck;
+  label: string;
+}
+
+export const exposureEvidenceQualityPrompts: Record<ExposureEvidenceCategory, ExposureEvidenceQualityPrompt[]> = {
+  assumption: [
+    { id: 'assumption-subject', label: 'Assumed value or condition is stated' },
+    { id: 'assumption-basis', label: 'Source or rationale is identified' },
+    { id: 'assumption-conservatism', label: 'Conservative effect is explained' },
+    { id: 'assumption-review-trigger', label: 'Revision trigger is identified' }
+  ],
+  measurement: [
+    { id: 'measurement-value', label: 'Measured value and units are recorded' },
+    { id: 'measurement-instrument', label: 'Instrument and calibration status are recorded' },
+    { id: 'measurement-method', label: 'Method and conditions are recorded' },
+    { id: 'measurement-uncertainty', label: 'Uncertainty or repeatability is addressed' }
+  ],
+  'source-reference': [
+    { id: 'source-identity', label: 'Document title and issuer are identified' },
+    { id: 'source-revision', label: 'Revision or publication date is recorded' },
+    { id: 'source-location', label: 'Page, section, or table is identified' },
+    { id: 'source-applicability', label: 'Applicability to the entered value is explained' }
+  ],
+  'review-note': [
+    { id: 'review-scope', label: 'Review scope is stated' },
+    { id: 'review-conclusion', label: 'Conclusion is recorded' },
+    { id: 'review-limitations', label: 'Open limitations are identified' },
+    { id: 'review-follow-up', label: 'Follow-up responsibility is recorded' }
+  ]
+};
 export type ExposureEvidenceRelatedField =
   | 'general' | 'jurisdiction' | 'environment' | 'sourceInventoryComplete'
   | 'frequencyMHz' | 'transmitterPowerWatts' | 'dutyCyclePercent' | 'feedSystemLossDb'
@@ -38,6 +75,7 @@ export interface ExposureEvidenceEntry {
   scopeType: ExposureEvidenceScopeType;
   scopeId?: string;
   relatedField: ExposureEvidenceRelatedField;
+  qualityChecks: ExposureEvidenceQualityCheck[];
 }
 
 export interface ExposureProjectFile {
@@ -55,7 +93,7 @@ interface StorageLike {
 }
 
 export const EXPOSURE_PROJECT_FILE_KIND = 'radiobook-antenna-workshop/exposure-project';
-export const EXPOSURE_PROJECT_FILE_VERSION = 5;
+export const EXPOSURE_PROJECT_FILE_VERSION = 6;
 export const EXPOSURE_PROJECT_LIBRARY_KEY = 'radiobook:antenna-workshop:exposure-projects:v1';
 export const EXPOSURE_PROJECT_CURRENT_KEY = 'radiobook:antenna-workshop:current-exposure-project:v1';
 export const EXPOSURE_PROJECT_LIBRARY_LIMIT = 24;
@@ -120,12 +158,24 @@ function referenceUrl(value: unknown): string | undefined {
   return parsed.toString();
 }
 
-function evidenceEntry(value: unknown, legacyScope = false): ExposureEvidenceEntry {
+function evidenceQualityChecks(value: unknown, category: ExposureEvidenceCategory): ExposureEvidenceQualityCheck[] {
+  if (!Array.isArray(value)) throw new TypeError('Evidence quality checks must be an array.');
+  const allowed = exposureEvidenceQualityPrompts[category].map((prompt) => prompt.id);
+  const checks = value.map((check) => {
+    if (typeof check !== 'string' || !allowed.includes(check as ExposureEvidenceQualityCheck)) throw new TypeError('An evidence quality check does not belong to the selected category.');
+    return check as ExposureEvidenceQualityCheck;
+  });
+  if (new Set(checks).size !== checks.length) throw new TypeError('Evidence quality checks must be unique.');
+  return checks;
+}
+
+function evidenceEntry(value: unknown, legacyScope = false, legacyQuality = false): ExposureEvidenceEntry {
   if (!value || typeof value !== 'object') throw new TypeError('Every evidence entry must be an object.');
   const candidate = value as Record<string, unknown>;
+  const category = evidenceCategory(candidate.category);
   return {
     id: text(candidate.id, 'Evidence identifier', 100),
-    category: evidenceCategory(candidate.category),
+    category,
     title: text(candidate.title, 'Evidence title', 160),
     detail: text(candidate.detail, 'Evidence detail', 4000),
     recordedOn: dateOnly(candidate.recordedOn),
@@ -133,7 +183,8 @@ function evidenceEntry(value: unknown, legacyScope = false): ExposureEvidenceEnt
     referenceUrl: referenceUrl(candidate.referenceUrl),
     scopeType: legacyScope ? 'project' : evidenceScopeType(candidate.scopeType),
     scopeId: legacyScope || candidate.scopeId === undefined ? undefined : text(candidate.scopeId, 'Evidence scope identifier', 100),
-    relatedField: legacyScope ? 'general' : evidenceRelatedField(candidate.relatedField)
+    relatedField: legacyScope ? 'general' : evidenceRelatedField(candidate.relatedField),
+    qualityChecks: legacyQuality ? [] : evidenceQualityChecks(candidate.qualityChecks, category)
   };
 }
 
@@ -199,7 +250,7 @@ function evaluationPoint(value: unknown, legacyGeometry = false): ExposureEvalua
   };
 }
 
-function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false, legacyEvidenceScope = false): ExposureProjectData {
+function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false, legacyEvidenceScope = false, legacyEvidenceQuality = false): ExposureProjectData {
   if (!value || typeof value !== 'object') throw new TypeError('The project record is missing.');
   const candidate = value as Record<string, unknown>;
   if (!isJurisdiction(candidate.jurisdiction)) throw new TypeError('The project jurisdiction is not supported.');
@@ -213,7 +264,7 @@ function projectData(value: unknown, legacyGeometry = false, legacyPattern = fal
   if (evidenceEntries.length > 120) throw new TypeError('A project can contain at most 120 evidence entries.');
   const validatedSources = candidate.sources.map((item) => source(item, legacyGeometry, legacyPattern));
   const validatedPoints = candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry));
-  const validatedEvidenceEntries = evidenceEntries.map((entry) => evidenceEntry(entry, legacyEvidenceScope));
+  const validatedEvidenceEntries = evidenceEntries.map((entry) => evidenceEntry(entry, legacyEvidenceScope, legacyEvidenceQuality));
   if (new Set(validatedEvidenceEntries.map((entry) => entry.id)).size !== validatedEvidenceEntries.length) {
     throw new TypeError('Evidence identifiers must be unique within a project.');
   }
@@ -253,9 +304,9 @@ export function parseExposureProjectFile(serialized: string): ExposureProjectFil
   if (!value || typeof value !== 'object') throw new TypeError('The selected file is not a project record.');
   const candidate = value as Record<string, unknown>;
   if (candidate.kind !== EXPOSURE_PROJECT_FILE_KIND) throw new TypeError('The selected file is not an Antenna Workshop exposure project.');
-  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== 4 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
+  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== 4 && candidate.schemaVersion !== 5 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
   return createExposureProjectFile(
-    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, Number(candidate.schemaVersion) < 4, Number(candidate.schemaVersion) < 5),
+    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, Number(candidate.schemaVersion) < 4, Number(candidate.schemaVersion) < 5, Number(candidate.schemaVersion) < 6),
     text(candidate.projectId, 'Project identifier', 100),
     text(candidate.savedAt, 'Project save date', 100)
   );

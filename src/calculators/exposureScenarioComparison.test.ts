@@ -89,11 +89,12 @@ describe('exposure scenario comparison', () => {
   });
 
   it('audits evidence by stable identity', () => {
-    const baseline: ExposureScenarioInput = { title: 'One', jurisdiction: 'CA', environment: 'uncontrolled', sourceInventoryComplete: false, sources: [], evaluationPoints: [], evidenceEntries: [{ id: 'entry', category: 'assumption', title: 'Cable loss', detail: 'Manufacturer specification.', recordedOn: '2026-11-10', reviewer: 'VA1GW', scopeType: 'project', relatedField: 'general' }] };
-    const current: ExposureScenarioInput = { ...baseline, evidenceEntries: [{ ...baseline.evidenceEntries![0], detail: 'Measured cable loss.', recordedOn: '2026-11-11' }, { id: 'new-entry', category: 'measurement', title: 'Mast height', detail: 'Measured on site.', recordedOn: '2026-11-11', reviewer: 'VA1GW', scopeType: 'project', relatedField: 'general' }] };
+    const baseline: ExposureScenarioInput = { title: 'One', jurisdiction: 'CA', environment: 'uncontrolled', sourceInventoryComplete: false, sources: [], evaluationPoints: [], evidenceEntries: [{ id: 'entry', category: 'assumption', title: 'Cable loss', detail: 'Manufacturer specification.', recordedOn: '2026-11-10', reviewer: 'VA1GW', scopeType: 'project', relatedField: 'general', qualityChecks: ['assumption-subject'] }] };
+    const current: ExposureScenarioInput = { ...baseline, evidenceEntries: [{ ...baseline.evidenceEntries![0], detail: 'Measured cable loss.', recordedOn: '2026-11-11', qualityChecks: ['assumption-subject', 'assumption-basis'] }, { id: 'new-entry', category: 'measurement', title: 'Mast height', detail: 'Measured on site.', recordedOn: '2026-11-11', reviewer: 'VA1GW', scopeType: 'project', relatedField: 'general', qualityChecks: [] }] };
     expect(compareExposureScenarioInputs(baseline, current)).toMatchObject([
       { entityKind: 'evidence', entityId: 'entry', fieldKey: 'detail', changeKind: 'changed' },
       { entityKind: 'evidence', entityId: 'entry', fieldKey: 'recordedOn', changeKind: 'changed' },
+      { entityKind: 'evidence', entityId: 'entry', fieldKey: 'qualityChecks', changeKind: 'changed' },
       { entityKind: 'evidence', entityId: 'new-entry', changeKind: 'added' }
     ]);
   });

@@ -1368,6 +1368,7 @@ select {
 .evidence-capture-message,
 .evidence-template-picker,
 .evidence-detail-field,
+.evidence-quality-checks,
 .evidence-reference-field,
 .evidence-form-error,
 .evidence-form-actions {
@@ -1452,6 +1453,59 @@ select {
   resize: vertical;
 }
 
+.evidence-quality-checks {
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.evidence-quality-checks legend {
+  padding: 0 0.35rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.evidence-quality-checks > p {
+  margin: 0 0 0.7rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.evidence-quality-checks > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.8rem;
+}
+
+.evidence-quality-checks label {
+  display: flex;
+  gap: 0.55rem;
+  align-items: start;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  font-size: 0.76rem;
+}
+
+.evidence-quality-checks input {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.05rem;
+}
+
+.evidence-quality-checks > small {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .evidence-form-error {
   margin: 0;
 }
@@ -1529,6 +1583,32 @@ select {
   overflow-wrap: anywhere;
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.evidence-entry-list .evidence-quality-status {
+  display: inline-block;
+  margin: 0.35rem 0;
+  padding: 0.25rem 0.45rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evidence-quality-complete {
+  background: color-mix(in srgb, var(--success) 16%, transparent);
+  color: var(--success);
+}
+
+.evidence-quality-follow-up {
+  background: color-mix(in srgb, var(--tl-coral) 16%, transparent);
+  color: var(--tl-coral);
+}
+
+.evidence-entry-list .evidence-quality-missing {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
 }
 
 .text-button {
@@ -4197,6 +4277,10 @@ select {
 
   .evidence-title-field {
     grid-column: 1 / -1;
+  }
+
+  .evidence-quality-checks > div {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .assessment-check-list li > div > .assessment-evidence-guide {

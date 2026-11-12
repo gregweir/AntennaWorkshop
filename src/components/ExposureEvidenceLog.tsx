@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AssessmentEvidenceTarget } from '../calculators/exposureAssessmentChecklist';
-import type { ExposureEvidenceCategory, ExposureEvidenceEntry, ExposureEvidenceRelatedField, ExposureEvidenceScopeType } from '../projects/exposureProjectFiles';
+import { exposureEvidenceQualityPrompts, type ExposureEvidenceCategory, type ExposureEvidenceEntry, type ExposureEvidenceRelatedField, type ExposureEvidenceScopeType } from '../projects/exposureProjectFiles';
 
 export interface EvidenceCaptureRequest {
   requestId: number;
@@ -94,6 +94,12 @@ export function evidenceScopeDescription(entry: ExposureEvidenceEntry, sources: 
   return `${entity} · ${evidenceFieldLabels[entry.relatedField]}`;
 }
 
+export function evidenceQualitySummary(entry: Pick<ExposureEvidenceEntry, 'category' | 'qualityChecks'>) {
+  const prompts = exposureEvidenceQualityPrompts[entry.category];
+  const missing = prompts.filter((prompt) => !entry.qualityChecks.includes(prompt.id));
+  return { recordedCount: prompts.length - missing.length, totalCount: prompts.length, missing, complete: missing.length === 0 };
+}
+
 type EvidenceDraft = Omit<ExposureEvidenceEntry, 'id' | 'referenceUrl'> & { referenceUrl: string };
 
 function localDate() {
@@ -104,7 +110,7 @@ function localDate() {
 }
 
 function emptyDraft(): EvidenceDraft {
-  return { category: 'assumption', title: '', detail: '', recordedOn: localDate(), reviewer: '', referenceUrl: '', scopeType: 'project', relatedField: 'general' };
+  return { category: 'assumption', title: '', detail: '', recordedOn: localDate(), reviewer: '', referenceUrl: '', scopeType: 'project', relatedField: 'general', qualityChecks: [] };
 }
 
 function evidenceId() {
@@ -165,6 +171,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
     setDraft((current) => ({
       ...current,
       category: template.category,
+      qualityChecks: current.category === template.category ? current.qualityChecks : [],
       title: current.title.trim() || `${evidenceFieldLabels[current.relatedField]} ${template.titleSuffix}`
     }));
     setDetailPlaceholder(template.detailPlaceholder);
@@ -195,6 +202,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
       reviewer: draft.reviewer.trim(),
       scopeType: draft.scopeType,
       relatedField: draft.relatedField,
+      qualityChecks: [...draft.qualityChecks],
       ...(draft.scopeType !== 'project' ? { scopeId: draft.scopeId } : {}),
       ...(draft.referenceUrl.trim() ? { referenceUrl: new URL(draft.referenceUrl.trim()).toString() } : {})
     };
@@ -203,7 +211,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
   };
   const edit = (entry: ExposureEvidenceEntry) => {
     setEditingId(entry.id);
-    setDraft({ category: entry.category, title: entry.title, detail: entry.detail, recordedOn: entry.recordedOn, reviewer: entry.reviewer, referenceUrl: entry.referenceUrl ?? '', scopeType: entry.scopeType, scopeId: entry.scopeId, relatedField: entry.relatedField });
+    setDraft({ category: entry.category, title: entry.title, detail: entry.detail, recordedOn: entry.recordedOn, reviewer: entry.reviewer, referenceUrl: entry.referenceUrl ?? '', scopeType: entry.scopeType, scopeId: entry.scopeId, relatedField: entry.relatedField, qualityChecks: [...entry.qualityChecks] });
     setSelectedTemplateId(entry.category);
     setDetailPlaceholder('State the assumption, measurement method and value, source citation, or review conclusion.');
     setFormMessage('');
@@ -216,7 +224,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
       <div className="evidence-form-heading"><strong>{editingId ? 'Edit evidence entry' : 'Add evidence entry'}</strong><small>Required fields are marked.</small></div>
       {formMessage && <p className="evidence-capture-message" role="status" aria-live="polite">{formMessage}</p>}
       <div className="evidence-template-picker"><div><strong>Reusable starting point</strong><p>Templates set a category, suggest a title, and provide a detail prompt. They never supply an evidence value.</p></div><label className="field"><span>Evidence template</span><select aria-label="Evidence template" value={selectedTemplateId} onChange={(event) => setSelectedTemplateId(event.target.value as EvidenceTemplateId)}>{evidenceTemplates.map((template) => <option value={template.id} key={template.id}>{template.label}</option>)}</select><small>{evidenceTemplates.find((template) => template.id === selectedTemplateId)?.description}</small></label><button type="button" onClick={applyTemplate}>Apply template</button></div>
-      <label className="field"><span>Category *</span><select ref={categoryRef} aria-label="Evidence category" value={draft.category} onChange={(event) => updateDraft('category', event.target.value as ExposureEvidenceCategory)}>{Object.entries(evidenceCategoryLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+      <label className="field"><span>Category *</span><select ref={categoryRef} aria-label="Evidence category" value={draft.category} onChange={(event) => { const category = event.target.value as ExposureEvidenceCategory; setDraft((current) => ({ ...current, category, qualityChecks: current.category === category ? current.qualityChecks : [] })); setSelectedTemplateId(category); setError(''); }}>{Object.entries(evidenceCategoryLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       <label className="field"><span>Scope *</span><select aria-label="Evidence scope" value={draft.scopeType} onChange={(event) => { const scopeType = event.target.value as ExposureEvidenceScopeType; setDraft((current) => ({ ...current, scopeType, scopeId: scopeType === 'source' ? sources[0]?.id : scopeType === 'point' ? points[0]?.id : undefined, relatedField: 'general' })); setError(''); }}>{Object.entries(scopeTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       {draft.scopeType !== 'project' && <label className="field"><span>{draft.scopeType === 'source' ? 'Station source' : 'Evaluation point'} *</span><select aria-label="Evidence scope item" value={draft.scopeId ?? ''} onChange={(event) => updateDraft('scopeId', event.target.value)}>{(draft.scopeType === 'source' ? sources : points).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>}
       <label className="field"><span>Related input *</span><select aria-label="Evidence related input" value={draft.relatedField} onChange={(event) => updateDraft('relatedField', event.target.value as ExposureEvidenceRelatedField)}>{relatedFields[draft.scopeType].map((field) => <option value={field} key={field}>{evidenceFieldLabels[field]}</option>)}</select></label>
@@ -224,13 +232,14 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
       <label className="field"><span>Review date *</span><input aria-label="Evidence review date" type="date" value={draft.recordedOn} onChange={(event) => updateDraft('recordedOn', event.target.value)} /></label>
       <label className="field"><span>Reviewer *</span><input aria-label="Evidence reviewer" maxLength={160} placeholder="Name or call sign" value={draft.reviewer} onChange={(event) => updateDraft('reviewer', event.target.value)} /></label>
       <label className="field evidence-detail-field"><span>Detail *</span><textarea aria-label="Evidence detail" maxLength={4000} rows={4} placeholder={detailPlaceholder} value={draft.detail} onChange={(event) => updateDraft('detail', event.target.value)} /></label>
+      <fieldset className="evidence-quality-checks"><legend>Record-quality prompts</legend><p>Check only the elements actually addressed by this record. These self-declared prompts guide follow-up; they do not verify content.</p><div>{exposureEvidenceQualityPrompts[draft.category].map((prompt) => <label key={prompt.id}><input type="checkbox" checked={draft.qualityChecks.includes(prompt.id)} onChange={(event) => updateDraft('qualityChecks', event.target.checked ? [...draft.qualityChecks, prompt.id] : draft.qualityChecks.filter((check) => check !== prompt.id))} /><span>{prompt.label}</span></label>)}</div><small>{draft.qualityChecks.length} of {exposureEvidenceQualityPrompts[draft.category].length} prompts recorded.</small></fieldset>
       <label className="field evidence-reference-field"><span>Reference link</span><input aria-label="Evidence reference link" type="url" maxLength={1000} placeholder="https://…" value={draft.referenceUrl} onChange={(event) => updateDraft('referenceUrl', event.target.value)} /><small>Optional. Link to a regulation, manual, calibration record, or other supporting source.</small></label>
       {error && <p className="validation-message evidence-form-error" role="alert">{error}</p>}
       <div className="evidence-form-actions"><button type="submit" disabled={!editingId && entries.length >= 120}>{editingId ? 'Save evidence changes' : 'Add to evidence log'}</button>{editingId && <button type="button" className="secondary-button" onClick={cancel}>Cancel edit</button>}</div>
     </form>
-    {entries.length ? <ol className="evidence-entry-list">{entries.map((entry) => <li key={entry.id}>
+    {entries.length ? <ol className="evidence-entry-list">{entries.map((entry) => { const quality = evidenceQualitySummary(entry); return <li key={entry.id}>
       <div className="evidence-entry-heading"><span className={`evidence-category evidence-category-${entry.category}`}>{evidenceCategoryLabels[entry.category]}</span><div><button type="button" className="text-button" onClick={() => edit(entry)}>Edit</button><button type="button" className="text-button evidence-remove" onClick={() => { onChange(entries.filter((candidate) => candidate.id !== entry.id)); if (editingId === entry.id) cancel(); }}>Remove</button></div></div>
-      <span className="evidence-scope">{evidenceScopeDescription(entry, sources, points)}</span><h5>{entry.title}</h5><p>{entry.detail}</p><small>Reviewed <time dateTime={entry.recordedOn}>{entry.recordedOn}</time> by {entry.reviewer}</small>{entry.referenceUrl && <a href={entry.referenceUrl} target="_blank" rel="noreferrer">Open supporting reference</a>}
-    </li>)}</ol> : <p className="evidence-empty">No evidence entries recorded yet. Add assumptions, measurements, references, or review notes that another reviewer would need to reproduce the assessment.</p>}
+      <span className="evidence-scope">{evidenceScopeDescription(entry, sources, points)}</span><h5>{entry.title}</h5><p>{entry.detail}</p><span className={`evidence-quality-status ${quality.complete ? 'evidence-quality-complete' : 'evidence-quality-follow-up'}`}>{quality.complete ? 'All 4 quality prompts recorded' : `${quality.recordedCount} of ${quality.totalCount} quality prompts recorded`}</span>{!quality.complete && <p className="evidence-quality-missing"><strong>Documentation follow-up:</strong> {quality.missing.map((prompt) => prompt.label).join('; ')}.</p>}<small>Reviewed <time dateTime={entry.recordedOn}>{entry.recordedOn}</time> by {entry.reviewer}</small>{entry.referenceUrl && <a href={entry.referenceUrl} target="_blank" rel="noreferrer">Open supporting reference</a>}
+    </li>; })}</ol> : <p className="evidence-empty">No evidence entries recorded yet. Add assumptions, measurements, references, or review notes that another reviewer would need to reproduce the assessment.</p>}
   </section>;
 }
