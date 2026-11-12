@@ -407,16 +407,26 @@ test('explores exposure sensitivity without changing the saved project', async (
   await expect(explorer.getByRole('img', { name: /Transmitter output sensitivity at Yard access/ })).toBeVisible();
   await expect(explorer).toContainText('Previewing a sample does not edit or save the project');
 
-  await explorer.getByRole('slider', { name: 'Sensitivity preview position' }).fill('24');
+  await explorer.getByRole('slider', { name: 'Sensitivity preview position' }).fill('40');
   await expect(explorer.locator('.sensitivity-preview-value')).toContainText('100 W');
   await expect(explorer.locator('.sensitivity-preview')).toContainText('4.17%');
   await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
 
   await explorer.getByLabel('Sensitivity variable').selectOption('plan-distance');
-  await explorer.getByRole('slider', { name: 'Sensitivity preview position' }).fill('24');
+  await explorer.getByRole('slider', { name: 'Sensitivity preview position' }).fill('40');
   await expect(explorer.getByRole('img', { name: /Point plan distance from selected source sensitivity at Yard access/ })).toBeVisible();
   await expect(explorer.locator('.sensitivity-preview-value')).toContainText('30.000 m');
   await expect(project.getByRole('spinbutton', { name: 'Project point 1 east position' })).toHaveValue('15');
+
+  await explorer.getByLabel('Sensitivity variable').selectOption('transmitter-power');
+  await explorer.getByLabel('Sensitivity range maximum').fill('2000');
+  await expect(explorer.locator('.sensitivity-crossing')).toHaveCount(1);
+  await expect(explorer.locator('.sensitivity-crossing-summary')).toContainText('Estimated trigger crossing');
+  await expect(explorer.locator('.sensitivity-crossing-summary')).toContainText('rising');
+  await expect(explorer.locator('.sensitivity-crossing-summary')).toContainText('not a compliance limit');
+  await explorer.getByLabel('Sensitivity range minimum').fill('2001');
+  await expect(explorer.getByRole('alert')).toContainText('minimum must be less than range maximum');
+  await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
 });
 
 test('persists and transfers validated station projects', async ({ page }) => {

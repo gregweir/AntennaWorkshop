@@ -1715,6 +1715,18 @@ select {
   stroke-width: 3;
 }
 
+.sensitivity-crossing line {
+  stroke: var(--tl-coral);
+  stroke-dasharray: 3 4;
+  stroke-width: 2;
+}
+
+.sensitivity-crossing circle {
+  fill: var(--bg-surface);
+  stroke: var(--tl-coral);
+  stroke-width: 3;
+}
+
 .sensitivity-preview-method-inapplicable,
 .sensitivity-preview-invalid {
   fill: var(--danger);
@@ -1791,6 +1803,37 @@ select {
 .sensitivity-status-further-analysis-required,
 .sensitivity-status-invalid {
   border-left-color: var(--danger);
+}
+
+.sensitivity-range-error {
+  margin: 0.8rem 0 0;
+}
+
+.sensitivity-crossing-summary {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  font-size: 0.75rem;
+}
+
+.sensitivity-crossing-summary > strong {
+  color: var(--text-primary);
+}
+
+.sensitivity-crossing-summary ul {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding-left: 1rem;
+  font-family: var(--font-mono);
+}
+
+.sensitivity-crossing-summary > span,
+.sensitivity-crossing-summary small {
+  color: var(--text-secondary);
 }
 
 .project-print-contributions {

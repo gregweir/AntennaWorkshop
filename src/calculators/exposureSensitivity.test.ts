@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ExposureProjectInput } from './exposureProject';
-import { calculateExposureSensitivity, defaultExposureSensitivityRange } from './exposureSensitivity';
+import { calculateExposureSensitivity, defaultExposureSensitivityRange, interpolateSensitivityCrossings } from './exposureSensitivity';
 
 const project: ExposureProjectInput = {
   jurisdiction: 'CA', environment: 'uncontrolled', sourceInventoryComplete: true,
@@ -37,5 +37,19 @@ describe('exposure sensitivity analysis', () => {
     expect(() => calculateExposureSensitivity(project, { sourceId: 'missing', pointId: 'yard', variable: 'transmitter-power', minimumValue: 1, maximumValue: 2 })).toThrow(/source/i);
     expect(() => calculateExposureSensitivity(project, { sourceId: 'source', pointId: 'yard', variable: 'transmitter-power', minimumValue: 2, maximumValue: 1 })).toThrow(/range/i);
     expect(() => calculateExposureSensitivity(project, { sourceId: 'source', pointId: 'yard', variable: 'transmitter-power', minimumValue: 1, maximumValue: 2, sampleCount: 1 })).toThrow(/sample count/i);
+  });
+
+  it('interpolates rising and falling trigger crossings without bridging invalid samples', () => {
+    expect(interpolateSensitivityCrossings([
+      { inputValue: 0, totalFractionOfReferenceLevel: 0.25, status: 'below-screening-trigger' },
+      { inputValue: 10, totalFractionOfReferenceLevel: 0.75, status: 'further-analysis-required' },
+      { inputValue: 20, totalFractionOfReferenceLevel: 0.25, status: 'below-screening-trigger' }
+    ], 0.5)).toEqual([{ inputValue: 5, direction: 'rising' }, { inputValue: 15, direction: 'falling' }]);
+    expect(interpolateSensitivityCrossings([
+      { inputValue: 0, totalFractionOfReferenceLevel: 0.25, status: 'below-screening-trigger' },
+      { inputValue: 10, totalFractionOfReferenceLevel: null, status: 'invalid' },
+      { inputValue: 20, totalFractionOfReferenceLevel: 0.75, status: 'further-analysis-required' }
+    ], 0.5)).toEqual([]);
+    expect(() => interpolateSensitivityCrossings([], -1)).toThrow(/threshold/i);
   });
 });

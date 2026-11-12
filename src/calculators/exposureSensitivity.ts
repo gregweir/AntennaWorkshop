@@ -25,6 +25,11 @@ export interface ExposureSensitivitySample {
   status: ExposureScreenStatus | 'invalid';
 }
 
+export interface ExposureSensitivityCrossing {
+  inputValue: number;
+  direction: 'rising' | 'falling';
+}
+
 export interface ExposureSensitivityResult {
   variable: ExposureSensitivityVariable;
   sourceId: string;
@@ -33,12 +38,41 @@ export interface ExposureSensitivityResult {
   currentFractionOfReferenceLevel: number;
   screeningTriggerFraction: number;
   samples: ExposureSensitivitySample[];
+  thresholdCrossings: ExposureSensitivityCrossing[];
 }
 
 export interface ExposureSensitivityRange {
   minimumValue: number;
   maximumValue: number;
   currentValue: number;
+}
+
+export function interpolateSensitivityCrossings(samples: ExposureSensitivitySample[], thresholdFraction: number): ExposureSensitivityCrossing[] {
+  if (!Number.isFinite(thresholdFraction) || thresholdFraction < 0) throw new RangeError('Sensitivity threshold must be zero or greater.');
+  const crossings: ExposureSensitivityCrossing[] = [];
+  for (let index = 0; index < samples.length - 1; index += 1) {
+    const first = samples[index];
+    const second = samples[index + 1];
+    if (first.totalFractionOfReferenceLevel === null || second.totalFractionOfReferenceLevel === null || first.status === 'method-inapplicable' || second.status === 'method-inapplicable') continue;
+    const firstDelta = first.totalFractionOfReferenceLevel - thresholdFraction;
+    const secondDelta = second.totalFractionOfReferenceLevel - thresholdFraction;
+    if (firstDelta === 0) {
+      crossings.push({ inputValue: first.inputValue, direction: secondDelta >= firstDelta ? 'rising' : 'falling' });
+      continue;
+    }
+    if (firstDelta * secondDelta > 0 || secondDelta === firstDelta) continue;
+    const position = -firstDelta / (secondDelta - firstDelta);
+    crossings.push({
+      inputValue: first.inputValue + (second.inputValue - first.inputValue) * position,
+      direction: secondDelta > firstDelta ? 'rising' : 'falling'
+    });
+  }
+  const last = samples.at(-1);
+  if (last?.totalFractionOfReferenceLevel === thresholdFraction && last.status !== 'method-inapplicable') {
+    const previous = samples.at(-2)?.totalFractionOfReferenceLevel;
+    crossings.push({ inputValue: last.inputValue, direction: previous === null || previous === undefined || last.totalFractionOfReferenceLevel >= previous ? 'rising' : 'falling' });
+  }
+  return crossings.filter((crossing, index) => index === 0 || Math.abs(crossing.inputValue - crossings[index - 1].inputValue) > 1e-9);
 }
 
 function selected(project: ExposureProjectInput, sourceId: string, pointId: string) {
@@ -113,6 +147,7 @@ export function calculateExposureSensitivity(project: ExposureProjectInput, opti
     currentInputValue: currentValue(project, options.sourceId, options.pointId, options.variable),
     currentFractionOfReferenceLevel: baselinePoint.aggregate.totalFractionOfReferenceLevel,
     screeningTriggerFraction: baselinePoint.aggregate.screeningTriggerFraction,
-    samples
+    samples,
+    thresholdCrossings: interpolateSensitivityCrossings(samples, baselinePoint.aggregate.screeningTriggerFraction)
   };
 }
