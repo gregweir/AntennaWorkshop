@@ -23,6 +23,7 @@ const project: ExposureProjectData = {
   jurisdiction: 'CA',
   environment: 'uncontrolled',
   sourceInventoryComplete: true,
+  evidenceEntries: [{ id: 'evidence-1', category: 'measurement', title: 'Mast height checked', detail: 'Measured from grade to antenna centre with a laser rangefinder.', recordedOn: '2026-11-10', reviewer: 'Greg Weir, VA1GW', referenceUrl: 'https://www.radiobook.ca/' }],
   sources: [{
     id: 'source-1', label: '2 m vertical', frequencyMHz: 146, transmitterPowerWatts: 50,
     dutyCyclePercent: 50, feedSystemLossDb: 1, antennaGainDbi: 2.15,
@@ -69,7 +70,7 @@ describe('exposure project files', () => {
 
   it('rejects unknown versions and invalid calculation inputs', () => {
     const file = createExposureProjectFile(project, 'project-1');
-    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 4 }))).toThrow(/version/i);
+    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 5 }))).toThrow(/version/i);
     expect(() => parseExposureProjectFile(JSON.stringify({
       ...file,
       project: { ...project, sources: [{ ...project.sources[0], frequencyMHz: -1 }] }
@@ -89,7 +90,8 @@ describe('exposure project files', () => {
       }
     };
     const migrated = parseExposureProjectFile(JSON.stringify(legacy));
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.project.evidenceEntries).toEqual([]);
     expect(migrated.project.sources[0]).toMatchObject({ eastOffsetMetres: 0, northOffsetMetres: 0, patternType: 'unknown', bearingDegrees: 0, beamwidthDegrees: 90 });
     expect(migrated.project.evaluationPoints[0]).toMatchObject({ eastOffsetMetres: 20, northOffsetMetres: 0 });
   });
@@ -100,8 +102,30 @@ describe('exposure project files', () => {
     const legacyProject = legacy.project as ExposureProjectData;
     legacyProject.sources = legacyProject.sources.map(({ patternType: _pattern, bearingDegrees: _bearing, beamwidthDegrees: _beamwidth, ...source }) => source as typeof project.sources[number]);
     const migrated = parseExposureProjectFile(JSON.stringify(legacy));
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.project.evidenceEntries).toEqual([]);
     expect(migrated.project.sources[0]).toMatchObject({ patternType: 'unknown', bearingDegrees: 0, beamwidthDegrees: 90 });
+  });
+
+  it('migrates version 3 projects without evidence and validates evidence URLs', () => {
+    const current = createExposureProjectFile(project, 'legacy-v3', '2026-11-11T12:00:00Z');
+    const { evidenceEntries: _evidence, ...legacyProject } = current.project;
+    const migrated = parseExposureProjectFile(JSON.stringify({ ...current, schemaVersion: 3, project: legacyProject }));
+    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.project.evidenceEntries).toEqual([]);
+
+    expect(() => createExposureProjectFile({
+      ...project,
+      evidenceEntries: [{ ...project.evidenceEntries[0], referenceUrl: 'javascript:alert(1)' }]
+    }, 'unsafe-reference')).toThrow(/HTTP or HTTPS/i);
+    expect(() => createExposureProjectFile({
+      ...project,
+      evidenceEntries: [project.evidenceEntries[0], { ...project.evidenceEntries[0], title: 'Duplicate identifier' }]
+    }, 'duplicate-evidence')).toThrow(/unique/i);
+    expect(() => createExposureProjectFile({
+      ...project,
+      evidenceEntries: [{ ...project.evidenceEntries[0], recordedOn: '2026-02-30' }]
+    }, 'invalid-date')).toThrow(/valid YYYY-MM-DD/i);
   });
 
   it('saves, updates, orders, and deletes local projects', () => {

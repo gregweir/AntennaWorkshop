@@ -446,6 +446,46 @@ test('explores exposure sensitivity without changing the saved project', async (
   await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
 });
 
+test('records, transfers, and audits assessment evidence', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const project = page.locator('.project-section');
+  let evidenceLog = project.locator('.evidence-log');
+
+  await evidenceLog.getByRole('button', { name: 'Add to evidence log' }).click();
+  await expect(evidenceLog.getByRole('alert')).toContainText('Enter a title, detail, review date, and reviewer');
+  await evidenceLog.getByLabel('Evidence category').selectOption('measurement');
+  await evidenceLog.getByLabel('Evidence title').fill('Mast height field check');
+  await evidenceLog.getByLabel('Evidence review date').fill('2026-11-12');
+  await evidenceLog.getByLabel('Evidence reviewer').fill('Greg Weir, VA1GW');
+  await evidenceLog.getByLabel('Evidence detail').fill('Measured antenna centre height as 10.0 m using a laser rangefinder.');
+  await evidenceLog.getByLabel('Evidence reference link').fill('https://www.radiobook.ca/');
+  await evidenceLog.getByRole('button', { name: 'Add to evidence log' }).click();
+  await expect(evidenceLog.locator('.evidence-entry-list')).toContainText('Mast height field check');
+  await expect(evidenceLog.locator('.evidence-entry-list')).toContainText('Greg Weir, VA1GW');
+  await expect(project.locator('.evidence-record')).toContainText('Measured antenna centre height as 10.0 m');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('Mast height field check');
+
+  await project.getByRole('button', { name: 'Duplicate as scenario' }).click();
+  evidenceLog = project.locator('.evidence-log');
+  await evidenceLog.getByRole('button', { name: 'Edit' }).click();
+  await evidenceLog.getByLabel('Evidence detail').fill('Rechecked antenna centre height as 10.2 m using a laser rangefinder.');
+  await evidenceLog.getByRole('button', { name: 'Save evidence changes' }).click();
+  const audit = project.getByRole('region', { name: 'What changed between these projects' });
+  await expect(audit).toContainText('Evidence detail');
+  await expect(audit).toContainText('Measured antenna centre height as 10.0 m');
+  await expect(audit).toContainText('Rechecked antenna centre height as 10.2 m');
+
+  const downloadPromise = page.waitForEvent('download');
+  await project.getByRole('button', { name: 'Export JSON' }).click();
+  const download = await downloadPromise;
+  const exportedPath = await download.path();
+  expect(exportedPath).not.toBeNull();
+  const exported = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(exportedPath!, 'utf8')));
+  expect(exported.schemaVersion).toBe(4);
+  expect(exported.project.evidenceEntries).toMatchObject([{ category: 'measurement', title: 'Mast height field check', reviewer: 'Greg Weir, VA1GW', referenceUrl: 'https://www.radiobook.ca/' }]);
+});
+
 test('persists and transfers validated station projects', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();

@@ -15,6 +15,19 @@ import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/e
 
 export interface ExposureProjectData extends ExposureProjectInput {
   title: string;
+  evidenceEntries: ExposureEvidenceEntry[];
+}
+
+export type ExposureEvidenceCategory = 'assumption' | 'measurement' | 'source-reference' | 'review-note';
+
+export interface ExposureEvidenceEntry {
+  id: string;
+  category: ExposureEvidenceCategory;
+  title: string;
+  detail: string;
+  recordedOn: string;
+  reviewer: string;
+  referenceUrl?: string;
 }
 
 export interface ExposureProjectFile {
@@ -32,7 +45,7 @@ interface StorageLike {
 }
 
 export const EXPOSURE_PROJECT_FILE_KIND = 'radiobook-antenna-workshop/exposure-project';
-export const EXPOSURE_PROJECT_FILE_VERSION = 3;
+export const EXPOSURE_PROJECT_FILE_VERSION = 4;
 export const EXPOSURE_PROJECT_LIBRARY_KEY = 'radiobook:antenna-workshop:exposure-projects:v1';
 export const EXPOSURE_PROJECT_CURRENT_KEY = 'radiobook:antenna-workshop:current-exposure-project:v1';
 export const EXPOSURE_PROJECT_LIBRARY_LIMIT = 24;
@@ -57,6 +70,47 @@ function text(value: unknown, label: string, maximumLength: number): string {
     throw new TypeError(`${label} must contain between 1 and ${maximumLength} characters.`);
   }
   return value.trim();
+}
+
+function evidenceCategory(value: unknown): ExposureEvidenceCategory {
+  if (value === 'assumption' || value === 'measurement' || value === 'source-reference' || value === 'review-note') return value;
+  throw new TypeError('The evidence category is not supported.');
+}
+
+function dateOnly(value: unknown): string {
+  const date = text(value, 'Evidence review date', 10);
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== date) {
+    throw new TypeError('Evidence review date must be a valid YYYY-MM-DD date.');
+  }
+  return date;
+}
+
+function referenceUrl(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const url = text(value, 'Evidence reference URL', 1000);
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new TypeError('Evidence reference URL must be a valid HTTP or HTTPS URL.');
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new TypeError('Evidence reference URL must use HTTP or HTTPS.');
+  return parsed.toString();
+}
+
+function evidenceEntry(value: unknown): ExposureEvidenceEntry {
+  if (!value || typeof value !== 'object') throw new TypeError('Every evidence entry must be an object.');
+  const candidate = value as Record<string, unknown>;
+  return {
+    id: text(candidate.id, 'Evidence identifier', 100),
+    category: evidenceCategory(candidate.category),
+    title: text(candidate.title, 'Evidence title', 160),
+    detail: text(candidate.detail, 'Evidence detail', 4000),
+    recordedOn: dateOnly(candidate.recordedOn),
+    reviewer: text(candidate.reviewer, 'Evidence reviewer', 160),
+    referenceUrl: referenceUrl(candidate.referenceUrl)
+  };
 }
 
 function source(value: unknown, legacyGeometry = false, legacyPattern = false): ExposureProjectSourceInput {
@@ -104,7 +158,7 @@ function evaluationPoint(value: unknown, legacyGeometry = false): ExposureEvalua
   };
 }
 
-function projectData(value: unknown, legacyGeometry = false, legacyPattern = false): ExposureProjectData {
+function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false): ExposureProjectData {
   if (!value || typeof value !== 'object') throw new TypeError('The project record is missing.');
   const candidate = value as Record<string, unknown>;
   if (!isJurisdiction(candidate.jurisdiction)) throw new TypeError('The project jurisdiction is not supported.');
@@ -113,13 +167,21 @@ function projectData(value: unknown, legacyGeometry = false, legacyPattern = fal
   if (!Array.isArray(candidate.sources) || !Array.isArray(candidate.evaluationPoints)) {
     throw new TypeError('The project must contain source and evaluation-point arrays.');
   }
+  if (!legacyEvidence && !Array.isArray(candidate.evidenceEntries)) throw new TypeError('The project must contain an evidence-entry array.');
+  const evidenceEntries = legacyEvidence ? [] : candidate.evidenceEntries as unknown[];
+  if (evidenceEntries.length > 40) throw new TypeError('A project can contain at most 40 evidence entries.');
+  const validatedEvidenceEntries = evidenceEntries.map(evidenceEntry);
+  if (new Set(validatedEvidenceEntries.map((entry) => entry.id)).size !== validatedEvidenceEntries.length) {
+    throw new TypeError('Evidence identifiers must be unique within a project.');
+  }
   const project: ExposureProjectData = {
     title: text(candidate.title, 'Project title', 160),
     jurisdiction: candidate.jurisdiction,
     environment: candidate.environment,
     sourceInventoryComplete: candidate.sourceInventoryComplete,
     sources: candidate.sources.map((item) => source(item, legacyGeometry, legacyPattern)),
-    evaluationPoints: candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry))
+    evaluationPoints: candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry)),
+    evidenceEntries: validatedEvidenceEntries
   };
   calculateExposureProject(project);
   return project;
@@ -147,9 +209,9 @@ export function parseExposureProjectFile(serialized: string): ExposureProjectFil
   if (!value || typeof value !== 'object') throw new TypeError('The selected file is not a project record.');
   const candidate = value as Record<string, unknown>;
   if (candidate.kind !== EXPOSURE_PROJECT_FILE_KIND) throw new TypeError('The selected file is not an Antenna Workshop exposure project.');
-  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
+  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
   return createExposureProjectFile(
-    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2),
+    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION),
     text(candidate.projectId, 'Project identifier', 100),
     text(candidate.savedAt, 'Project save date', 100)
   );

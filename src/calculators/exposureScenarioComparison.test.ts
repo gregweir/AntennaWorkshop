@@ -87,4 +87,14 @@ describe('exposure scenario comparison', () => {
     const current: ExposureScenarioInput = { ...baseline, evaluationPoints: [{ id: 'new', label: 'Same label', eastOffsetMetres: 1, northOffsetMetres: 0, heightMetres: 1.5 }] };
     expect(compareExposureScenarioInputs(baseline, current).map((change) => change.changeKind)).toEqual(['removed', 'added']);
   });
+
+  it('audits evidence by stable identity', () => {
+    const baseline: ExposureScenarioInput = { title: 'One', jurisdiction: 'CA', environment: 'uncontrolled', sourceInventoryComplete: false, sources: [], evaluationPoints: [], evidenceEntries: [{ id: 'entry', category: 'assumption', title: 'Cable loss', detail: 'Manufacturer specification.', recordedOn: '2026-11-10', reviewer: 'VA1GW' }] };
+    const current: ExposureScenarioInput = { ...baseline, evidenceEntries: [{ ...baseline.evidenceEntries![0], detail: 'Measured cable loss.', recordedOn: '2026-11-11' }, { id: 'new-entry', category: 'measurement', title: 'Mast height', detail: 'Measured on site.', recordedOn: '2026-11-11', reviewer: 'VA1GW' }] };
+    expect(compareExposureScenarioInputs(baseline, current)).toMatchObject([
+      { entityKind: 'evidence', entityId: 'entry', fieldKey: 'detail', changeKind: 'changed' },
+      { entityKind: 'evidence', entityId: 'entry', fieldKey: 'recordedOn', changeKind: 'changed' },
+      { entityKind: 'evidence', entityId: 'new-entry', changeKind: 'added' }
+    ]);
+  });
 });

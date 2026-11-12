@@ -27,13 +27,15 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
 button,
 select,
-input {
+input,
+textarea {
   color: inherit;
 }
 
@@ -45,6 +47,7 @@ select {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
+textarea:focus-visible,
 a:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
@@ -196,7 +199,8 @@ a:focus-visible {
 }
 
 select,
-input {
+input,
+textarea {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
@@ -1318,6 +1322,228 @@ select {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.evidence-log {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.evidence-log .project-editor-heading {
+  margin: 0 0 1rem;
+}
+
+.evidence-log .project-editor-heading h4,
+.evidence-log .project-editor-heading p {
+  margin: 0.15rem 0 0;
+}
+
+.evidence-log .project-editor-heading p:last-child {
+  max-width: 55rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.evidence-count {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.evidence-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.evidence-form-heading,
+.evidence-detail-field,
+.evidence-reference-field,
+.evidence-form-error,
+.evidence-form-actions {
+  grid-column: 1 / -1;
+}
+
+.evidence-form-heading {
+  display: flex;
+  justify-content: space-between;
+}
+
+.evidence-form-heading small,
+.evidence-empty,
+.evidence-entry-list small {
+  color: var(--text-secondary);
+}
+
+.evidence-form .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.evidence-form .field > input,
+.evidence-form select,
+.evidence-form textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 0.75rem;
+}
+
+.evidence-form textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.evidence-form-error {
+  margin: 0;
+}
+
+.evidence-form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.evidence-form-actions button {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.evidence-form-actions .secondary-button {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.evidence-entry-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence-entry-list li {
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+}
+
+.evidence-entry-heading {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.evidence-category {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.evidence-entry-list h5,
+.evidence-entry-list p {
+  margin: 0.4rem 0;
+}
+
+.evidence-entry-list a {
+  display: block;
+  margin-top: 0.45rem;
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.text-button {
+  min-height: 36px;
+  padding: 0.25rem 0.45rem;
+  border: 0;
+  background: transparent;
+  color: var(--accent-technical);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.evidence-remove {
+  color: var(--danger);
+}
+
+.evidence-empty {
+  margin: 1rem 0 0;
+  padding: 0.8rem;
+  border-left: 3px solid var(--tl-sage);
+  background: var(--bg-elevated);
+}
+
+.evidence-record {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.evidence-record h5,
+.evidence-record > div p {
+  margin: 0.15rem 0;
+}
+
+.evidence-record > div p:last-child,
+.evidence-record > small {
+  color: var(--text-secondary);
+}
+
+.evidence-record ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence-record li {
+  padding: 0.75rem;
+  border-left: 3px solid var(--accent-technical);
+  background: var(--bg-elevated);
+}
+
+.evidence-record li span,
+.evidence-record li small,
+.evidence-record li a {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.72rem;
+}
+
+.evidence-record li span {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evidence-record h6,
+.evidence-record li p {
+  margin: 0.3rem 0;
 }
 
 .project-report {
@@ -3538,7 +3764,9 @@ select {
   }
 
   .project-point-list,
-  .project-point-results {
+  .project-point-results,
+  .evidence-entry-list,
+  .evidence-record ol {
     grid-template-columns: 1fr;
   }
 
@@ -3684,7 +3912,8 @@ select {
   .exposure-context-panel,
   .project-library,
   .project-field-grid,
-  .project-point-editor {
+  .project-point-editor,
+  .evidence-form {
     grid-template-columns: minmax(0, 1fr);
   }
 

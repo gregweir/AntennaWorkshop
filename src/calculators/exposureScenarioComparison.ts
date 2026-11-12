@@ -27,7 +27,7 @@ export interface ExposureScenarioComparison {
 
 export type ScenarioInputValue = string | number | boolean | null;
 export type ScenarioInputValueKind = 'text' | 'boolean' | 'frequency' | 'power' | 'percent' | 'decibel' | 'gain' | 'length' | 'degrees';
-export type ScenarioInputEntityKind = 'project' | 'source' | 'point';
+export type ScenarioInputEntityKind = 'project' | 'source' | 'point' | 'evidence';
 export type ScenarioInputChangeKind = 'changed' | 'added' | 'removed';
 
 export interface ExposureScenarioInputChange {
@@ -44,6 +44,17 @@ export interface ExposureScenarioInputChange {
 
 export interface ExposureScenarioInput extends ExposureProjectInput {
   title?: string;
+  evidenceEntries?: ExposureScenarioEvidence[];
+}
+
+interface ExposureScenarioEvidence {
+  id: string;
+  category: string;
+  title: string;
+  detail: string;
+  recordedOn: string;
+  reviewer: string;
+  referenceUrl?: string;
 }
 
 interface FieldDescriptor<T> {
@@ -73,6 +84,15 @@ const pointFields: FieldDescriptor<ExposureEvaluationPointInput>[] = [
   { key: 'eastOffsetMetres', label: 'East position', kind: 'length' },
   { key: 'northOffsetMetres', label: 'North position', kind: 'length' },
   { key: 'heightMetres', label: 'Point height', kind: 'length' }
+];
+
+const evidenceFields: FieldDescriptor<ExposureScenarioEvidence>[] = [
+  { key: 'category', label: 'Evidence category', kind: 'text' },
+  { key: 'title', label: 'Evidence title', kind: 'text' },
+  { key: 'detail', label: 'Evidence detail', kind: 'text' },
+  { key: 'recordedOn', label: 'Evidence review date', kind: 'text' },
+  { key: 'reviewer', label: 'Evidence reviewer', kind: 'text' },
+  { key: 'referenceUrl', label: 'Evidence reference link', kind: 'text' }
 ];
 
 function fieldChanges<T extends object>(entityKind: ScenarioInputEntityKind, entityId: string, entityLabel: string, baseline: T, current: T, fields: FieldDescriptor<T>[]): ExposureScenarioInputChange[] {
@@ -113,12 +133,37 @@ function entityChanges<T extends { id: string; label: string }>(entityKind: 'sou
   });
 }
 
+function evidenceChanges(baselineItems: ExposureScenarioEvidence[], currentItems: ExposureScenarioEvidence[]): ExposureScenarioInputChange[] {
+  const baselineById = new Map(baselineItems.map((item) => [item.id, item]));
+  const currentById = new Map(currentItems.map((item) => [item.id, item]));
+  return [...new Set([...baselineById.keys(), ...currentById.keys()])].flatMap((id) => {
+    const baseline = baselineById.get(id);
+    const current = currentById.get(id);
+    if (!baseline || !current) {
+      const item = current ?? baseline!;
+      return [{
+        entityKind: 'evidence' as const,
+        entityId: id,
+        entityLabel: item.title,
+        fieldKey: 'evidence',
+        fieldLabel: 'Evidence entry',
+        valueKind: 'text' as const,
+        baselineValue: baseline ? baseline.title : null,
+        currentValue: current ? current.title : null,
+        changeKind: current ? 'added' as const : 'removed' as const
+      }];
+    }
+    return fieldChanges('evidence', id, current.title, baseline, current, evidenceFields);
+  });
+}
+
 export function compareExposureScenarioInputs(baseline: ExposureScenarioInput, current: ExposureScenarioInput): ExposureScenarioInputChange[] {
   const changes: ExposureScenarioInputChange[] = [];
   if (baseline.title !== current.title) changes.push({ entityKind: 'project', entityId: 'project', entityLabel: 'Project', fieldKey: 'title', fieldLabel: 'Project title', valueKind: 'text', baselineValue: baseline.title ?? null, currentValue: current.title ?? null, changeKind: 'changed' });
   if (baseline.sourceInventoryComplete !== current.sourceInventoryComplete) changes.push({ entityKind: 'project', entityId: 'project', entityLabel: 'Project', fieldKey: 'sourceInventoryComplete', fieldLabel: 'Source inventory confirmation', valueKind: 'boolean', baselineValue: baseline.sourceInventoryComplete, currentValue: current.sourceInventoryComplete, changeKind: 'changed' });
   changes.push(...entityChanges('source', baseline.sources, current.sources, sourceFields));
   changes.push(...entityChanges('point', baseline.evaluationPoints, current.evaluationPoints, pointFields));
+  changes.push(...evidenceChanges(baseline.evidenceEntries ?? [], current.evidenceEntries ?? []));
   return changes;
 }
 
