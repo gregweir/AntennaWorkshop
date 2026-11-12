@@ -16,7 +16,20 @@ The application will run in a desktop or mobile browser, install as an offline-c
 - The standard experience is beginner-friendly; Advanced controls remain available from day one.
 - The visual system follows RadioBook and Tartanleaf branding.
 - The application remains useful offline and does not require an account.
-- Licensing will be chosen before public release or outside contributions are accepted.
+- Source code is published under MPL-2.0. Tartanleaf and RadioBook brand identifiers remain separately protected.
+
+## Current implementation
+
+The public repository currently includes:
+
+- Eleven graphical antenna starting designs covering wire, vertical, loop, folded, and directional families.
+- Canada- and United States-aware amateur-band selection with metric and imperial presentation.
+- Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
+- Official Canadian and United States RF power-density reference levels.
+- Conservative single-source far-field screening and frequency-normalized multiple-source aggregation.
+- An installable PWA shell, persistent preferences, explicit update prompts, and automated unit and browser tests.
+
+Saved projects, printable records, near-field exposure methods, independent RF review, and production deployment remain release blockers.
 
 ## Core experience
 

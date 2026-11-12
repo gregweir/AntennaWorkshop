@@ -3,11 +3,13 @@
 /*
 !/.gitignore
 !/.editorconfig
+!/.github/
 !/README.md
 !/LICENSE
 !/ATTRIBUTION.md
 !/CONTRIBUTING.md
 !/TRADEMARKS.md
+!/SECURITY.md
 !/index.html
 !/package.json
 !/package-lock.json
