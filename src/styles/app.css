@@ -1616,6 +1616,183 @@ select {
 .project-point-results .azimuth-route-unknown,
 .project-point-results .azimuth-route-same-plan-position { border-left-color: var(--tl-slate); }
 
+.sensitivity-explorer {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.sensitivity-heading {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.sensitivity-heading h4 {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-mono);
+}
+
+.sensitivity-heading p:last-child {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.sensitivity-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.sensitivity-controls .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.sensitivity-controls select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sensitivity-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.45fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.sensitivity-chart {
+  margin: 0;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.sensitivity-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sensitivity-chart figcaption {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.sensitivity-grid line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.sensitivity-trigger {
+  stroke: var(--danger);
+  stroke-dasharray: 7 5;
+  stroke-width: 2;
+}
+
+.sensitivity-current-line {
+  stroke: var(--tl-slate);
+  stroke-dasharray: 3 4;
+  stroke-width: 2;
+}
+
+.sensitivity-curve {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.sensitivity-preview-point {
+  fill: var(--tl-coral);
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.sensitivity-preview-method-inapplicable,
+.sensitivity-preview-invalid {
+  fill: var(--danger);
+}
+
+.sensitivity-label,
+.sensitivity-axis-label {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.sensitivity-preview {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.sensitivity-preview > label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.sensitivity-preview input {
+  width: 100%;
+  accent-color: var(--tl-coral);
+}
+
+.sensitivity-preview-value strong {
+  font-family: var(--font-mono);
+  font-size: 1.55rem;
+}
+
+.sensitivity-preview dl {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.sensitivity-preview dl div {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.sensitivity-preview dt,
+.sensitivity-preview small {
+  color: var(--text-secondary);
+}
+
+.sensitivity-preview dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-align: right;
+}
+
+.sensitivity-status {
+  margin: 0;
+  padding: 0.6rem;
+  border-left: 3px solid var(--tl-sage);
+  background: var(--bg-elevated);
+  font-weight: 800;
+}
+
+.sensitivity-status-method-inapplicable,
+.sensitivity-status-further-analysis-required,
+.sensitivity-status-invalid {
+  border-left-color: var(--danger);
+}
+
 .project-print-contributions {
   display: none;
 }
@@ -3201,6 +3378,11 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .sensitivity-heading,
+  .sensitivity-layout {
+    grid-template-columns: 1fr;
+  }
+
   .scenario-comparison-heading {
     grid-template-columns: 1fr;
     align-items: stretch;
@@ -3381,6 +3563,10 @@ select {
     margin-inline: auto;
   }
 
+  .sensitivity-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .scenario-input-change {
     grid-template-columns: 1fr;
   }
@@ -3470,7 +3656,8 @@ select {
   .project-editor,
   .project-actions,
   .workflow-message,
-  .exposure-status {
+  .exposure-status,
+  .sensitivity-explorer {
     display: none;
   }
 

@@ -300,6 +300,7 @@ test('calculates a multi-source station project across accessible locations', as
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.tool-nav')).toBeHidden();
   await expect(project.locator('.project-editor')).toBeHidden();
+  await expect(project.locator('.sensitivity-explorer')).toBeHidden();
   await expect(project.locator('.project-print-contributions').first()).toBeVisible();
 });
 
@@ -396,6 +397,26 @@ test('duplicates and compares station scenarios without overwriting the baseline
 
   await project.getByLabel('Open saved station project').selectOption({ label: 'Home station RF assessment' });
   await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
+});
+
+test('explores exposure sensitivity without changing the saved project', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const project = page.locator('.project-section');
+  const explorer = project.getByRole('region', { name: 'Exposure sensitivity explorer' });
+  await expect(explorer.getByRole('img', { name: /Transmitter output sensitivity at Yard access/ })).toBeVisible();
+  await expect(explorer).toContainText('Previewing a sample does not edit or save the project');
+
+  await explorer.getByRole('slider', { name: 'Sensitivity preview position' }).fill('24');
+  await expect(explorer.locator('.sensitivity-preview-value')).toContainText('100 W');
+  await expect(explorer.locator('.sensitivity-preview')).toContainText('4.17%');
+  await expect(project.locator('input[aria-label="Project source 1 transmitter output"]')).toHaveValue('50');
+
+  await explorer.getByLabel('Sensitivity variable').selectOption('plan-distance');
+  await explorer.getByRole('slider', { name: 'Sensitivity preview position' }).fill('24');
+  await expect(explorer.getByRole('img', { name: /Point plan distance from selected source sensitivity at Yard access/ })).toBeVisible();
+  await expect(explorer.locator('.sensitivity-preview-value')).toContainText('30.000 m');
+  await expect(project.getByRole('spinbutton', { name: 'Project point 1 east position' })).toHaveValue('15');
 });
 
 test('persists and transfers validated station projects', async ({ page }) => {

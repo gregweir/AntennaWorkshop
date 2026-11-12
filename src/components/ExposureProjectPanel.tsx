@@ -35,6 +35,7 @@ import { SiteLayoutEditor } from './SiteLayoutEditor';
 import { AntennaAzimuthDiagram } from './AntennaAzimuthDiagram';
 import { AzimuthRouteOverview, AzimuthRouteSummary } from './SourcePointAzimuth';
 import { ExposureScenarioComparisonPanel } from './ExposureScenarioComparison';
+import { ExposureSensitivityExplorer } from './ExposureSensitivityExplorer';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -361,6 +362,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Project outcome</p><h4>{status[0]}</h4><p>{status[1]}</p></div>
       <ExposureProjectDiagram result={result} unitSystem={unitSystem} />
       {worst && <AzimuthRouteOverview pointLabel={worst.point.label} sourceResults={worst.sourceResults} />}
+      <ExposureSensitivityExplorer project={projectData} unitSystem={unitSystem} />
       <div className="project-point-results">{result.pointResults.map((pointResult) => <article className={pointResult.point.id === result.worstPointId ? 'project-worst-point' : ''} key={pointResult.point.id}>
         <div><p className="eyebrow">{pointResult.point.id === result.worstPointId ? 'Greatest modelled total' : 'Evaluation point'}</p><h5>{pointResult.point.label}</h5><small>E {formatCoordinate(pointResult.point.eastOffsetMetres, unitSystem)} · N {formatCoordinate(pointResult.point.northOffsetMetres, unitSystem)} · {formatLength(pointResult.point.heightMetres, unitSystem)} high</small></div>
         <strong>{(pointResult.aggregate.totalFractionOfReferenceLevel * 100).toFixed(2)}%</strong>
