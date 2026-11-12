@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">RadioBook Antenna Workshop</title>
+  <desc id="description">A centre-fed dipole and radio waves in the Tartanleaf colour palette.</desc>
+  <rect width="512" height="512" rx="104" fill="#F4EFE5"/>
+  <path d="M58 206h164M290 206h164" fill="none" stroke="#F58A6A" stroke-linecap="round" stroke-width="26"/>
+  <circle cx="58" cy="206" r="18" fill="#173847" stroke="#F58A6A" stroke-width="10"/>
+  <circle cx="454" cy="206" r="18" fill="#173847" stroke="#F58A6A" stroke-width="10"/>
+  <rect x="218" y="166" width="76" height="80" rx="18" fill="#173847" stroke="#F58A6A" stroke-width="10"/>
+  <path d="M256 246v160" fill="none" stroke="#255665" stroke-linecap="round" stroke-width="18"/>
+  <path d="M187 300c-35 37-35 76 0 113M325 300c35 37 35 76 0 113" fill="none" stroke="#2F5E5B" stroke-linecap="round" stroke-width="15"/>
+  <path d="M138 270c-63 69-63 141 0 210M374 270c63 69 63 141 0 210" fill="none" stroke="#97A28A" stroke-linecap="round" stroke-width="15"/>
+</svg>

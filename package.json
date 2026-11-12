@@ -1,0 +1,38 @@
+{
+  "name": "radiobook-antenna-workshop",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MPL-2.0",
+  "author": "Tartanleaf.com Inc.",
+  "contributors": [
+    "Greg Weir <gweir@tartanleaf.com>"
+  ],
+  "homepage": "https://www.radiobook.ca/antennas/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gregweir/AntennaWorkshop.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.0"
+  }
+}

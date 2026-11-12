@@ -1,0 +1,53 @@
+# RadioBook Antenna Workshop
+
+RadioBook Antenna Workshop is an offline-first browser application for designing, understanding, building, tuning, and evaluating amateur-radio antennas. The working product direction combines construction calculators, live diagrams, educational guidance, feedline tools, and jurisdiction-specific RF exposure screening.
+
+The current workshop includes dimensioned half-wave dipole, inverted-V, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon rectangle, three-element Yagi, ground-mounted quarter-wave vertical, elevated quarter-wave ground plane, and full-wave-loop designs. The multiband wire workflows include transformer assumptions, harmonic-use context, RF return-path or common-mode guidance, and applicable safety cautions. Vertical workflows distinguish a ground-level radial field from elevated sloping counterpoise wires, and the parallel J-pole designs distinguish radiator sections, matching stubs, adjustable coax taps, and the Slim Jim’s interrupted folded side. The directional workflows include the diameter-aware Moxon geometry and a scale-faithful National Bureau of Standards Yagi reference, with prominent matching and pattern limitations. Feedline tools include a first-order power budget for loss, SWR, return loss, mismatch loss, and accepted power; a velocity-factor-aware coaxial stub calculator; and directional ERP/EIRP accounting with explicit dBi or dBd gain references. Band selectors connect conventional metre names to their actual frequency allocations and wavelengths for Canada and the United States.
+
+The application is being developed locally before deployment at [radiobook.ca/antennas](https://www.radiobook.ca/antennas/). RadioBook Antenna Workshop is developed by Greg Weir for [Tartanleaf.com Inc.](https://www.tartanleaf.com/).
+
+The RF exposure workspace provides boundary-tested official power-density reference levels for Canada and the United States, a conservative single-source far-field estimate, and frequency-normalized multiple-source aggregation. The tools expose average power, feed loss, antenna gain, reflection, separation distance, source inventory, and applicability assumptions. They do not determine compliance. Exemption analysis, antenna-pattern modelling, near-field evaluation, measurement uncertainty, and automatic local-source discovery remain future work.
+
+## Local development
+
+Requirements: a current Node.js release and npm.
+
+```bash
+npm install
+npm run dev
+```
+
+The development server listens on all local interfaces. Open `http://localhost:5174/antennas/` on this computer or `http://192.168.8.x:5174/antennas/` from another device on the LAN, replacing `x` with the development computer's address.
+
+LAN access over plain HTTP is suitable for browser testing, but service workers and installation require HTTPS or the device's own `localhost`.
+
+## Verification
+
+```bash
+npm test
+npm run test:e2e
+npm run build
+npm run preview
+```
+
+- `npm test` runs calculation and data-contract tests.
+- `npm run test:e2e` runs persistent-preference, interaction, update-notice, and responsive browser tests. Install Playwright's Chromium browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to a local Chromium-compatible executable.
+- `npm run build` performs strict type checking and creates the production PWA.
+- `npm run preview` serves the production build on the LAN at port 4174.
+
+## Project layout
+
+- `src/calculators/` contains pure, testable calculation functions.
+- `src/components/` contains accessible interface and SVG visualization components.
+- `src/regulations/` contains versioned jurisdiction metadata and source references.
+- `src/styles/` contains RadioBook design tokens.
+- `docs/` contains product, architecture, and regulatory-source documentation.
+- `public/` contains installable-app assets.
+
+Calculation results are planning and construction aids. RF exposure screening must identify its jurisdiction, assumptions, source revision, and limitations; it is not a substitute for measurements or professional assessment when a simplified method is inconclusive.
+
+## Licence and attribution
+
+Source code is available under the [Mozilla Public License 2.0](LICENSE). Copyright 2026 Tartanleaf.com Inc. See [ATTRIBUTION.md](ATTRIBUTION.md) for project credit and [TRADEMARKS.md](TRADEMARKS.md) for the treatment of RadioBook and Tartanleaf branding.
+
+Project contact: [gweir@tartanleaf.com](mailto:gweir@tartanleaf.com).

@@ -1,0 +1,39 @@
+# Regulatory Source Registry
+
+RF exposure methods must be implemented from primary sources, retain their revision identity, and be reviewed whenever a source changes. The FCC Table 1 MPE power-density limits and Safety Code 6 Tables 5–6 power-density reference levels are encoded and boundary-tested. A conservative single-source far-field estimate is available for education and preliminary screening. It uses average EIRP, a 2.56 reflected-field multiplier, and an explicit far-field applicability check. A separate tool sums multiple sources after normalizing every power density against the limit at its own frequency. Neither tool demonstrates compliance. Exemption analysis, antenna-pattern modelling, near-field evaluation, measurement uncertainty, and compliance classification remain disabled pending implementation and independent review.
+
+## Canada
+
+- ISED RBR-4, *Standards for the Operation of Radio Stations in the Amateur Radio Service* — connects amateur operation to antenna-system requirements.
+- ISED RBR-4 Schedule I — source for Canadian amateur allocation ranges displayed by band selectors.
+- ISED CPC-2-0-03, *Radiocommunication and Broadcasting Antenna Systems* — establishes ongoing Safety Code 6 responsibilities and consideration of the local radio environment.
+- Health Canada, *Safety Code 6* and its technical guide — controlled and uncontrolled reference levels and assessment guidance.
+- ISED TN-261, *Safety Code 6 Radio Frequency Exposure Compliance Evaluation Template* — simplified screening, near/far-field treatment, multiple sources, and escalation criteria.
+- ISED GL-01 and GL-08 — measurement and compliance-report guidance.
+
+## United States
+
+- FCC 47 CFR sections 1.1307 and 1.1310 — evaluation criteria and exposure limits.
+- FCC 47 CFR section 97.301 — source for United States amateur allocation ranges displayed by band selectors.
+- FCC Report and Order 19-126 and Public Notice DA 21-363 — service-agnostic exemption framework and effective date.
+- FCC OET Bulletin 65 and Supplement B — amateur-radio evaluation guidance, subject to confirmation against current FCC direction.
+- ARRL RF Exposure Calculator and instructions — practical cross-check reference, not the governing rule text.
+
+## United Kingdom
+
+- Ofcom, *Guidance on EMF Compliance and Enforcement*.
+- Ofcom, *EMF licence condition: what you need to know as an Amateur Radio user*.
+- Ofcom EMF calculator methodology and recognised equipment standards.
+
+## Australia
+
+- ARPANSA RPS S-1, *Standard for Limiting Exposure to Radiofrequency Fields — 100 kHz to 300 GHz*.
+- Applicable ACMA licence conditions and electromagnetic-energy compliance guidance, to be scoped before implementation.
+
+## Implementation rule
+
+Every regulatory result must display its jurisdiction, source revision, last-reviewed date, scenario classification, assumptions, units, and limitations. Source updates require reference-vector review before release.
+
+The preliminary far-field screen uses the maximum stated antenna gain and the TN-261 modified free-space expression, including the 2.56 power-density multiplier arising from a reflected electric field 60% as strong as the direct field. Canadian uncontrolled scenarios escalate for detailed review at 50% of the applicable Safety Code 6 limit. For all jurisdictions, the result is inconclusive when other RF sources have not been assessed and inapplicable inside the conservative far-field boundary.
+
+Multiple-source aggregation implements the normalized sum `F = Σ(Pᵢ/Sᵢ)` described by ISED BPR-1 section 8.1. Every entered power density must describe the same evaluation point and use an averaging treatment appropriate to that source. The result remains inconclusive until the user confirms the relevant local source inventory has been assessed. The tool does not infer missing emitters or validate the method used to obtain an entered power density.

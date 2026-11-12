@@ -1,0 +1,29 @@
+# This repository uses an allow-list at its root so local workspace files are
+# never staged accidentally. Add new public project paths deliberately.
+/*
+!/.gitignore
+!/.editorconfig
+!/README.md
+!/LICENSE
+!/ATTRIBUTION.md
+!/CONTRIBUTING.md
+!/TRADEMARKS.md
+!/index.html
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/tsconfig.app.json
+!/tsconfig.node.json
+!/vite.config.ts
+!/playwright.config.ts
+!/src/
+!/public/
+!/docs/
+!/tests/
+
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.local
