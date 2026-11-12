@@ -1463,6 +1463,73 @@ select {
   stroke: var(--tl-coral);
 }
 
+.azimuth-route-overview {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.6fr);
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.azimuth-route-overview h5 {
+  margin: 0.15rem 0 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+}
+
+.azimuth-route-overview p:last-child {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.azimuth-route-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.65rem;
+}
+
+.azimuth-route-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--text-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.azimuth-route-card strong {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+
+.azimuth-route-card span,
+.azimuth-route-card small {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.azimuth-route-inside-entered-envelope {
+  border-left-color: var(--tl-coral);
+}
+
+.azimuth-route-outside-entered-envelope {
+  border-left-color: var(--tl-teal);
+}
+
+.azimuth-route-all-azimuths {
+  border-left-color: var(--tl-sage);
+}
+
+.azimuth-route-unknown,
+.azimuth-route-same-plan-position {
+  border-left-color: var(--tl-slate);
+}
+
 .project-point-results {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1527,6 +1594,27 @@ select {
 .project-point-results li span {
   color: var(--text-secondary);
 }
+
+.project-point-results .azimuth-route {
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  border-left: 3px solid var(--text-secondary);
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.project-point-results .azimuth-route small {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-body);
+}
+
+.project-point-results .azimuth-route-inside-entered-envelope { border-left-color: var(--tl-coral); }
+.project-point-results .azimuth-route-outside-entered-envelope { border-left-color: var(--tl-teal); }
+.project-point-results .azimuth-route-all-azimuths { border-left-color: var(--tl-sage); }
+.project-point-results .azimuth-route-unknown,
+.project-point-results .azimuth-route-same-plan-position { border-left-color: var(--tl-slate); }
 
 .project-print-contributions {
   display: none;
@@ -2898,6 +2986,10 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .azimuth-route-overview {
+    grid-template-columns: 1fr;
+  }
+
   .azimuth-source-editor {
     grid-template-columns: 1fr;
   }
@@ -3186,7 +3278,8 @@ select {
   .project-point-results article,
   .project-record-grid article,
   .project-provenance,
-  .project-diagram {
+  .project-diagram,
+  .azimuth-route-overview {
     break-inside: avoid;
     box-shadow: none;
   }

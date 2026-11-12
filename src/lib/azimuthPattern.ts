@@ -13,6 +13,15 @@ export interface AzimuthPattern {
   beamwidthDegrees: number;
 }
 
+export type AzimuthEnvelopeRelation = 'unknown' | 'all-azimuths' | 'inside-entered-envelope' | 'outside-entered-envelope' | 'same-plan-position';
+
+export interface AzimuthRelationship {
+  targetBearingDegrees: number | null;
+  closestLobeBearingDegrees: number | null;
+  offAxisDegrees: number | null;
+  envelopeRelation: AzimuthEnvelopeRelation;
+}
+
 export const AZIMUTH_PATTERN_LABELS: Record<AzimuthPatternType, string> = {
   unknown: 'Unknown / use maximum gain in every direction',
   omnidirectional: 'Omnidirectional',
@@ -28,6 +37,43 @@ export function normalizeBearing(degrees: number): number {
 export function pointOnBearing(bearingDegrees: number, radius: number) {
   const radians = normalizeBearing(bearingDegrees) * Math.PI / 180;
   return { x: Math.sin(radians) * radius, y: -Math.cos(radians) * radius };
+}
+
+export function bearingFromOffsets(eastOffset: number, northOffset: number): number | null {
+  if (!Number.isFinite(eastOffset) || !Number.isFinite(northOffset)) throw new RangeError('Position offsets must be finite numbers.');
+  if (eastOffset === 0 && northOffset === 0) return null;
+  return normalizeBearing(Math.atan2(eastOffset, northOffset) * 180 / Math.PI);
+}
+
+export function smallestBearingDifference(firstDegrees: number, secondDegrees: number): number {
+  const difference = Math.abs(normalizeBearing(firstDegrees) - normalizeBearing(secondDegrees));
+  return Math.min(difference, 360 - difference);
+}
+
+export function analyzeAzimuthRelationship(pattern: AzimuthPattern, targetBearingDegrees: number | null): AzimuthRelationship {
+  if (targetBearingDegrees === null) {
+    return { targetBearingDegrees: null, closestLobeBearingDegrees: null, offAxisDegrees: null, envelopeRelation: 'same-plan-position' };
+  }
+  const targetBearing = normalizeBearing(targetBearingDegrees);
+  if (pattern.patternType === 'unknown') {
+    return { targetBearingDegrees: targetBearing, closestLobeBearingDegrees: null, offAxisDegrees: null, envelopeRelation: 'unknown' };
+  }
+  if (pattern.patternType === 'omnidirectional') {
+    return { targetBearingDegrees: targetBearing, closestLobeBearingDegrees: null, offAxisDegrees: null, envelopeRelation: 'all-azimuths' };
+  }
+  const primaryBearing = normalizeBearing(pattern.bearingDegrees);
+  const oppositeBearing = normalizeBearing(primaryBearing + 180);
+  const primaryOffset = smallestBearingDifference(targetBearing, primaryBearing);
+  const oppositeOffset = smallestBearingDifference(targetBearing, oppositeBearing);
+  const useOpposite = pattern.patternType === 'bidirectional' && oppositeOffset < primaryOffset;
+  const closestLobeBearingDegrees = useOpposite ? oppositeBearing : primaryBearing;
+  const offAxisDegrees = useOpposite ? oppositeOffset : primaryOffset;
+  return {
+    targetBearingDegrees: targetBearing,
+    closestLobeBearingDegrees,
+    offAxisDegrees,
+    envelopeRelation: offAxisDegrees <= pattern.beamwidthDegrees / 2 ? 'inside-entered-envelope' : 'outside-entered-envelope'
+  };
 }
 
 export function azimuthSectorPath(bearingDegrees: number, beamwidthDegrees: number, radius: number): string {

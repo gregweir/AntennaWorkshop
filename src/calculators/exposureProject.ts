@@ -15,7 +15,7 @@ import {
   type ExposureScreenStatus
 } from './exposureScreen';
 import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/exposureLimits';
-import type { AzimuthPatternType } from '../lib/azimuthPattern';
+import { analyzeAzimuthRelationship, bearingFromOffsets, type AzimuthPatternType, type AzimuthRelationship } from '../lib/azimuthPattern';
 
 export interface ExposureProjectSourceInput {
   id: string;
@@ -60,6 +60,7 @@ export interface ExposureProjectSourceResult {
   source: ExposureProjectSourceInput;
   horizontalSeparationMetres: number;
   separationDistanceMetres: number;
+  azimuth: AzimuthRelationship;
   screen: ExposureScreenResult;
 }
 
@@ -81,7 +82,7 @@ export interface ExposureProjectResult {
 
 export const EXPOSURE_PROJECT_MODEL = {
   id: 'multi-source-multi-point-far-field-project',
-  version: '2.1.0',
+  version: '2.2.0',
   reviewedOn: '2026-11-12'
 } as const;
 
@@ -145,6 +146,11 @@ export function calculateExposureProject(input: ExposureProjectInput): ExposureP
       if (separationDistanceMetres < 0.001) {
         throw new RangeError('An evaluation point cannot coincide with an antenna radiation centre.');
       }
+      const targetBearingDegrees = bearingFromOffsets(
+        point.eastOffsetMetres - source.eastOffsetMetres,
+        point.northOffsetMetres - source.northOffsetMetres
+      );
+      const azimuth = analyzeAzimuthRelationship(source, targetBearingDegrees);
       const screen = calculateExposureScreen({
         jurisdiction: input.jurisdiction,
         environment: input.environment,
@@ -157,7 +163,7 @@ export function calculateExposureProject(input: ExposureProjectInput): ExposureP
         separationDistanceMetres,
         nearbySourcesAssessed: true
       });
-      return { source, horizontalSeparationMetres, separationDistanceMetres, screen };
+      return { source, horizontalSeparationMetres, separationDistanceMetres, azimuth, screen };
     });
     const aggregate = calculateExposureAggregation(
       input.jurisdiction,

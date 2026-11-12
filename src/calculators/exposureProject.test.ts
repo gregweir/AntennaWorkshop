@@ -44,6 +44,10 @@ describe('integrated exposure project', () => {
     expect(yard.sourceResults[0].separationDistanceMetres).toBeCloseTo(Math.hypot(15, 8.5), 10);
     expect(yard.sourceResults[1].horizontalSeparationMetres).toBeCloseTo(Math.hypot(11, -3), 10);
     expect(yard.sourceResults[1].separationDistanceMetres).toBeCloseTo(Math.hypot(11, -3, 10.5), 10);
+    expect(yard.sourceResults[0].azimuth).toMatchObject({ targetBearingDegrees: 90, envelopeRelation: 'all-azimuths' });
+    expect(yard.sourceResults[1].azimuth.targetBearingDegrees).toBeCloseTo(105.255, 3);
+    expect(yard.sourceResults[1].azimuth).toMatchObject({ closestLobeBearingDegrees: 45, envelopeRelation: 'outside-entered-envelope' });
+    expect(yard.sourceResults[1].azimuth.offAxisDegrees).toBeCloseTo(60.255, 3);
     expect(yard.aggregate.totalFractionOfReferenceLevel).toBeCloseTo(
       yard.sourceResults.reduce((sum, source) => sum + source.screen.fractionOfReferenceLevel, 0),
       10

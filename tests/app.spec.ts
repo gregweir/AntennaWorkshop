@@ -349,6 +349,11 @@ test('records and visualizes antenna azimuth orientation without reducing the ex
   await expect(project.getByRole('img', { name: '2 m vertical azimuth orientation' })).toBeVisible();
   await expect(project.locator('.azimuth-preview').first()).toContainText('55 degree directional envelope');
   await expect(project.getByRole('group', { name: 'Editable station site plan' }).locator('.azimuth-pattern-directional')).toHaveCount(1);
+  const routeOverview = project.getByRole('region', { name: 'Orientation toward Yard access' });
+  await expect(routeOverview).toContainText('Orientation toward Yard access');
+  await expect(routeOverview).toContainText('90.0° true · 0.0° off 90° lobe');
+  await expect(routeOverview).toContainText('Inside entered 55° envelope');
+  await expect(routeOverview).toContainText('do not change the conservative exposure values');
   await expect(project.locator('.project-record-grid')).toContainText('90° true / 55° beamwidth');
   await expect(project.locator('.project-record-grid')).toContainText('maximum stated gain is still applied toward every point');
 
