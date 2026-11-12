@@ -1836,6 +1836,98 @@ select {
   color: var(--text-secondary);
 }
 
+.sensitivity-data-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.sensitivity-data-actions h5,
+.sensitivity-data-actions p {
+  margin: 0;
+}
+
+.sensitivity-data-actions p,
+.sensitivity-data-table > small {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.sensitivity-download-message:empty {
+  display: none;
+}
+
+.sensitivity-download-message {
+  margin: 0.65rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.sensitivity-data-table {
+  margin-top: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.sensitivity-data-table summary {
+  padding: 0.75rem;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.sensitivity-table-scroll {
+  max-height: 28rem;
+  overflow: auto;
+  border-block: 1px solid var(--border);
+}
+
+.sensitivity-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.sensitivity-data-table caption {
+  padding: 0.7rem;
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+.sensitivity-data-table th,
+.sensitivity-data-table td {
+  padding: 0.55rem 0.7rem;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.sensitivity-data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-elevated);
+}
+
+.sensitivity-data-table tbody th,
+.sensitivity-data-table td:nth-child(2),
+.sensitivity-data-table td:nth-child(3) {
+  font-family: var(--font-mono);
+}
+
+.sensitivity-table-previewed {
+  background: color-mix(in srgb, var(--tl-coral) 12%, transparent);
+}
+
+.sensitivity-data-table > small {
+  display: block;
+  padding: 0.7rem;
+}
+
 .project-print-contributions {
   display: none;
 }
@@ -3608,6 +3700,11 @@ select {
 
   .sensitivity-controls {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sensitivity-data-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .scenario-input-change {

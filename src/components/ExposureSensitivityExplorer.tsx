@@ -6,12 +6,13 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ExposureProjectInput } from '../calculators/exposureProject';
 import { calculateExposureSensitivity, defaultExposureSensitivityRange, type ExposureSensitivitySample, type ExposureSensitivityVariable } from '../calculators/exposureSensitivity';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
+import { exposureSensitivityCsvFilename, serializeExposureSensitivityCsv } from '../projects/exposureSensitivityCsv';
+import type { ExposureProjectData } from '../projects/exposureProjectFiles';
 
 interface Props {
-  project: ExposureProjectInput;
+  project: ExposureProjectData;
   unitSystem: UnitSystem;
 }
 
@@ -55,6 +56,7 @@ export function ExposureSensitivityExplorer({ project, unitSystem }: Props) {
   const [variable, setVariable] = useState<ExposureSensitivityVariable>('transmitter-power');
   const [previewIndex, setPreviewIndex] = useState(12);
   const [customRange, setCustomRange] = useState<{ key: string; minimumValue: number; maximumValue: number } | null>(null);
+  const [downloadMessage, setDownloadMessage] = useState('');
   const selectedSourceId = project.sources.some((source) => source.id === sourceId) ? sourceId : project.sources[0].id;
   const selectedPointId = project.evaluationPoints.some((point) => point.id === pointId) ? pointId : project.evaluationPoints[0].id;
   const defaultRange = useMemo(() => defaultExposureSensitivityRange(project, selectedSourceId, selectedPointId, variable), [project, selectedSourceId, selectedPointId, variable]);
@@ -96,6 +98,25 @@ export function ExposureSensitivityExplorer({ project, unitSystem }: Props) {
     minimumValue: field === 'minimumValue' ? readRangeValue(displayValue) : range.minimumValue,
     maximumValue: field === 'maximumValue' ? readRangeValue(displayValue) : range.maximumValue
   });
+  const sourceLabel = project.sources.find((source) => source.id === selectedSourceId)?.label ?? selectedSourceId;
+  const pointLabel = project.evaluationPoints.find((point) => point.id === selectedPointId)?.label ?? selectedPointId;
+  const relationToTrigger = (sample: ExposureSensitivitySample) => sample.totalFractionOfReferenceLevel === null
+    ? 'Unavailable'
+    : Math.abs(sample.totalFractionOfReferenceLevel - analysis.screeningTriggerFraction) < 1e-9
+      ? 'At trigger'
+      : sample.totalFractionOfReferenceLevel < analysis.screeningTriggerFraction ? 'Below trigger' : 'Above trigger';
+  const downloadCsv = () => {
+    const csv = serializeExposureSensitivityCsv(analysis, { sourceLabel, pointLabel, variableLabel: variableLabels[variable], unitSystem });
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = exposureSensitivityCsvFilename(project.title, variable);
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setDownloadMessage(`Downloaded ${analysis.samples.length} sensitivity samples and ${analysis.thresholdCrossings.length} interpolated ${analysis.thresholdCrossings.length === 1 ? 'crossing' : 'crossings'} as CSV.`);
+  };
 
   return <section className="sensitivity-explorer" aria-labelledby="sensitivity-heading">
     <div className="sensitivity-heading"><div><p className="eyebrow">Read-only what-if curve</p><h4 id="sensitivity-heading">Exposure sensitivity explorer</h4><p>Vary one input while every other saved project value remains fixed. Previewing a sample does not edit or save the project.</p></div><div className="sensitivity-controls">
@@ -134,5 +155,21 @@ export function ExposureSensitivityExplorer({ project, unitSystem }: Props) {
         <small>Educational sensitivity only. It does not optimize the station, apply pattern attenuation, establish exemption, or demonstrate compliance.</small>
       </div>
     </div>
+    <div className="sensitivity-data-actions">
+      <div><h5>Inspect the plotted data</h5><p>The table and CSV contain every plotted sample. Crossing rows in the CSV are separately labelled as interpolated estimates.</p></div>
+      <button type="button" className="secondary-button" onClick={downloadCsv}>Download CSV</button>
+    </div>
+    <p className="sensitivity-download-message" role="status" aria-live="polite">{downloadMessage}</p>
+    <details className="sensitivity-data-table">
+      <summary>View all {analysis.samples.length} sensitivity samples</summary>
+      <div className="sensitivity-table-scroll" tabIndex={0} aria-label="Scrollable sensitivity sample table">
+        <table>
+          <caption>{variableLabels[variable]} sensitivity samples for {sourceLabel} at {pointLabel}. Values use {rangeUnit}.</caption>
+          <thead><tr><th scope="col">Sample</th><th scope="col">Input</th><th scope="col">Normalized total</th><th scope="col">Trigger relation</th><th scope="col">Evaluation status</th></tr></thead>
+          <tbody>{analysis.samples.map((sample, index) => <tr key={`${sample.inputValue}-${index}`} className={index === previewIndex ? 'sensitivity-table-previewed' : undefined}><th scope="row">{index + 1}</th><td>{formatValue(sample.inputValue, variable, unitSystem)}</td><td>{sample.totalFractionOfReferenceLevel === null ? 'Unavailable' : `${(sample.totalFractionOfReferenceLevel * 100).toFixed(4)}%`}</td><td>{relationToTrigger(sample)}</td><td>{sampleStatus(sample)}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <small>Rows are sampled calculations. Estimated crossings are interpolated between eligible rows and are included separately in the CSV.</small>
+    </details>
   </section>;
 }
