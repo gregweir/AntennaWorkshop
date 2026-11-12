@@ -548,6 +548,442 @@ select {
   font-weight: 700;
 }
 
+.exposure-mode-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.exposure-mode-picker button {
+  min-height: 78px;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.exposure-mode-picker button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  box-shadow: inset 0 -4px 0 var(--tl-coral);
+}
+
+.exposure-mode-picker span,
+.exposure-mode-picker strong,
+.exposure-mode-picker small {
+  display: block;
+}
+
+.exposure-mode-picker span {
+  color: var(--tl-coral);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.exposure-mode-picker strong {
+  font-family: var(--font-mono);
+}
+
+.exposure-mode-picker small {
+  margin-top: 0.2rem;
+  color: var(--text-secondary);
+}
+
+.exposure-mode-picker button[aria-pressed='true'] small {
+  color: var(--tl-light-sage);
+}
+
+.exposure-context-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.exposure-context-panel .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.exposure-context-panel input[readonly],
+.project-editor .field > input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.exposure-context-panel select {
+  width: 100%;
+}
+
+.exposure-view {
+  padding-top: 0.5rem;
+}
+
+.reference-results-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.62fr) minmax(0, 1.5fr);
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.reference-results-layout > div:first-child {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.reference-results-layout .result-summary {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.project-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.project-editor {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.project-title-field {
+  max-width: 36rem;
+  margin: 0;
+}
+
+.project-editor-heading,
+.project-report-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-editor-heading h4,
+.project-report-heading h4 {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+}
+
+.project-source-list,
+.project-point-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.project-source-editor,
+.project-point-editor {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.project-source-editor summary {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.project-source-editor summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-source-editor summary::after {
+  content: '+';
+  order: 3;
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+}
+
+.project-source-editor[open] summary::after {
+  content: '−';
+}
+
+.project-source-editor summary span,
+.project-source-editor summary small {
+  display: block;
+}
+
+.project-source-editor summary small {
+  color: var(--text-secondary);
+}
+
+.project-source-editor summary b {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.project-field-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0 1rem 1rem;
+}
+
+.project-field-grid .field,
+.project-point-editor .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.project-source-editor > .remove-source {
+  margin: 0 1rem 1rem;
+}
+
+.project-point-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-point-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  align-items: end;
+  padding: 1rem;
+}
+
+.project-point-editor legend {
+  padding-inline: 0.4rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.project-report {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.project-report-heading > div > p:last-child {
+  margin: 0.3rem 0 0;
+  color: var(--text-secondary);
+}
+
+.project-actions button {
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.project-diagram {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.project-ground,
+.project-mast line,
+.project-mast path {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 4;
+}
+
+.project-source line,
+.project-source circle {
+  stroke-width: 4;
+}
+
+.project-source text,
+.project-point text,
+.project-axis-label {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.project-source-0 line,
+.project-source-0 circle,
+.project-path-0 { stroke: var(--tl-coral); }
+.project-source-1 line,
+.project-source-1 circle,
+.project-path-1 { stroke: var(--tl-teal); }
+.project-source-2 line,
+.project-source-2 circle,
+.project-path-2 { stroke: var(--tl-sage); }
+.project-source-3 line,
+.project-source-3 circle,
+.project-path-3 { stroke: var(--tl-slate); }
+.project-source-4 line,
+.project-source-4 circle,
+.project-path-4 { stroke: var(--success); }
+.project-source-5 line,
+.project-source-5 circle,
+.project-path-5 { stroke: var(--danger); }
+
+.project-source circle {
+  fill: var(--bg-surface);
+}
+
+.project-path {
+  stroke-dasharray: 5 4;
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.project-point circle {
+  fill: var(--bg-surface);
+}
+
+.project-point circle,
+.project-point line {
+  stroke: var(--text-primary);
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.project-point-worst circle,
+.project-point-worst line {
+  stroke: var(--tl-coral);
+}
+
+.project-point-worst text {
+  fill: var(--text-primary);
+  font-weight: 800;
+}
+
+.project-point .project-evaluation-marker {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.project-point-worst .project-evaluation-marker {
+  fill: var(--tl-coral);
+  stroke: var(--tl-coral);
+}
+
+.project-point-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.project-point-results article,
+.project-record-grid article,
+.project-provenance {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.project-point-results article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 1rem;
+}
+
+.project-point-results h5 {
+  margin: 0.15rem 0;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+}
+
+.project-point-results article > strong {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+}
+
+.project-point-results article > span,
+.project-point-results article > details {
+  grid-column: 1 / -1;
+}
+
+.project-point-results article > span {
+  color: var(--text-secondary);
+}
+
+.project-point-results details summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.project-point-results ul,
+.project-record-grid ul {
+  padding-left: 1.2rem;
+}
+
+.project-point-results li {
+  margin: 0.5rem 0;
+}
+
+.project-point-results li b,
+.project-point-results li span {
+  display: block;
+}
+
+.project-point-results li span {
+  color: var(--text-secondary);
+}
+
+.project-print-contributions {
+  display: none;
+}
+
+.project-worst-point {
+  border-left: 4px solid var(--tl-coral) !important;
+}
+
+.project-record-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.project-record-grid li {
+  margin: 0.4rem 0;
+}
+
+.project-provenance {
+  margin-top: 1rem;
+  background: var(--bg-elevated);
+}
+
+.project-provenance p {
+  margin: 0.35rem 0;
+}
+
 .exposure-screen-section {
   margin-top: 2rem;
   padding-top: 2rem;
@@ -1884,7 +2320,20 @@ select {
   .calculator-layout,
   .explanation-grid,
   .roadmap-grid,
-  .screen-results-layout {
+  .screen-results-layout,
+  .reference-results-layout,
+  .project-record-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exposure-mode-picker,
+  .exposure-context-panel,
+  .project-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .project-point-list,
+  .project-point-results {
     grid-template-columns: 1fr;
   }
 
@@ -1941,6 +2390,8 @@ select {
   .global-controls,
   .workspace-heading,
   .section-heading,
+  .project-editor-heading,
+  .project-report-heading,
   .update-banner {
     align-items: stretch;
     flex-direction: column;
@@ -1995,6 +2446,26 @@ select {
     padding: 1rem;
   }
 
+  .exposure-mode-picker,
+  .exposure-context-panel,
+  .project-field-grid,
+  .project-point-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-source-editor summary {
+    align-items: flex-start;
+  }
+
+  .project-source-editor summary b {
+    display: none;
+  }
+
+  .project-actions,
+  .project-actions button {
+    width: 100%;
+  }
+
   .screen-source-field {
     grid-column: auto;
   }
@@ -2043,12 +2514,25 @@ select {
 }
 
 @media print {
+  .skip-link,
   .site-header,
   .hero,
+  .tool-nav,
   .roadmap,
   .site-footer,
+  .workspace-heading,
   .advanced-toggle,
-  .input-panel {
+  .input-panel,
+  .exposure-mode-picker,
+  .exposure-context-panel,
+  .project-editor,
+  .project-actions,
+  .exposure-status {
+    display: none;
+  }
+
+  .project-section > .section-heading,
+  .project-section > .screen-intro {
     display: none;
   }
 
@@ -2068,5 +2552,24 @@ select {
 
   .calculator-layout {
     display: block;
+  }
+
+  .project-section,
+  .project-report,
+  .project-point-results article,
+  .project-record-grid article,
+  .project-provenance,
+  .project-diagram {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .project-point-results details {
+    display: none;
+  }
+
+  .project-print-contributions {
+    display: block;
+    grid-column: 1 / -1;
   }
 }

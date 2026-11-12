@@ -8,7 +8,7 @@ The current workshop includes dimensioned half-wave dipole, inverted-V, EFHW, of
 
 The application is being developed locally before deployment at [radiobook.ca/antennas](https://www.radiobook.ca/antennas/). RadioBook Antenna Workshop is developed by Greg Weir for [Tartanleaf.com Inc.](https://www.tartanleaf.com/).
 
-The RF exposure workspace provides boundary-tested official power-density reference levels for Canada and the United States, a conservative single-source far-field estimate, and frequency-normalized multiple-source aggregation. The tools expose average power, feed loss, antenna gain, reflection, separation distance, source inventory, and applicability assumptions. They do not determine compliance. Exemption analysis, antenna-pattern modelling, near-field evaluation, measurement uncertainty, and automatic local-source discovery remain future work.
+The RF exposure workspace provides boundary-tested official power-density reference levels for Canada and the United States, a conservative single-source far-field estimate, frequency-normalized multiple-source aggregation, and a printable station project spanning several co-located transmitters and accessible evaluation points. The tools expose average power, feed loss, antenna gain, antenna height, reflection, separation geometry, source inventory, and applicability assumptions. They do not determine compliance. Exemption analysis, antenna-pattern modelling, near-field evaluation, measurement uncertainty, non-co-located source geometry, and automatic local-source discovery remain future work.
 
 ## Local development
 

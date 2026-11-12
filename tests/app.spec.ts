@@ -170,7 +170,7 @@ test('shows and dismisses an application update notice', async ({ page }) => {
 test('shows official RF exposure reference limits without a compliance result', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
-  await expect(page.getByRole('note')).toContainText('do not determine compliance');
+  await expect(page.getByRole('note')).toContainText('do not by themselves determine compliance');
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('146.000');
   await expect(page.locator('.result-summary')).toContainText('1.291 W/m²');
   await expect(page.locator('.result-summary')).toContainText('6.00 min');
@@ -190,6 +190,7 @@ test('shows official RF exposure reference limits without a compliance result', 
 
 test('classifies conservative far-field screening limitations', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Single source/ }).click();
   const stationScreen = page.locator('.exposure-screen-section');
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('146.000');
   await expect(page.getByRole('heading', { name: 'Single-source far-field estimate' })).toBeVisible();
@@ -210,6 +211,7 @@ test('classifies conservative far-field screening limitations', async ({ page })
 
 test('normalizes and sums multiple RF sources without inferring compliance', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Measured sources/ }).click();
   const aggregation = page.locator('.aggregation-section');
   await expect(aggregation.getByRole('heading', { name: 'Local RF environment' })).toBeVisible();
   await expect(aggregation.locator('.screen-outcome')).toContainText('Source inventory is incomplete');
@@ -226,6 +228,33 @@ test('normalizes and sums multiple RF sources without inferring compliance', asy
   await aggregation.getByRole('button', { name: /Add RF source/ }).click();
   await expect(aggregation.getByRole('group')).toHaveCount(3);
   await expect(aggregation.locator('.screen-outcome')).toContainText('Source inventory is incomplete');
+});
+
+test('calculates a multi-source station project across accessible locations', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const project = page.locator('.project-section');
+
+  await expect(project.getByRole('heading', { name: 'Station assessment project' })).toBeVisible();
+  await expect(project.locator('.screen-outcome')).toContainText('station source inventory is incomplete');
+  await expect(project.getByRole('img', { name: /Station exposure evaluation geometry/ })).toBeVisible();
+  await expect(project.locator('.project-point-results article')).toHaveCount(2);
+  await expect(project.getByRole('button', { name: 'Print assessment' })).toBeVisible();
+
+  await project.getByRole('checkbox', { name: /Common-site source inventory assessed/ }).check();
+  await expect(project.locator('.screen-outcome')).toContainText('All modelled points are below the screening trigger');
+
+  await project.getByRole('spinbutton', { name: 'Project point 1 horizontal distance' }).fill('0.05');
+  await project.getByRole('spinbutton', { name: 'Project point 1 height' }).fill('10');
+  await expect(project.locator('.screen-outcome')).toContainText('Far-field screening is inapplicable');
+
+  await project.getByRole('button', { name: /Add evaluation point/ }).click();
+  await expect(project.locator('.project-point-editor')).toHaveCount(3);
+
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.tool-nav')).toBeHidden();
+  await expect(project.locator('.project-editor')).toBeHidden();
+  await expect(project.locator('.project-print-contributions').first()).toBeVisible();
 });
 
 test('has no horizontal overflow on a narrow screen', async ({ page }) => {
