@@ -9,7 +9,7 @@ The application is static-hostable, offline-first, responsive, and deterministic
 1. **Domain calculations** — pure TypeScript functions with typed inputs, results, warnings, and intermediate values.
 2. **Regulatory rules** — jurisdiction-specific modules with effective dates, source revisions, applicability checks, and conservative screening logic.
 3. **Visualization geometry** — pure transformations from calculation results to labelled points, paths, dimensions, and chart series.
-4. **Interface components** — accessible React controls and native SVG renderers.
+4. **Interface components** — accessible React controls, reusable contextual and step-by-step help primitives, and native SVG renderers.
 5. **Project storage** — versioned IndexedDB records with JSON import/export and forward migrations.
 6. **PWA shell** — application manifest, conservative caching, explicit update prompts, offline help, and safe rollback support.
 

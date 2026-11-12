@@ -334,8 +334,8 @@ test('tracks assessment blockers, documentation gaps, and external review separa
   await expect(evidenceLog.getByRole('status')).toContainText('2 m vertical · Transmitter output');
   await expect(evidenceLog.getByLabel('Evidence scope', { exact: true })).toHaveValue('source');
   await expect(evidenceLog.getByLabel('Evidence scope item')).toHaveValue('project-source-1');
-  await expect(evidenceLog.getByLabel('Evidence related input')).toHaveValue('transmitterPowerWatts');
-  await expect(evidenceLog.getByLabel('Evidence template')).toHaveValue('measurement');
+  await expect(evidenceLog.getByLabel('Evidence related input', { exact: true })).toHaveValue('transmitterPowerWatts');
+  await expect(evidenceLog.getByLabel('Evidence template', { exact: true })).toHaveValue('measurement');
   await evidenceLog.getByRole('button', { name: 'Apply template' }).click();
   await expect(evidenceLog.getByRole('status')).toContainText('Field or bench measurement template applied');
   await expect(evidenceLog.getByLabel('Evidence category')).toHaveValue('measurement');
@@ -497,12 +497,20 @@ test('records, transfers, and audits assessment evidence', async ({ page }) => {
   const project = page.locator('.project-section');
   let evidenceLog = project.locator('.evidence-log');
 
+  await expect(evidenceLog.getByText('Choose the target')).toBeHidden();
+  await evidenceLog.getByText('Build a reproducible evidence entry').click();
+  await expect(evidenceLog.getByText('Choose the target')).toBeVisible();
+  await expect(evidenceLog).toContainText('This guide organizes documentation');
+  await evidenceLog.getByLabel('Help: Evidence scope').click();
+  await expect(evidenceLog.getByRole('note').filter({ hasText: 'Evidence scope' })).toContainText('whole-project scope');
+  await evidenceLog.getByLabel('Help: Evidence scope').click();
+
   await evidenceLog.getByRole('button', { name: 'Add to evidence log' }).click();
   await expect(evidenceLog.getByRole('alert')).toContainText('Enter a title, detail, review date, and reviewer');
   await evidenceLog.getByLabel('Evidence category').selectOption('measurement');
-  await evidenceLog.getByLabel('Evidence scope').selectOption('source');
+  await evidenceLog.getByLabel('Evidence scope', { exact: true }).selectOption('source');
   await evidenceLog.getByLabel('Evidence scope item').selectOption({ label: '2 m vertical' });
-  await evidenceLog.getByLabel('Evidence related input').selectOption('antennaCentreHeightMetres');
+  await evidenceLog.getByLabel('Evidence related input', { exact: true }).selectOption('antennaCentreHeightMetres');
   await evidenceLog.getByLabel('Evidence title').fill('Mast height field check');
   await evidenceLog.getByLabel('Evidence review date').fill('2026-11-12');
   await evidenceLog.getByLabel('Evidence reviewer').fill('Greg Weir, VA1GW');

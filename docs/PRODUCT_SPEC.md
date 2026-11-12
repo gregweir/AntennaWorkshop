@@ -44,6 +44,8 @@ Users can begin either by choosing an antenna family or by describing a goal suc
 5. A tuning procedure that distinguishes the calculated starting point from the finished antenna.
 6. Saved projects, comparison, print, and export capabilities.
 
+Contextual help must work with touch, keyboard, and pointer input. Complex sections may also provide an optional, collapsible step-by-step guide. Guidance should explain the existing workflow rather than create a separate simplified mode or conceal advanced controls.
+
 ## Visual language
 
 Visuals are functional rather than decorative:

@@ -1354,6 +1354,173 @@ select {
   font-weight: 800;
 }
 
+.step-by-step-help {
+  margin: 0 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.step-by-step-help > summary {
+  display: flex;
+  gap: 0.7rem;
+  align-items: baseline;
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.step-by-step-help > summary::-webkit-details-marker,
+.context-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.step-by-step-help > summary::after {
+  margin-left: auto;
+  color: var(--accent-technical);
+  content: '+';
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.step-by-step-help[open] > summary::after {
+  content: '−';
+}
+
+.step-by-step-help > summary span {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.step-by-step-help > div {
+  padding: 0 0.9rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.step-by-step-help > div > p {
+  margin: 0.75rem 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.step-by-step-help ol {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  counter-reset: evidence-step;
+  list-style: none;
+}
+
+.step-by-step-help li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.2rem 0.5rem;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  counter-increment: evidence-step;
+}
+
+.step-by-step-help li::before {
+  display: grid;
+  grid-row: 1 / span 2;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  content: counter(evidence-step);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.step-by-step-help li strong {
+  font-size: 0.75rem;
+}
+
+.step-by-step-help li span {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.step-by-step-help .step-by-step-limit {
+  margin-bottom: 0;
+  padding-left: 0.65rem;
+  border-left: 3px solid var(--tl-coral);
+}
+
+.help-heading,
+.field-label-with-help {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.field-label-with-help {
+  justify-content: space-between;
+}
+
+.context-help {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.context-help > summary {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border: 1px solid var(--accent-technical);
+  border-radius: 50%;
+  background: var(--bg-surface);
+  color: var(--accent-technical);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 900;
+  list-style: none;
+}
+
+.context-help > summary:hover,
+.context-help > summary:focus-visible,
+.context-help[open] > summary {
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+}
+
+.context-help-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.context-help-panel p {
+  margin: 0.3rem 0 0;
+  color: var(--text-secondary);
+}
+
 .evidence-form {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4283,6 +4450,26 @@ select {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .step-by-step-help > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .step-by-step-help > summary span,
+  .step-by-step-help > summary strong {
+    grid-column: 1;
+  }
+
+  .step-by-step-help > summary::after {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    margin-left: 0;
+  }
+
+  .step-by-step-help ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .assessment-check-list li > div > .assessment-evidence-guide {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4404,7 +4591,9 @@ select {
     display: none;
   }
 
-  .assessment-evidence-guide {
+  .assessment-evidence-guide,
+  .step-by-step-help,
+  .context-help {
     display: none !important;
   }
 
