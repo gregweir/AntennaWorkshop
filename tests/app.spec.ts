@@ -61,12 +61,21 @@ test('switches among graphical antenna designs and updates construction results'
 
   await page.getByRole('button', { name: /OCFD/ }).click();
   await expect(page.getByRole('heading', { name: 'Off-centre-fed dipole (OCFD)' })).toBeVisible();
-  await expect(page.getByLabel('Feedpoint position from short end')).toHaveValue('33.333');
-  await expect(page.getByLabel('Current-balun impedance ratio')).toHaveValue('4');
-  await expect(page.getByLabel('Estimated OCFD feedpoint impedance')).toHaveValue('200');
+  await expect(page.getByLabel('Feedpoint position from short end', { exact: true })).toHaveValue('33.333');
+  await expect(page.getByLabel('Current-balun impedance ratio', { exact: true })).toHaveValue('4');
+  await expect(page.getByLabel('Estimated OCFD feedpoint impedance', { exact: true })).toHaveValue('200');
   await expect(page.getByRole('img', { name: /Dimensioned off-centre-fed dipole/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('50.0 Ω');
   await expect(page.locator('.harmonic-panel')).toContainText('21.300 MHz');
+  await expect(page.getByText('Choose the installed geometry')).toBeHidden();
+  await page.getByText('Build and tune an OCFD').click();
+  await expect(page.getByText('Choose the installed geometry')).toBeVisible();
+  await expect(page.locator('.step-by-step-help')).toContainText('does not design or power-rate a balun');
+  await page.getByLabel('Help: Feedpoint position from short end').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Feedpoint position from short end' })).toContainText('both leg lengths');
+  await page.getByLabel('Help: Feedpoint position from short end').click();
+  await page.getByLabel('Help: Estimated OCFD feedpoint impedance').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Estimated OCFD feedpoint impedance' })).toContainText('resistance assumption');
 
   await page.getByRole('button', { name: /J-pole/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('146.000');

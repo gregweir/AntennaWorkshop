@@ -119,6 +119,16 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
                 : ANTENNA_MODELS.fullWaveLoop;
 
   const recommendedFactor = antennaType === 'full-wave-loop' ? 1.02 : antennaType === 'jpole' || antennaType === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95;
+  const lengthCorrectionTooltip = antennaType === 'efhw'
+    ? 'This factor scales the free-space half-wave estimate for practical wire construction. It does not correct the transformer, feedline, return path, or effects of the installed surroundings.'
+    : antennaType === 'ocfd'
+      ? 'This factor scales the complete free-space half-wave estimate before it is divided at the selected feedpoint. It does not predict the installed feedpoint impedance or correct the balun and feedline.'
+      : undefined;
+  const trimAllowanceTooltip = antennaType === 'efhw'
+    ? 'This percentage is added after the corrected resonant estimate. Install the antenna before trimming, remove wire in small increments, and remeasure because removed wire cannot be restored easily.'
+    : antennaType === 'ocfd'
+      ? 'This percentage adds adjustment room to both legs after the corrected total length is divided. Install and measure before trimming, and preserve the intended split while making small changes.'
+      : undefined;
   const selectDesign = (type: AntennaType) => {
     setAntennaType(type);
     setLengthCorrectionFactor(type === 'full-wave-loop' ? 1.02 : type === 'jpole' || type === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95);
@@ -156,6 +166,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Tune and verify each band', detail: 'Measure the fundamental first, trim in small steps, then check impedance, transformer heating, common-mode current, and pattern suitability on every intended band.' }
       ]} limit="This calculator does not design a transformer, prescribe a universal counterpoise, calculate component voltage or heating, or guarantee a multiband match or useful radiation pattern." />}
 
+      {antennaType === 'ocfd' && <StepByStepHelp title="Build and tune an OCFD" intro="Use this sequence to turn the unequal-leg estimate into a measured multiband antenna system. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the fundamental', detail: 'Design from the lowest intended band and choose the frequency where you want the first resonance.' },
+        { title: 'Choose the installed geometry', detail: 'Plan the support heights, leg directions, feedpoint access, coax route, clearances, and nearby-conductor spacing before cutting wire.' },
+        { title: 'Select the feedpoint split', detail: 'Use the percentage as a starting geometry, recognizing that the split affects leg lengths, feedpoint impedance, and the candidate multiband response.' },
+        { title: 'Select balun and choking', detail: 'Choose a documented current balun and common-mode choke suited to the expected impedance range, frequencies, power, duty cycle, and environment.' },
+        { title: 'Build long and install', detail: 'Retain trim allowance on both legs, preserve the selected split, and install the complete feed and choking arrangement before measuring.' },
+        { title: 'Tune and verify each band', detail: 'Measure every intended band in the final geometry, trim conservatively, and check match, balun heating, common-mode current, and pattern suitability.' }
+      ]} limit="This calculator does not design or power-rate a balun, predict installed impedance or radiation patterns, or guarantee an acceptable multiband match. A tuner does not correct balun heating or common-mode current." />}
+
       <div className="calculator-layout">
         <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
           <label className="field">
@@ -190,8 +209,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           </>}
           {antennaType === 'efhw' && <NumberField label="Transformer impedance ratio" tooltip="This is the impedance transformation ratio, not the winding turns ratio. A 49:1 impedance ratio corresponds to a 7:1 ideal turns ratio and nominally transforms 2,450 Ω toward 50 Ω." value={transformerRatio} min={4} max={100} step={1} unit=": 1" help="49:1 is the documented ARRL starting point for an approximately 2,500 Ω end impedance." onChange={setTransformerRatio} />}
           {antennaType === 'ocfd' && <>
-            <NumberField label="Feedpoint position from short end" value={feedpointPercentFromEnd} min={10} max={50} step={0.1} unit="%" help="About one-third from an end is the conventional starting point for a roughly 200 Ω feedpoint." onChange={setFeedpointPercentFromEnd} />
-            <NumberField label="Current-balun impedance ratio" value={transformerRatio} min={1} max={25} step={1} unit=": 1" help="4:1 nominally transforms a 200 Ω feedpoint toward 50 Ω coax." onChange={setTransformerRatio} />
+            <NumberField label="Feedpoint position from short end" tooltip="Measure this percentage along the total wire from the short end. Moving the feedpoint changes both leg lengths and the feedpoint impedance; one split does not guarantee a suitable match or pattern on every harmonic band." value={feedpointPercentFromEnd} min={10} max={50} step={0.1} unit="%" help="About one-third from an end is the conventional starting point for a roughly 200 Ω feedpoint." onChange={setFeedpointPercentFromEnd} />
+            <NumberField label="Current-balun impedance ratio" tooltip="This is the nominal impedance transformation ratio. A 4:1 current balun transforms an assumed 200 Ω resistance toward 50 Ω, but the installed impedance is complex and varies by band. Ratio alone does not specify a suitable balun design or choke." value={transformerRatio} min={1} max={25} step={1} unit=": 1" help="4:1 nominally transforms a 200 Ω feedpoint toward 50 Ω coax." onChange={setTransformerRatio} />
           </>}
           {antennaType === 'jpole' && <>
             <label className="field"><span>Construction medium</span><select value={jpoleConstruction} onChange={(event) => {
@@ -222,9 +241,9 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
           {advancedOpen && antennaType !== 'moxon' && antennaType !== 'yagi' && <div className="advanced-fields">
             {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" tooltip="This value is a planning assumption used only to show nominal transformed resistance. A real feedpoint also has reactance and changes with height, wire shape, ground, nearby objects, return path, frequency, and loss." value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}
-            {antennaType === 'ocfd' && <NumberField label="Estimated OCFD feedpoint impedance" value={estimatedOcfdImpedanceOhms} min={20} max={5000} step={10} unit="Ω" help="A nominal planning value; height, split, ground, and frequency change both resistance and reactance." onChange={setEstimatedOcfdImpedanceOhms} />}
-            <NumberField label="Length correction factor" tooltip={antennaType === 'efhw' ? "This factor scales the free-space half-wave estimate for practical wire construction. It does not correct the transformer, feedline, return path, or effects of the installed surroundings." : undefined} value={lengthCorrectionFactor} min={0.5} max={1.2} step={0.01} unit="ratio" help={`${recommendedFactor.toFixed(2)} is the default practical starting factor for this design; measure and tune after installation.`} onChange={setLengthCorrectionFactor} />
-            <NumberField label="Extra length for trimming" tooltip={antennaType === 'efhw' ? "This percentage is added after the corrected resonant estimate. Install the antenna before trimming, remove wire in small increments, and remeasure because removed wire cannot be restored easily." : undefined} value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />
+            {antennaType === 'ocfd' && <NumberField label="Estimated OCFD feedpoint impedance" tooltip="This value is a resistance assumption used only for the nominal transformed-impedance display. The real feedpoint has resistance and reactance that vary with frequency, split, height, ground, wire geometry, and nearby conductors." value={estimatedOcfdImpedanceOhms} min={20} max={5000} step={10} unit="Ω" help="A nominal planning value; height, split, ground, and frequency change both resistance and reactance." onChange={setEstimatedOcfdImpedanceOhms} />}
+            <NumberField label="Length correction factor" tooltip={lengthCorrectionTooltip} value={lengthCorrectionFactor} min={0.5} max={1.2} step={0.01} unit="ratio" help={`${recommendedFactor.toFixed(2)} is the default practical starting factor for this design; measure and tune after installation.`} onChange={setLengthCorrectionFactor} />
+            <NumberField label="Extra length for trimming" tooltip={trimAllowanceTooltip} value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />
           </div>}
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
