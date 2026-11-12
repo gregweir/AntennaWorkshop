@@ -15,6 +15,7 @@ import {
 import { EXPOSURE_AGGREGATION_MODEL } from '../calculators/exposureAggregation';
 import { EXPOSURE_SCREEN_MODEL } from '../calculators/exposureScreen';
 import { compareExposureScenarioInputs, compareExposureScenarios } from '../calculators/exposureScenarioComparison';
+import { calculateAssessmentChecklist } from '../calculators/exposureAssessmentChecklist';
 import { feetToMetres, formatCoordinate, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import {
   createExposureProjectFile,
@@ -38,6 +39,7 @@ import { AzimuthRouteOverview, AzimuthRouteSummary } from './SourcePointAzimuth'
 import { ExposureScenarioComparisonPanel } from './ExposureScenarioComparison';
 import { ExposureSensitivityExplorer } from './ExposureSensitivityExplorer';
 import { evidenceCategoryLabels, ExposureEvidenceLog } from './ExposureEvidenceLog';
+import { AssessmentReadinessPanel } from './AssessmentReadinessPanel';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -264,6 +266,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       return null;
     }
   }, [projectJurisdiction, projectEnvironment, sourceInventoryComplete, sources, points]);
+  const assessmentChecklist = useMemo(() => calculateAssessmentChecklist(projectData), [projectData]);
   const baselineFile = savedProjects.find((project) => project.projectId === comparisonProjectId) ?? null;
   const scenarioInputChanges = useMemo(() => baselineFile ? compareExposureScenarioInputs(baselineFile.project, projectData) : [], [baselineFile, projectData]);
   const scenarioComparison = useMemo(() => {
@@ -365,6 +368,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
     </div>
 
     {!result && <p className="validation-message" role="alert">One or more project inputs are invalid or outside the selected jurisdiction’s power-density model. No project result is produced.</p>}
+    <AssessmentReadinessPanel checklist={assessmentChecklist} />
     {result && status && <div className="project-report" aria-label="Printable exposure assessment record">
       <div className="project-report-heading"><div><p className="eyebrow">Assessment record</p><h4>{projectTitle || 'Untitled station assessment'}</h4><p>{projectJurisdiction === 'CA' ? 'Canada' : 'United States'} · {projectEnvironment === 'uncontrolled' ? 'General public / uncontrolled' : 'Occupational / controlled'} · {sources.length} sources · {points.length} locations</p></div><div className="project-actions"><button type="button" onClick={() => window.print()}>Print assessment</button></div></div>
       <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Project outcome</p><h4>{status[0]}</h4><p>{status[1]}</p></div>

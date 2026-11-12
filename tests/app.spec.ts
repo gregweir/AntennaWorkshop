@@ -304,6 +304,31 @@ test('calculates a multi-source station project across accessible locations', as
   await expect(project.locator('.project-print-contributions').first()).toBeVisible();
 });
 
+test('tracks assessment blockers, documentation gaps, and external review separately', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const project = page.locator('.project-section');
+  const checklist = project.getByRole('region', { name: 'Assessment review checklist' });
+
+  await expect(checklist).toContainText('Review blockers remain');
+  await expect(checklist.locator('.assessment-count-recorded')).toContainText('2 recorded');
+  await expect(checklist.locator('.assessment-count-attention')).toContainText('4 documentation gaps');
+  await expect(checklist.locator('.assessment-count-required')).toContainText('2 action required');
+  await expect(checklist.locator('.assessment-count-external-review')).toContainText('1 external review');
+  await expect(checklist).toContainText('A complete checklist is not a compliance result');
+
+  await project.getByLabel('Station-site source inventory assessed').check();
+  await expect(checklist).toContainText('Documentation gaps remain');
+  await expect(checklist.locator('.assessment-count-recorded')).toContainText('4 recorded');
+  await expect(checklist.locator('.assessment-count-required')).toContainText('0 action required');
+
+  await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('0');
+  await project.getByRole('spinbutton', { name: 'Project point 1 height' }).fill('9.9');
+  await expect(checklist).toContainText('source-to-point path is inside the conservative far-field boundary');
+  await expect(checklist.getByText('Far-field method applicability').locator('..')).toContainText('Action required');
+  await expect(checklist.locator('.assessment-check-external-review')).toContainText('near-field method or measurement');
+});
+
 test('edits station geometry with pointer and keyboard controls', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();

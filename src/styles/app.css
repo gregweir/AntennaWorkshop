@@ -1546,6 +1546,168 @@ select {
   margin: 0.3rem 0;
 }
 
+.assessment-checklist {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.assessment-checklist-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.assessment-checklist-heading h4,
+.assessment-checklist-heading p {
+  margin: 0.15rem 0 0;
+}
+
+.assessment-checklist-heading > div:first-child > p:last-child {
+  color: var(--text-secondary);
+}
+
+.assessment-checklist-summary {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem;
+  border-left: 4px solid var(--tl-coral);
+  background: var(--bg-surface);
+}
+
+.assessment-checklist-summary strong {
+  font-family: var(--font-mono);
+}
+
+.assessment-checklist-summary span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.assessment-status-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.assessment-status-counts span {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.assessment-status-counts b {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.assessment-status-strip {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.25rem;
+  height: 0.45rem;
+  margin: 0.7rem 0 1rem;
+}
+
+.assessment-status-strip span {
+  border-radius: 999px;
+}
+
+.assessment-strip-recorded,
+.assessment-check-recorded { --assessment-status: var(--success); }
+.assessment-strip-attention,
+.assessment-check-attention { --assessment-status: var(--tl-sage); }
+.assessment-strip-required,
+.assessment-check-required { --assessment-status: var(--danger); }
+.assessment-strip-external-review,
+.assessment-check-external-review { --assessment-status: var(--tl-coral); }
+.assessment-status-strip span { background: var(--assessment-status); }
+
+.assessment-check-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assessment-check-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--assessment-status);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.assessment-check-icon {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--assessment-status);
+  color: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-weight: 900;
+}
+
+.assessment-check-list li > div > div {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.assessment-check-list h5,
+.assessment-check-list p {
+  margin: 0;
+}
+
+.assessment-check-list h5 {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+}
+
+.assessment-check-list li > div > div > span {
+  flex: 0 0 auto;
+  color: var(--assessment-status);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.assessment-check-list p,
+.assessment-checklist-limit {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.assessment-check-list p {
+  margin-top: 0.25rem;
+}
+
+.assessment-checklist-limit {
+  margin: 1rem 0 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
 .project-report {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
@@ -3740,7 +3902,8 @@ select {
   }
 
   .sensitivity-heading,
-  .sensitivity-layout {
+  .sensitivity-layout,
+  .assessment-checklist-heading {
     grid-template-columns: 1fr;
   }
 
@@ -3766,7 +3929,8 @@ select {
   .project-point-list,
   .project-point-results,
   .evidence-entry-list,
-  .evidence-record ol {
+  .evidence-record ol,
+  .assessment-check-list {
     grid-template-columns: 1fr;
   }
 
@@ -3938,6 +4102,10 @@ select {
 
   .scenario-input-change {
     grid-template-columns: 1fr;
+  }
+
+  .assessment-status-counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .project-library-actions > button,
