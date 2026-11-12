@@ -28,6 +28,7 @@ import {
   type ExposureProjectFile
 } from '../projects/exposureProjectFiles';
 import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/exposureLimits';
+import type { StationSourceTransfer } from '../workflows/stationSourceWorkflow';
 import { ExposureProjectDiagram } from './ExposureProjectDiagram';
 
 interface Props {
@@ -36,6 +37,8 @@ interface Props {
   unitSystem: UnitSystem;
   onJurisdictionChange: (jurisdiction: ExposureJurisdiction) => void;
   onEnvironmentChange: (environment: ExposureEnvironment) => void;
+  incomingSource: StationSourceTransfer | null;
+  onSourceConsumed: () => void;
 }
 
 const initialSources: ExposureProjectSourceInput[] = [
@@ -80,7 +83,7 @@ const statusCopy = {
   'method-inapplicable': ['Far-field screening is inapplicable at one or more points', 'At least one source–location path lies inside its conservative far-field boundary. That location requires a suitable near-field method or measurement.']
 } as const;
 
-export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, onJurisdictionChange, onEnvironmentChange }: Props) {
+export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, onJurisdictionChange, onEnvironmentChange, incomingSource, onSourceConsumed }: Props) {
   const initialState = useMemo(() => {
     const library = loadExposureProjectLibrary(window.localStorage);
     const currentId = getCurrentExposureProjectId(window.localStorage);
@@ -97,11 +100,13 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   const [sourceInventoryComplete, setSourceInventoryComplete] = useState(initialState.file.project.sourceInventoryComplete);
   const [savedProjects, setSavedProjects] = useState(initialState.library);
   const [storageMessage, setStorageMessage] = useState('Changes are saved automatically on this device.');
+  const [workflowMessage, setWorkflowMessage] = useState('');
   const nextSourceId = useRef(3);
   const nextPointId = useRef(3);
   const importInput = useRef<HTMLInputElement>(null);
   const lastExternalJurisdiction = useRef(jurisdiction);
   const lastExternalEnvironment = useRef(environment);
+  const lastTransferId = useRef<string | null>(null);
   const projectData = useMemo<ExposureProjectData>(() => ({
     title: projectTitle || 'Untitled station assessment',
     jurisdiction: projectJurisdiction,
@@ -127,6 +132,23 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
     onJurisdictionChange(projectJurisdiction);
     onEnvironmentChange(projectEnvironment);
   }, []);
+
+  useEffect(() => {
+    if (!incomingSource || incomingSource.transferId === lastTransferId.current) return;
+    lastTransferId.current = incomingSource.transferId;
+    if (sources.length >= 8) {
+      setWorkflowMessage('The linked source was not added because this project already has eight station sources.');
+      onSourceConsumed();
+      return;
+    }
+    let sequence = sources.length + 1;
+    let id = `project-source-${sequence}`;
+    while (sources.some((source) => source.id === id)) id = `project-source-${++sequence}`;
+    setSources([...sources, { ...incomingSource.source, id }]);
+    setSourceInventoryComplete(false);
+    setWorkflowMessage(`Added “${incomingSource.source.label}” from the connected antenna and feed-system workflow. Review the source and complete station inventory before interpreting the result.`);
+    onSourceConsumed();
+  }, [incomingSource, onSourceConsumed, sources]);
 
   useEffect(() => {
     try {
@@ -238,6 +260,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   return <section className="project-section" aria-labelledby="project-heading">
     <div className="section-heading"><div><p className="eyebrow">Integrated station model · printable record</p><h3 id="project-heading">Station assessment project</h3></div><span className="model-badge">Model {EXPOSURE_PROJECT_MODEL.version}</span></div>
     <p className="screen-intro">Model several transmitters on one common antenna support across several accessible locations. Calculated source contributions flow directly into the normalized total for each location.</p>
+    {workflowMessage && <div className="workflow-message" role="status"><strong>Connected source update</strong><span>{workflowMessage}</span></div>}
 
     <div className="project-editor">
       <section className="project-library" aria-labelledby="project-library-heading">
@@ -254,7 +277,8 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       <label className="field project-title-field"><span>Project title</span><input value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} /></label>
       <div className="project-editor-heading"><div><p className="eyebrow">Station sources</p><h4>Transmitters and antennas</h4></div><button type="button" className="add-source" disabled={sources.length >= 8} onClick={addSource}>+ Add station source</button></div>
       <div className="project-source-list">{sources.map((source, index) => <details key={source.id} className="project-source-editor">
-        <summary><span><strong>{source.label || `Source ${index + 1}`}</strong><small>{source.frequencyMHz || 0} MHz · {source.transmitterPowerWatts || 0} W</small></span><b>Source {index + 1}</b></summary>
+        <summary><span><strong>{source.label || `Source ${index + 1}`}</strong><small>{source.frequencyMHz || 0} MHz · {source.transmitterPowerWatts || 0} W{source.linkedModels ? ' · linked workflow' : ''}</small></span><b>Source {index + 1}</b></summary>
+        {source.linkedModels && <p className="linked-source-note"><strong>Linked models:</strong> {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion} · {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}. Review all transferred values against the installed system.</p>}
         <div className="project-field-grid">
           <label className="field"><span>Source label</span><input aria-label={`Project source ${index + 1} label`} value={source.label} onChange={(event) => updateSource(source.id, { label: event.target.value })} /></label>
           <label className="field"><span>Frequency</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} frequency`} type="number" min="0.001" step="0.001" value={source.frequencyMHz} onChange={(event) => updateSource(source.id, { frequencyMHz: Number(event.target.value) })} /><span>MHz</span></span></label>
@@ -290,7 +314,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
         <details><summary>Source contributions</summary><ul>{pointResult.sourceResults.map(({ source, screen, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(separationDistanceMetres, unitSystem)} separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul></details>
         <ul className="project-print-contributions">{pointResult.sourceResults.map(({ source, screen, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(separationDistanceMetres, unitSystem)} separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul>
       </article>)}</div>
-      <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Maximum stated gain is applied toward every point. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not model antenna patterns, terrain, buildings, body coupling, measurement uncertainty, non-co-located sources, or near fields.</p></article></div>
+      <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high{source.linkedModels && <> · linked models: {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion}, {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}</>}</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Maximum stated gain is applied toward every point. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not model antenna patterns, terrain, buildings, body coupling, measurement uncertainty, non-co-located sources, or near fields.</p></article></div>
       <div className="project-provenance"><p><strong>Models:</strong> {EXPOSURE_PROJECT_MODEL.id} {EXPOSURE_PROJECT_MODEL.version} · {EXPOSURE_SCREEN_MODEL.id} {EXPOSURE_SCREEN_MODEL.version} · {EXPOSURE_AGGREGATION_MODEL.id} {EXPOSURE_AGGREGATION_MODEL.version}</p><p><strong>Reviewed:</strong> {EXPOSURE_PROJECT_MODEL.reviewedOn}. This record is a preliminary engineering screen, not certification or a complete compliance determination.</p>{worst && <p><strong>Greatest modelled total:</strong> {worst.point.label}, {(worst.aggregate.totalFractionOfReferenceLevel * 100).toFixed(2)}% of frequency-normalized reference levels.</p>}</div>
     </div>}
   </section>;

@@ -494,6 +494,132 @@ select {
   line-height: 1.45;
 }
 
+.workflow-handoff,
+.linked-workflow {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.35fr) minmax(240px, 0.8fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin: 1.2rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  box-shadow: inset 4px 0 0 var(--tl-coral);
+}
+
+.workflow-handoff h3,
+.linked-workflow h3 {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.workflow-handoff p,
+.linked-workflow p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.workflow-handoff dl,
+.linked-workflow dl {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.workflow-handoff dl div,
+.linked-workflow dl div {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.workflow-handoff dt,
+.linked-workflow dt {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.workflow-handoff dd,
+.linked-workflow dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.workflow-handoff button,
+.workflow-submit button {
+  min-height: 46px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.linked-workflow {
+  grid-template-columns: minmax(260px, 1fr) minmax(300px, 0.8fr);
+  box-shadow: inset 4px 0 0 var(--accent-technical);
+}
+
+.workflow-submit {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--tl-coral);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.workflow-submit p,
+.workflow-submit strong,
+.workflow-submit span {
+  display: block;
+  margin: 0;
+}
+
+.workflow-submit strong {
+  font-family: var(--font-mono);
+}
+
+.workflow-submit span {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.workflow-message {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.workflow-message strong {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+}
+
+.workflow-message span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
 .exposure-status {
   display: flex;
   gap: 0.75rem;
@@ -844,6 +970,15 @@ select {
 
 .project-source-editor > .remove-source {
   margin: 0 1rem 1rem;
+}
+
+.linked-source-note {
+  margin: 0 1rem 1rem;
+  padding: 0.7rem;
+  border-left: 3px solid var(--accent-technical);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
 }
 
 .project-point-list {
@@ -2424,6 +2559,16 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .workflow-handoff,
+  .linked-workflow {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .workflow-handoff button {
+    width: 100%;
+  }
+
   .screen-input-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2480,6 +2625,11 @@ select {
   .project-editor-heading,
   .project-report-heading,
   .update-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workflow-message {
     align-items: stretch;
     flex-direction: column;
   }
@@ -2625,6 +2775,7 @@ select {
   .exposure-context-panel,
   .project-editor,
   .project-actions,
+  .workflow-message,
   .exposure-status {
     display: none;
   }

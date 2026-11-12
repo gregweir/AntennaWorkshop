@@ -8,9 +8,11 @@
 import { useMemo, useState } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type LoopShape } from '../calculators/designs';
+import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
 import { calculateHalfWaveDipole, HALF_WAVE_DIPOLE_MODEL } from '../calculators/dipole';
 import { formatLength, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
+import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { DipoleDiagram } from './DipoleDiagram';
 import { EfhwDiagram } from './EfhwDiagram';
@@ -45,9 +47,10 @@ interface Props {
   unitSystem: UnitSystem;
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
+  onContinueToSystem: (handoff: AntennaDesignHandoff) => void;
 }
 
-export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAdvancedOpen }: Props) {
+export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAdvancedOpen, onContinueToSystem }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>('dipole');
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [lengthCorrectionFactor, setLengthCorrectionFactor] = useState(0.95);
@@ -234,6 +237,19 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         </div>
       </div>
 
+      {calculation && <section className="workflow-handoff" aria-labelledby="antenna-handoff-heading">
+        <div><p className="eyebrow">Connected workflow</p><h3 id="antenna-handoff-heading">Use this design in an RF station project</h3><p>Carry the design frequency and largest physical dimension into the feed-system calculator. Gain, loss, power, duty cycle, and installed height remain explicit inputs.</p></div>
+        <dl><div><dt>Design</dt><dd>{designs[antennaType].short}</dd></div><div><dt>Frequency</dt><dd>{frequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(largestAntennaDimension(calculation, loopShape), unitSystem)}</dd></div></dl>
+        <button type="button" onClick={() => onContinueToSystem(createAntennaDesignHandoff({
+          handoffId: globalThis.crypto?.randomUUID?.() ?? `antenna-${Date.now()}`,
+          label: designs[antennaType].name,
+          frequencyMHz,
+          largestDimensionMetres: largestAntennaDimension(calculation, loopShape),
+          antennaModelId: model.id,
+          antennaModelVersion: model.version
+        }))}>Continue to feedline and exposure</button>
+      </section>}
+
       <BandIndicator band={activeBand} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />
       {(calculation?.type === 'efhw' || calculation?.type === 'ocfd') && <HarmonicBands frequencies={calculation.value.harmonicFrequenciesMHz} jurisdiction={jurisdiction} />}
       <p className="allocation-note">Allocation summary for {jurisdictionName}. Licence qualifications, sub-bands, modes, bandwidth, power, and sharing conditions may further restrict operation; confirm current rules before transmitting.{bandSource && <> Source: <a href={bandSource.url} target="_blank" rel="noreferrer">{bandSource.title}</a> (reviewed {bandSource.reviewedOn}).</>}</p>
@@ -325,6 +341,20 @@ type Calculation = NonNullable<
   | { type: 'full-wave-loop'; value: ReturnType<typeof calculateFullWaveLoop> }
   | null
 >;
+
+function largestAntennaDimension(calculation: Calculation, loopShape: LoopShape): number {
+  if (calculation.type === 'dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutTotalMetres });
+  if (calculation.type === 'inverted-v') return calculateLargestAntennaDimension({ shape: 'inverted-v', endpointSpanMetres: calculation.value.endpointSpanMetres, legMetres: calculation.value.legMetres });
+  if (calculation.type === 'efhw') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.radiatorMetres });
+  if (calculation.type === 'ocfd') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutLengthMetres });
+  if (calculation.type === 'jpole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.longElementMetres });
+  if (calculation.type === 'slim-jim') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.overallHeightMetres });
+  if (calculation.type === 'moxon') return calculateLargestAntennaDimension({ shape: 'rectangle', widthMetres: calculation.value.aMetres, depthMetres: calculation.value.eMetres });
+  if (calculation.type === 'yagi') return calculateLargestAntennaDimension({ shape: 'parallel-elements', boomMetres: calculation.value.boomLengthMetres, firstElementMetres: calculation.value.reflectorMetres, lastElementMetres: calculation.value.directorMetres });
+  if (calculation.type === 'ground-mounted-vertical') return calculateLargestAntennaDimension({ shape: 'ground-mounted-vertical', radiatorMetres: calculation.value.radiatorMetres, radialMetres: calculation.value.radialMetres, radialFieldDiameterMetres: calculation.value.radialFieldDiameterMetres });
+  if (calculation.type === 'ground-plane') return calculateLargestAntennaDimension({ shape: 'ground-plane', radiatorMetres: calculation.value.radiatorMetres, radialDropMetres: calculation.value.radialDropMetres, footprintDiameterMetres: calculation.value.footprintDiameterMetres });
+  return calculateLargestAntennaDimension({ shape: 'loop', loopShape, primaryDimensionMetres: calculation.value.primaryDimensionMetres });
+}
 
 function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { calculation: Calculation; unitSystem: UnitSystem; radialCount: number; loopShape: LoopShape }) {
   let headline = '';

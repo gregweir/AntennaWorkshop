@@ -26,6 +26,12 @@ export interface ExposureProjectSourceInput {
   antennaGainDbi: number;
   antennaLargestDimensionMetres: number;
   antennaCentreHeightMetres: number;
+  linkedModels?: {
+    antennaDesignId: string;
+    antennaDesignVersion: string;
+    feedSystemId: string;
+    feedSystemVersion: string;
+  };
 }
 
 export interface ExposureEvaluationPointInput {

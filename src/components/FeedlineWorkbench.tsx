@@ -10,6 +10,7 @@ import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJ
 import { calculateCoaxialStub, calculateFeedlineBudget, calculateRadiatedPower, COAXIAL_STUB_MODEL, FEEDLINE_MODEL, RADIATED_POWER_MODEL, type GainReference, type StubFraction, type StubTermination } from '../calculators/feedline';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
+import { createStationSourceTransfer, type AntennaDesignHandoff, type StationSourceTransfer } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { FeedlineDiagram } from './FeedlineDiagram';
 import { CoaxialStubDiagram } from './CoaxialStubDiagram';
@@ -18,11 +19,13 @@ import { RadiatedPowerDiagram } from './RadiatedPowerDiagram';
 interface Props {
   jurisdiction: JurisdictionCode;
   unitSystem: UnitSystem;
+  antennaHandoff: AntennaDesignHandoff | null;
+  onAddToExposure: (transfer: StationSourceTransfer) => void;
 }
 
-export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
-  const [mode, setMode] = useState<'power' | 'stub' | 'radiated'>('power');
-  const [frequencyText, setFrequencyText] = useState('146.520');
+export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, onAddToExposure }: Props) {
+  const [mode, setMode] = useState<'power' | 'stub' | 'radiated'>(antennaHandoff ? 'radiated' : 'power');
+  const [frequencyText, setFrequencyText] = useState(antennaHandoff ? antennaHandoff.frequencyMHz.toString() : '146.520');
   const [transmitterPowerWatts, setTransmitterPowerWatts] = useState(100);
   const [cableLengthMetres, setCableLengthMetres] = useState(30);
   const [lossDbPer100Metres, setLossDbPer100Metres] = useState(6);
@@ -35,6 +38,8 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
   const [feedSystemLossDb, setFeedSystemLossDb] = useState(1.8);
   const [antennaGainDb, setAntennaGainDb] = useState(2.15);
   const [gainReference, setGainReference] = useState<GainReference>('dBi');
+  const [dutyCyclePercent, setDutyCyclePercent] = useState(50);
+  const [antennaCentreHeightMetres, setAntennaCentreHeightMetres] = useState(10);
   const frequencyMHz = Number(frequencyText);
   const availableBands = getBandsForJurisdiction(jurisdiction);
   const activeBand = findBandForFrequency(frequencyMHz, jurisdiction);
@@ -42,6 +47,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
   const jurisdictionName = jurisdictionProfiles.find((profile) => profile.code === jurisdiction)?.name ?? 'Unknown';
   const cableLengthDisplay = unitSystem === 'metric' ? cableLengthMetres : metresToFeet(cableLengthMetres);
   const lossRateDisplay = unitSystem === 'metric' ? lossDbPer100Metres : lossDbPer100Metres * 0.3048;
+  const antennaHeightDisplay = unitSystem === 'metric' ? antennaCentreHeightMetres : metresToFeet(antennaCentreHeightMetres);
 
   const powerResult = useMemo(() => {
     try {
@@ -75,6 +81,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
       <div><p className="eyebrow">Feedline and matching</p><h2 id="calculator-title">{mode === 'power' ? 'Feedline power budget' : mode === 'stub' ? 'Coaxial stub length' : 'ERP and EIRP'}</h2></div>
       <span className="model-badge">Model {model.version}</span>
     </div>
+    {antennaHandoff && <section className="linked-workflow" aria-labelledby="linked-antenna-heading"><div><p className="eyebrow">Linked antenna design</p><h3 id="linked-antenna-heading">{antennaHandoff.label}</h3><p>Frequency and largest physical dimension came from the antenna calculator. Complete the system and exposure-specific inputs below.</p></div><dl><div><dt>Frequency</dt><dd>{antennaHandoff.frequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(antennaHandoff.largestDimensionMetres, unitSystem)}</dd></div><div><dt>Design model</dt><dd>{antennaHandoff.antennaModelId} {antennaHandoff.antennaModelVersion}</dd></div></dl></section>}
     <div className="feedline-mode-picker" aria-label="Feedline calculator">
       <button type="button" aria-pressed={mode === 'power'} onClick={() => setMode('power')}><strong>Power budget</strong><small>Loss, SWR, and accepted power</small></button>
       <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
@@ -84,16 +91,16 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
       <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
         <label className="field">
           <span>Amateur band</span>
-          <select className="band-select" value={activeBand?.id ?? 'custom'} onChange={(event) => {
+          <select className="band-select" value={activeBand?.id ?? 'custom'} disabled={Boolean(antennaHandoff)} onChange={(event) => {
             const band = availableBands.find((candidate) => candidate.id === event.target.value);
             if (band) setFrequencyText(band.designMHz.toFixed(band.designMHz < 30 ? 3 : 1));
           }}>
             <option value="custom">Custom frequency</option>
             {availableBands.map((band) => <option key={band.id} value={band.id}>{band.label} · {formatFrequencyRange(band)}</option>)}
           </select>
-          <small>Use a cable loss specification measured at, or near, this operating frequency.</small>
+          <small>{antennaHandoff ? 'Locked to the linked antenna geometry; return to the antenna calculator to change it.' : 'Use a cable loss specification measured at, or near, this operating frequency.'}</small>
         </label>
-        <PowerField label="Operating frequency" value={frequencyText} unit="MHz" min={0.001} step={0.001} onChange={setFrequencyText} help="Frequency records which manufacturer attenuation value applies; it does not rescale that value automatically." />
+        <PowerField label="Operating frequency" value={frequencyText} unit="MHz" min={0.001} step={0.001} readOnly={Boolean(antennaHandoff)} onChange={setFrequencyText} help={antennaHandoff ? 'This frequency remains linked to the transferred construction geometry.' : 'Frequency records which manufacturer attenuation value applies; it does not rescale that value automatically.'} />
         {mode === 'power' ? <>
           <PowerField label="Transmitter power" value={transmitterPowerWatts} unit="W" min={0.001} step={1} onChange={(value) => setTransmitterPowerWatts(Number(value))} help="Use the forward power entering the accessories and feedline." />
           <PowerField label="Cable length" value={Number(cableLengthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={0} step={0.1} onChange={(value) => setCableLengthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Include the complete cable path, including indoor and mast runs." />
@@ -111,6 +118,10 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
           <PowerField label="Total feed-system loss" value={feedSystemLossDb} unit="dB" min={0} max={100} step={0.1} onChange={(value) => setFeedSystemLossDb(Number(value))} help="Combine feeder, connector, switch, filter, duplexer, and other insertion losses before the antenna." />
           <PowerField label="Antenna gain" value={antennaGainDb} unit={gainReference} min={-100} max={100} step={0.1} onChange={(value) => setAntennaGainDb(Number(value))} help="Use gain in the direction being evaluated, including antenna efficiency, and select its stated reference." />
           <label className="field"><span>Gain reference</span><select value={gainReference} onChange={(event) => setGainReference(event.target.value as GainReference)}><option value="dBi">dBi · isotropic reference</option><option value="dBd">dBd · half-wave dipole reference</option></select><small>Changing the reference reinterprets the entered gain; it does not silently convert the numeric field.</small></label>
+          {antennaHandoff && <>
+            <PowerField label="Exposure duty cycle" value={dutyCyclePercent} unit="%" min={0.01} max={100} step={0.1} onChange={(value) => setDutyCyclePercent(Number(value))} help="Enter the applicable time-averaged transmit duty cycle; it is not inferred from mode or operating habits." />
+            <PowerField label="Installed antenna centre height" value={Number(antennaHeightDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={0} step={0.1} onChange={(value) => setAntennaCentreHeightMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Measure to the antenna radiation centre used for station-project geometry." />
+          </>}
         </>}
         {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : 'radiated power'}.</p>}
         {mode === 'power' && powerResult && <div className="result-summary" aria-live="polite">
@@ -124,6 +135,19 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem }: Props) {
         </div>}
         {mode === 'stub' && stubResult && <div className="result-summary" aria-live="polite"><p>Start with this cut length</p><strong>{formatLength(stubResult.cutLengthMetres, unitSystem)}</strong><dl><div><dt>Ideal physical length</dt><dd>{formatLength(stubResult.physicalLengthMetres, unitSystem)}</dd></div><div><dt>Guided wavelength</dt><dd>{formatLength(stubResult.guidedWavelengthMetres, unitSystem)}</dd></div><div><dt>Electrical length</dt><dd>{stubResult.electricalLengthDegrees}°</dd></div><div><dt>One-way delay</dt><dd>{stubResult.oneWayDelayNanoseconds.toFixed(3)} ns</dd></div><div><dt>Ideal input behaviour</dt><dd>{stubResult.inputImpedanceBehavior === 'high' ? 'High impedance' : 'Low impedance'}</dd></div></dl></div>}
         {mode === 'radiated' && radiatedResult && <div className="result-summary" aria-live="polite"><p>Equivalent isotropically radiated power</p><strong>{formatWatts(radiatedResult.eirpWatts)}</strong><dl><div><dt>Effective radiated power</dt><dd>{formatWatts(radiatedResult.erpWatts)}</dd></div><div><dt>Power supplied to antenna</dt><dd>{formatWatts(radiatedResult.antennaInputPowerWatts)}</dd></div><div><dt>Converted antenna gain</dt><dd>{radiatedResult.antennaGainDbi.toFixed(2)} dBi · {radiatedResult.antennaGainDbd.toFixed(2)} dBd</dd></div><div><dt>EIRP</dt><dd>{radiatedResult.eirpDbw.toFixed(2)} dBW · {radiatedResult.eirpDbm.toFixed(2)} dBm</dd></div><div><dt>Feed-system efficiency</dt><dd>{radiatedResult.feedSystemEfficiencyPercent.toFixed(1)}%</dd></div></dl></div>}
+        {mode === 'radiated' && radiatedResult && antennaHandoff && <div className="workflow-submit"><p><strong>Ready to add this source</strong><span>The current station project will receive these reviewed values and mark its source inventory incomplete.</span></p><button type="button" onClick={() => onAddToExposure(createStationSourceTransfer(
+          globalThis.crypto?.randomUUID?.() ?? `source-transfer-${Date.now()}`,
+          antennaHandoff,
+          {
+            transmitterPowerWatts,
+            dutyCyclePercent,
+            feedSystemLossDb,
+            antennaGainDbi: radiatedResult.antennaGainDbi,
+            antennaCentreHeightMetres,
+            feedSystemModelId: RADIATED_POWER_MODEL.id,
+            feedSystemModelVersion: RADIATED_POWER_MODEL.version
+          }
+        ))}>Add to station project</button></div>}
       </form>
       <div className="visual-panel">{mode === 'power' ? powerResult ? <FeedlineDiagram result={powerResult} transmitterPowerWatts={transmitterPowerWatts} cableLengthLabel={formatLength(cableLengthMetres, unitSystem)} /> : <div className="diagram-placeholder">The power-flow diagram will appear when the inputs are valid.</div> : mode === 'stub' ? stubResult ? <CoaxialStubDiagram result={stubResult} termination={stubTermination} unitSystem={unitSystem} /> : <div className="diagram-placeholder">The coaxial-stub diagram will appear when the inputs are valid.</div> : radiatedResult ? <RadiatedPowerDiagram result={radiatedResult} transmitterPowerWatts={transmitterPowerWatts} feedSystemLossDb={feedSystemLossDb} antennaGainDb={antennaGainDb} gainReference={gainReference} /> : <div className="diagram-placeholder">The ERP/EIRP diagram will appear when the inputs are valid.</div>}</div>
     </div>
@@ -156,6 +180,6 @@ function formatWatts(watts: number) {
   return watts >= 1000 ? `${(watts / 1000).toFixed(3)} kW` : `${watts.toFixed(2)} W`;
 }
 
-function PowerField({ label, value, unit, min, max, step, help, onChange }: { label: string; value: string | number; unit: string; min: number; max?: number; step: number; help: string; onChange: (value: string) => void }) {
-  return <label className="field"><span>{label}</span><span className="input-with-unit"><input aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(event.target.value)} /><span>{unit}</span></span><small>{help}</small></label>;
+function PowerField({ label, value, unit, min, max, step, help, readOnly = false, onChange }: { label: string; value: string | number; unit: string; min: number; max?: number; step: number; help: string; readOnly?: boolean; onChange: (value: string) => void }) {
+  return <label className="field"><span>{label}</span><span className="input-with-unit"><input aria-label={label} type="number" min={min} max={max} step={step} value={value} readOnly={readOnly} onChange={(event) => onChange(event.target.value)} /><span>{unit}</span></span><small>{help}</small></label>;
 }

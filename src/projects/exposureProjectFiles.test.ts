@@ -46,6 +46,25 @@ describe('exposure project files', () => {
     expect(parseExposureProjectFile(serializeExposureProjectFile(file))).toEqual(file);
   });
 
+  it('preserves linked calculator provenance in portable records', () => {
+    const linkedProject: ExposureProjectData = {
+      ...project,
+      sources: [{
+        ...project.sources[0],
+        linkedModels: {
+          antennaDesignId: 'half-wave-dipole',
+          antennaDesignVersion: '1.0.0',
+          feedSystemId: 'erp-eirp',
+          feedSystemVersion: '1.0.0'
+        }
+      }]
+    };
+    const parsed = parseExposureProjectFile(serializeExposureProjectFile(
+      createExposureProjectFile(linkedProject, 'linked-project', '2026-11-11T12:00:00Z')
+    ));
+    expect(parsed.project.sources[0].linkedModels?.feedSystemId).toBe('erp-eirp');
+  });
+
   it('rejects unknown versions and invalid calculation inputs', () => {
     const file = createExposureProjectFile(project, 'project-1');
     expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 2 }))).toThrow(/version/i);

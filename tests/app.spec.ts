@@ -153,6 +153,47 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.locator('.result-summary')).toContainText('412.10 W');
 });
 
+test('carries an antenna and feed-system source into a station project', async ({ page }) => {
+  await expect(page.getByRole('heading', { name: 'Centre-fed half-wave dipole' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue to feedline and exposure' }).click();
+
+  await expect(page.getByRole('heading', { name: 'ERP and EIRP' })).toBeVisible();
+  const linked = page.locator('.linked-workflow');
+  await expect(linked).toContainText('Centre-fed half-wave dipole');
+  await expect(linked).toContainText('14.200 MHz');
+  await expect(linked).toContainText('half-wave-dipole 1.0.0');
+  await expect(page.getByLabel('Operating frequency')).toHaveAttribute('readonly');
+  await expect(page.locator('select.band-select')).toBeDisabled();
+
+  await page.getByLabel('Transmitter power').fill('75');
+  await page.getByLabel('Total feed-system loss').fill('2');
+  await page.getByLabel('Antenna gain').fill('3');
+  await page.getByLabel('Exposure duty cycle').fill('25');
+  await page.getByLabel('Installed antenna centre height').fill('11');
+  await page.getByRole('button', { name: 'Add to station project' }).click();
+
+  const project = page.locator('.project-section');
+  await expect(project.getByRole('heading', { name: 'Station assessment project' })).toBeVisible();
+  await expect(project.locator('.workflow-message')).toContainText('Centre-fed half-wave dipole');
+  await expect(project.locator('.project-source-editor')).toHaveCount(3);
+  const transferred = project.locator('.project-source-editor').last();
+  await expect(transferred).toContainText('14.2 MHz · 75 W · linked workflow');
+  await transferred.locator('summary').click();
+  await expect(transferred).toContainText('half-wave-dipole 1.0.0');
+  await expect(transferred.getByLabel('Project source 3 duty cycle')).toHaveValue('25');
+  await expect(transferred.getByLabel('Project source 3 feed loss')).toHaveValue('2');
+  await expect(transferred.getByLabel('Project source 3 antenna gain')).toHaveValue('3');
+  await expect(project.getByRole('checkbox', { name: /Common-site source inventory assessed/ })).not.toBeChecked();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('half-wave-dipole');
+
+  await page.reload();
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const restored = page.locator('.project-source-editor').last();
+  await expect(page.locator('.project-source-editor')).toHaveCount(3);
+  await expect(restored).toContainText('linked workflow');
+});
+
 test('shows and dismisses an application update notice', async ({ page }) => {
   await page.evaluate(() => {
     window.dispatchEvent(

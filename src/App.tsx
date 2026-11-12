@@ -13,6 +13,7 @@ import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
 import { loadPreferences, savePreferences } from './preferences';
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
+import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 
 const initialJurisdictions = jurisdictionProfiles.filter((profile) => profile.releaseStatus === 'initial');
 
@@ -22,6 +23,8 @@ export function App() {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(savedPreferences.unitSystem);
   const [advancedOpen, setAdvancedOpen] = useState(savedPreferences.advancedOpen);
   const [workshopTool, setWorkshopTool] = useState<'antennas' | 'feedline' | 'exposure'>('antennas');
+  const [antennaHandoff, setAntennaHandoff] = useState<AntennaDesignHandoff | null>(null);
+  const [stationSourceTransfer, setStationSourceTransfer] = useState<StationSourceTransfer | null>(null);
 
   useEffect(() => {
     savePreferences({ jurisdiction, unitSystem, advancedOpen }, window.localStorage);
@@ -83,10 +86,10 @@ export function App() {
       </nav>
 
       {workshopTool === 'antennas'
-        ? <AntennaWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} />
+        ? <AntennaWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
         : workshopTool === 'feedline'
-          ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} />
-          : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} />}
+          ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
+          : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} />}
 
       <section className="roadmap shell" aria-labelledby="roadmap-title">
         <p className="eyebrow">Workshop roadmap</p>

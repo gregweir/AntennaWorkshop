@@ -62,6 +62,15 @@ function text(value: unknown, label: string, maximumLength: number): string {
 function source(value: unknown): ExposureProjectSourceInput {
   if (!value || typeof value !== 'object') throw new TypeError('Every station source must be an object.');
   const candidate = value as Record<string, unknown>;
+  const linkedModels = candidate.linkedModels;
+  const validatedLinkedModels = linkedModels && typeof linkedModels === 'object'
+    ? {
+        antennaDesignId: text((linkedModels as Record<string, unknown>).antennaDesignId, 'Linked antenna model identifier', 160),
+        antennaDesignVersion: text((linkedModels as Record<string, unknown>).antennaDesignVersion, 'Linked antenna model version', 40),
+        feedSystemId: text((linkedModels as Record<string, unknown>).feedSystemId, 'Linked feed-system model identifier', 160),
+        feedSystemVersion: text((linkedModels as Record<string, unknown>).feedSystemVersion, 'Linked feed-system model version', 40)
+      }
+    : undefined;
   return {
     id: text(candidate.id, 'Source identifier', 100),
     label: text(candidate.label, 'Source label', 120),
@@ -71,7 +80,8 @@ function source(value: unknown): ExposureProjectSourceInput {
     feedSystemLossDb: finiteNumber(candidate.feedSystemLossDb, 'Feed-system loss'),
     antennaGainDbi: finiteNumber(candidate.antennaGainDbi, 'Antenna gain'),
     antennaLargestDimensionMetres: finiteNumber(candidate.antennaLargestDimensionMetres, 'Largest antenna dimension'),
-    antennaCentreHeightMetres: finiteNumber(candidate.antennaCentreHeightMetres, 'Antenna centre height')
+    antennaCentreHeightMetres: finiteNumber(candidate.antennaCentreHeightMetres, 'Antenna centre height'),
+    linkedModels: validatedLinkedModels
   };
 }
 

@@ -10,6 +10,7 @@ import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJ
 import { EXPOSURE_LIMIT_MODELS, getExposureReferenceLevel, type ExposureEnvironment, type ExposureJurisdiction } from '../regulations/exposureLimits';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import type { UnitSystem } from '../lib/units';
+import type { StationSourceTransfer } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { ExposureLimitDiagram } from './ExposureLimitDiagram';
 import { ExposureAggregationPanel } from './ExposureAggregationPanel';
@@ -20,6 +21,8 @@ interface Props {
   jurisdiction: JurisdictionCode;
   setJurisdiction: (jurisdiction: JurisdictionCode) => void;
   unitSystem: UnitSystem;
+  incomingSource: StationSourceTransfer | null;
+  onSourceConsumed: () => void;
 }
 
 type ExposureView = 'reference' | 'single' | 'project' | 'aggregate';
@@ -31,10 +34,10 @@ const viewOptions: Array<{ id: ExposureView; title: string; description: string 
   { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields' }
 ];
 
-export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem }: Props) {
+export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed }: Props) {
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [environment, setEnvironment] = useState<ExposureEnvironment>('uncontrolled');
-  const [view, setView] = useState<ExposureView>('reference');
+  const [view, setView] = useState<ExposureView>(incomingSource ? 'project' : 'reference');
   const frequencyMHz = Number(frequencyText);
   const exposureJurisdiction = jurisdiction as ExposureJurisdiction;
   const availableBands = getBandsForJurisdiction(jurisdiction);
@@ -90,7 +93,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
       </div>
     </section>}
     {view === 'single' && <ExposureScreenPanel jurisdiction={exposureJurisdiction} environment={environment} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
-    {view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} onJurisdictionChange={setJurisdiction} onEnvironmentChange={setEnvironment} />}
+    {view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} onJurisdictionChange={setJurisdiction} onEnvironmentChange={setEnvironment} incomingSource={incomingSource} onSourceConsumed={onSourceConsumed} />}
     {view === 'aggregate' && <ExposureAggregationPanel jurisdiction={exposureJurisdiction} environment={environment} />}
   </section>;
 }
