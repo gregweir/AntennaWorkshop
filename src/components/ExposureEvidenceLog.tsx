@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { AssessmentEvidenceTarget } from '../calculators/exposureAssessmentChecklist';
 import { exposureEvidenceQualityPrompts, type ExposureEvidenceCategory, type ExposureEvidenceEntry, type ExposureEvidenceRelatedField, type ExposureEvidenceScopeType } from '../projects/exposureProjectFiles';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
@@ -110,6 +110,11 @@ function localDate() {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
+export function evidenceReviewState(entry: Pick<ExposureEvidenceEntry, 'reviewDueOn'>, today = localDate()) {
+  if (!entry.reviewDueOn) return 'none' as const;
+  return entry.reviewDueOn <= today ? 'due' as const : 'scheduled' as const;
+}
+
 function emptyDraft(): EvidenceDraft {
   return { category: 'assumption', title: '', detail: '', recordedOn: localDate(), reviewer: '', referenceUrl: '', scopeType: 'project', relatedField: 'general', qualityChecks: [] };
 }
@@ -123,6 +128,10 @@ function validateDraft(draft: EvidenceDraft, sources: Props['sources'], points: 
   if (draft.title.length > 160 || draft.detail.length > 4000 || draft.reviewer.length > 160) return 'The evidence entry exceeds a permitted text length.';
   const date = new Date(`${draft.recordedOn}T00:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.recordedOn) || Number.isNaN(date.valueOf()) || date.toISOString().slice(0, 10) !== draft.recordedOn) return 'Enter a valid review date.';
+  if (draft.reviewDueOn) {
+    const reminder = new Date(`${draft.reviewDueOn}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.reviewDueOn) || Number.isNaN(reminder.valueOf()) || reminder.toISOString().slice(0, 10) !== draft.reviewDueOn) return 'Enter a valid review reminder date or leave it blank.';
+  }
   if (draft.scopeType === 'source' && !sources.some((source) => source.id === draft.scopeId)) return 'Select an existing station source for this evidence.';
   if (draft.scopeType === 'point' && !points.some((point) => point.id === draft.scopeId)) return 'Select an existing evaluation point for this evidence.';
   if (!relatedFields[draft.scopeType].includes(draft.relatedField)) return 'Select a related input that belongs to the chosen scope.';
@@ -144,8 +153,36 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
   const [formMessage, setFormMessage] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<EvidenceTemplateId>('assumption');
   const [detailPlaceholder, setDetailPlaceholder] = useState('State the assumption, measurement method and value, source citation, or review conclusion.');
+  const [searchText, setSearchText] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | ExposureEvidenceCategory>('all');
+  const [scopeFilter, setScopeFilter] = useState<'all' | ExposureEvidenceScopeType>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'follow-up' | 'complete' | 'review-due'>('all');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'review-due' | 'title'>('newest');
   const formRef = useRef<HTMLFormElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
+  const today = localDate();
+  const evidenceSummary = useMemo(() => ({
+    complete: entries.filter((entry) => evidenceQualitySummary(entry).complete).length,
+    followUp: entries.filter((entry) => !evidenceQualitySummary(entry).complete).length,
+    reviewDue: entries.filter((entry) => evidenceReviewState(entry, today) === 'due').length
+  }), [entries, today]);
+  const visibleEntries = useMemo(() => {
+    const search = searchText.trim().toLocaleLowerCase();
+    return entries.filter((entry) => {
+      const quality = evidenceQualitySummary(entry);
+      const reviewState = evidenceReviewState(entry, today);
+      const searchable = `${entry.title} ${entry.detail} ${entry.reviewer} ${evidenceScopeDescription(entry, sources, points)}`.toLocaleLowerCase();
+      return (!search || searchable.includes(search))
+        && (categoryFilter === 'all' || entry.category === categoryFilter)
+        && (scopeFilter === 'all' || entry.scopeType === scopeFilter)
+        && (statusFilter === 'all' || (statusFilter === 'follow-up' && !quality.complete) || (statusFilter === 'complete' && quality.complete) || (statusFilter === 'review-due' && reviewState === 'due'));
+    }).sort((a, b) => {
+      if (sortOrder === 'oldest') return a.recordedOn.localeCompare(b.recordedOn) || a.title.localeCompare(b.title);
+      if (sortOrder === 'title') return a.title.localeCompare(b.title);
+      if (sortOrder === 'review-due') return (a.reviewDueOn ?? '9999-12-31').localeCompare(b.reviewDueOn ?? '9999-12-31') || a.title.localeCompare(b.title);
+      return b.recordedOn.localeCompare(a.recordedOn) || a.title.localeCompare(b.title);
+    });
+  }, [entries, searchText, categoryFilter, scopeFilter, statusFilter, sortOrder, sources, points, today]);
 
   useEffect(() => {
     if (!captureRequest) return;
@@ -200,6 +237,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
       title: draft.title.trim(),
       detail: draft.detail.trim(),
       recordedOn: draft.recordedOn,
+      ...(draft.reviewDueOn ? { reviewDueOn: draft.reviewDueOn } : {}),
       reviewer: draft.reviewer.trim(),
       scopeType: draft.scopeType,
       relatedField: draft.relatedField,
@@ -212,7 +250,7 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
   };
   const edit = (entry: ExposureEvidenceEntry) => {
     setEditingId(entry.id);
-    setDraft({ category: entry.category, title: entry.title, detail: entry.detail, recordedOn: entry.recordedOn, reviewer: entry.reviewer, referenceUrl: entry.referenceUrl ?? '', scopeType: entry.scopeType, scopeId: entry.scopeId, relatedField: entry.relatedField, qualityChecks: [...entry.qualityChecks] });
+    setDraft({ category: entry.category, title: entry.title, detail: entry.detail, recordedOn: entry.recordedOn, reviewDueOn: entry.reviewDueOn, reviewer: entry.reviewer, referenceUrl: entry.referenceUrl ?? '', scopeType: entry.scopeType, scopeId: entry.scopeId, relatedField: entry.relatedField, qualityChecks: [...entry.qualityChecks] });
     setSelectedTemplateId(entry.category);
     setDetailPlaceholder('State the assumption, measurement method and value, source citation, or review conclusion.');
     setFormMessage('');
@@ -239,15 +277,19 @@ export function ExposureEvidenceLog({ entries, sources, points, onChange, captur
       <label className="field evidence-title-field"><span>Title *</span><input aria-label="Evidence title" maxLength={160} value={draft.title} onChange={(event) => updateDraft('title', event.target.value)} /></label>
       <label className="field"><span>Review date *</span><input aria-label="Evidence review date" type="date" value={draft.recordedOn} onChange={(event) => updateDraft('recordedOn', event.target.value)} /></label>
       <label className="field"><span>Reviewer *</span><input aria-label="Evidence reviewer" maxLength={160} placeholder="Name or call sign" value={draft.reviewer} onChange={(event) => updateDraft('reviewer', event.target.value)} /></label>
+      <div className="field evidence-reminder-field"><span className="field-label-with-help"><label htmlFor="evidence-review-reminder">Review again on</label><HelpTip label="Review reminder">Set an optional date chosen by the project author. The application will flag the record on that date but does not decide how long evidence remains valid.</HelpTip></span><input id="evidence-review-reminder" aria-label="Evidence review reminder" type="date" value={draft.reviewDueOn ?? ''} onChange={(event) => updateDraft('reviewDueOn', event.target.value || undefined)} /></div>
       <label className="field evidence-detail-field"><span>Detail *</span><textarea aria-label="Evidence detail" maxLength={4000} rows={4} placeholder={detailPlaceholder} value={draft.detail} onChange={(event) => updateDraft('detail', event.target.value)} /></label>
       <fieldset className="evidence-quality-checks"><legend><span className="help-heading">Record-quality prompts <HelpTip label="Record-quality prompts">A checked prompt means the author says the written record addresses that element. It is not an independent check of accuracy or completeness.</HelpTip></span></legend><p>Check only the elements actually addressed by this record. These self-declared prompts guide follow-up; they do not verify content.</p><div>{exposureEvidenceQualityPrompts[draft.category].map((prompt) => <label key={prompt.id}><input type="checkbox" checked={draft.qualityChecks.includes(prompt.id)} onChange={(event) => updateDraft('qualityChecks', event.target.checked ? [...draft.qualityChecks, prompt.id] : draft.qualityChecks.filter((check) => check !== prompt.id))} /><span>{prompt.label}</span></label>)}</div><small>{draft.qualityChecks.length} of {exposureEvidenceQualityPrompts[draft.category].length} prompts recorded.</small></fieldset>
       <label className="field evidence-reference-field"><span>Reference link</span><input aria-label="Evidence reference link" type="url" maxLength={1000} placeholder="https://…" value={draft.referenceUrl} onChange={(event) => updateDraft('referenceUrl', event.target.value)} /><small>Optional. Link to a regulation, manual, calibration record, or other supporting source.</small></label>
       {error && <p className="validation-message evidence-form-error" role="alert">{error}</p>}
       <div className="evidence-form-actions"><button type="submit" disabled={!editingId && entries.length >= 120}>{editingId ? 'Save evidence changes' : 'Add to evidence log'}</button>{editingId && <button type="button" className="secondary-button" onClick={cancel}>Cancel edit</button>}</div>
     </form>
-    {entries.length ? <ol className="evidence-entry-list">{entries.map((entry) => { const quality = evidenceQualitySummary(entry); return <li key={entry.id}>
-      <div className="evidence-entry-heading"><span className={`evidence-category evidence-category-${entry.category}`}>{evidenceCategoryLabels[entry.category]}</span><div><button type="button" className="text-button" onClick={() => edit(entry)}>Edit</button><button type="button" className="text-button evidence-remove" onClick={() => { onChange(entries.filter((candidate) => candidate.id !== entry.id)); if (editingId === entry.id) cancel(); }}>Remove</button></div></div>
-      <span className="evidence-scope">{evidenceScopeDescription(entry, sources, points)}</span><h5>{entry.title}</h5><p>{entry.detail}</p><span className={`evidence-quality-status ${quality.complete ? 'evidence-quality-complete' : 'evidence-quality-follow-up'}`}>{quality.complete ? 'All 4 quality prompts recorded' : `${quality.recordedCount} of ${quality.totalCount} quality prompts recorded`}</span>{!quality.complete && <p className="evidence-quality-missing"><strong>Documentation follow-up:</strong> {quality.missing.map((prompt) => prompt.label).join('; ')}.</p>}<small>Reviewed <time dateTime={entry.recordedOn}>{entry.recordedOn}</time> by {entry.reviewer}</small>{entry.referenceUrl && <a href={entry.referenceUrl} target="_blank" rel="noreferrer">Open supporting reference</a>}
-    </li>; })}</ol> : <p className="evidence-empty">No evidence entries recorded yet. Add assumptions, measurements, references, or review notes that another reviewer would need to reproduce the assessment.</p>}
+    {entries.length ? <>
+      <section className="evidence-overview" aria-labelledby="evidence-overview-heading"><div className="evidence-overview-heading"><div><p className="eyebrow">Documentation overview</p><h5 id="evidence-overview-heading">Find and review evidence</h5></div><HelpTip label="Evidence filters">Filters change only the visible list. They do not remove evidence or change checklist coverage.</HelpTip></div><div className="evidence-overview-counts"><span><b>{entries.length}</b> total</span><span><b>{evidenceSummary.complete}</b> quality complete</span><span><b>{evidenceSummary.followUp}</b> follow-up</span><span className={evidenceSummary.reviewDue ? 'evidence-count-due' : ''}><b>{evidenceSummary.reviewDue}</b> review due</span></div><div className="evidence-filter-grid"><label className="field"><span>Search evidence</span><input type="search" aria-label="Search evidence" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Title, detail, reviewer, or scope" /></label><label className="field"><span>Category</span><select aria-label="Filter evidence category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as typeof categoryFilter)}><option value="all">All categories</option>{Object.entries(evidenceCategoryLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label className="field"><span>Scope</span><select aria-label="Filter evidence scope" value={scopeFilter} onChange={(event) => setScopeFilter(event.target.value as typeof scopeFilter)}><option value="all">All scopes</option>{Object.entries(scopeTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label className="field"><span>Documentation status</span><select aria-label="Filter evidence status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}><option value="all">All statuses</option><option value="follow-up">Quality follow-up</option><option value="complete">Quality complete</option><option value="review-due">Review due</option></select></label><label className="field"><span>Sort</span><select aria-label="Sort evidence" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as typeof sortOrder)}><option value="newest">Newest review first</option><option value="oldest">Oldest review first</option><option value="review-due">Review date first</option><option value="title">Title A–Z</option></select></label><button type="button" className="secondary-button evidence-filter-reset" onClick={() => { setSearchText(''); setCategoryFilter('all'); setScopeFilter('all'); setStatusFilter('all'); setSortOrder('newest'); }}>Reset filters</button></div><p className="evidence-filter-result" aria-live="polite">Showing {visibleEntries.length} of {entries.length} evidence {entries.length === 1 ? 'entry' : 'entries'}.</p></section>
+      {visibleEntries.length ? <ol className="evidence-entry-list">{visibleEntries.map((entry) => { const quality = evidenceQualitySummary(entry); const reviewState = evidenceReviewState(entry, today); return <li key={entry.id}>
+        <div className="evidence-entry-heading"><span className={`evidence-category evidence-category-${entry.category}`}>{evidenceCategoryLabels[entry.category]}</span><div><button type="button" className="text-button" onClick={() => edit(entry)}>Edit</button><button type="button" className="text-button evidence-remove" onClick={() => { onChange(entries.filter((candidate) => candidate.id !== entry.id)); if (editingId === entry.id) cancel(); }}>Remove</button></div></div>
+        <span className="evidence-scope">{evidenceScopeDescription(entry, sources, points)}</span><h5>{entry.title}</h5><p>{entry.detail}</p><div className="evidence-entry-statuses"><span className={`evidence-quality-status ${quality.complete ? 'evidence-quality-complete' : 'evidence-quality-follow-up'}`}>{quality.complete ? 'All 4 quality prompts recorded' : `${quality.recordedCount} of ${quality.totalCount} quality prompts recorded`}</span>{reviewState !== 'none' && <span className={`evidence-review-status evidence-review-${reviewState}`}>{reviewState === 'due' ? 'Review due' : 'Review scheduled'} <time dateTime={entry.reviewDueOn}>{entry.reviewDueOn}</time></span>}</div>{!quality.complete && <p className="evidence-quality-missing"><strong>Documentation follow-up:</strong> {quality.missing.map((prompt) => prompt.label).join('; ')}.</p>}<small>Reviewed <time dateTime={entry.recordedOn}>{entry.recordedOn}</time> by {entry.reviewer}</small>{entry.referenceUrl && <a href={entry.referenceUrl} target="_blank" rel="noreferrer">Open supporting reference</a>}
+      </li>; })}</ol> : <p className="evidence-empty">No evidence entries match the current filters. Reset or broaden the filters to see the complete log.</p>}
+    </> : <p className="evidence-empty">No evidence entries recorded yet. Add assumptions, measurements, references, or review notes that another reviewer would need to reproduce the assessment.</p>}
   </section>;
 }

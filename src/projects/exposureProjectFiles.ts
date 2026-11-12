@@ -70,6 +70,7 @@ export interface ExposureEvidenceEntry {
   title: string;
   detail: string;
   recordedOn: string;
+  reviewDueOn?: string;
   reviewer: string;
   referenceUrl?: string;
   scopeType: ExposureEvidenceScopeType;
@@ -93,7 +94,7 @@ interface StorageLike {
 }
 
 export const EXPOSURE_PROJECT_FILE_KIND = 'radiobook-antenna-workshop/exposure-project';
-export const EXPOSURE_PROJECT_FILE_VERSION = 6;
+export const EXPOSURE_PROJECT_FILE_VERSION = 7;
 export const EXPOSURE_PROJECT_LIBRARY_KEY = 'radiobook:antenna-workshop:exposure-projects:v1';
 export const EXPOSURE_PROJECT_CURRENT_KEY = 'radiobook:antenna-workshop:current-exposure-project:v1';
 export const EXPOSURE_PROJECT_LIBRARY_LIMIT = 24;
@@ -145,6 +146,16 @@ function dateOnly(value: unknown): string {
   return date;
 }
 
+function optionalDateOnly(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const date = text(value, 'Evidence review reminder date', 10);
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== date) {
+    throw new TypeError('Evidence review reminder date must be a valid YYYY-MM-DD date.');
+  }
+  return date;
+}
+
 function referenceUrl(value: unknown): string | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const url = text(value, 'Evidence reference URL', 1000);
@@ -169,7 +180,7 @@ function evidenceQualityChecks(value: unknown, category: ExposureEvidenceCategor
   return checks;
 }
 
-function evidenceEntry(value: unknown, legacyScope = false, legacyQuality = false): ExposureEvidenceEntry {
+function evidenceEntry(value: unknown, legacyScope = false, legacyQuality = false, legacyReviewReminder = false): ExposureEvidenceEntry {
   if (!value || typeof value !== 'object') throw new TypeError('Every evidence entry must be an object.');
   const candidate = value as Record<string, unknown>;
   const category = evidenceCategory(candidate.category);
@@ -179,6 +190,7 @@ function evidenceEntry(value: unknown, legacyScope = false, legacyQuality = fals
     title: text(candidate.title, 'Evidence title', 160),
     detail: text(candidate.detail, 'Evidence detail', 4000),
     recordedOn: dateOnly(candidate.recordedOn),
+    reviewDueOn: legacyReviewReminder ? undefined : optionalDateOnly(candidate.reviewDueOn),
     reviewer: text(candidate.reviewer, 'Evidence reviewer', 160),
     referenceUrl: referenceUrl(candidate.referenceUrl),
     scopeType: legacyScope ? 'project' : evidenceScopeType(candidate.scopeType),
@@ -250,7 +262,7 @@ function evaluationPoint(value: unknown, legacyGeometry = false): ExposureEvalua
   };
 }
 
-function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false, legacyEvidenceScope = false, legacyEvidenceQuality = false): ExposureProjectData {
+function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false, legacyEvidenceScope = false, legacyEvidenceQuality = false, legacyEvidenceReviewReminder = false): ExposureProjectData {
   if (!value || typeof value !== 'object') throw new TypeError('The project record is missing.');
   const candidate = value as Record<string, unknown>;
   if (!isJurisdiction(candidate.jurisdiction)) throw new TypeError('The project jurisdiction is not supported.');
@@ -264,7 +276,7 @@ function projectData(value: unknown, legacyGeometry = false, legacyPattern = fal
   if (evidenceEntries.length > 120) throw new TypeError('A project can contain at most 120 evidence entries.');
   const validatedSources = candidate.sources.map((item) => source(item, legacyGeometry, legacyPattern));
   const validatedPoints = candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry));
-  const validatedEvidenceEntries = evidenceEntries.map((entry) => evidenceEntry(entry, legacyEvidenceScope, legacyEvidenceQuality));
+  const validatedEvidenceEntries = evidenceEntries.map((entry) => evidenceEntry(entry, legacyEvidenceScope, legacyEvidenceQuality, legacyEvidenceReviewReminder));
   if (new Set(validatedEvidenceEntries.map((entry) => entry.id)).size !== validatedEvidenceEntries.length) {
     throw new TypeError('Evidence identifiers must be unique within a project.');
   }
@@ -304,9 +316,9 @@ export function parseExposureProjectFile(serialized: string): ExposureProjectFil
   if (!value || typeof value !== 'object') throw new TypeError('The selected file is not a project record.');
   const candidate = value as Record<string, unknown>;
   if (candidate.kind !== EXPOSURE_PROJECT_FILE_KIND) throw new TypeError('The selected file is not an Antenna Workshop exposure project.');
-  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== 4 && candidate.schemaVersion !== 5 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
+  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== 4 && candidate.schemaVersion !== 5 && candidate.schemaVersion !== 6 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
   return createExposureProjectFile(
-    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, Number(candidate.schemaVersion) < 4, Number(candidate.schemaVersion) < 5, Number(candidate.schemaVersion) < 6),
+    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, Number(candidate.schemaVersion) < 4, Number(candidate.schemaVersion) < 5, Number(candidate.schemaVersion) < 6, Number(candidate.schemaVersion) < 7),
     text(candidate.projectId, 'Project identifier', 100),
     text(candidate.savedAt, 'Project save date', 100)
   );

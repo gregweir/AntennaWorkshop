@@ -53,6 +53,7 @@ interface ExposureScenarioEvidence {
   title: string;
   detail: string;
   recordedOn: string;
+  reviewDueOn?: string;
   reviewer: string;
   referenceUrl?: string;
   scopeType: string;
@@ -95,6 +96,7 @@ const evidenceFields: FieldDescriptor<ExposureScenarioEvidence>[] = [
   { key: 'title', label: 'Evidence title', kind: 'text' },
   { key: 'detail', label: 'Evidence detail', kind: 'text' },
   { key: 'recordedOn', label: 'Evidence review date', kind: 'text' },
+  { key: 'reviewDueOn', label: 'Evidence review reminder', kind: 'text' },
   { key: 'reviewer', label: 'Evidence reviewer', kind: 'text' },
   { key: 'referenceUrl', label: 'Evidence reference link', kind: 'text' },
   { key: 'scopeType', label: 'Evidence scope type', kind: 'text' },

@@ -23,7 +23,7 @@ const project: ExposureProjectData = {
   jurisdiction: 'CA',
   environment: 'uncontrolled',
   sourceInventoryComplete: true,
-  evidenceEntries: [{ id: 'evidence-1', category: 'measurement', title: 'Mast height checked', detail: 'Measured from grade to antenna centre with a laser rangefinder.', recordedOn: '2026-11-10', reviewer: 'Greg Weir, VA1GW', referenceUrl: 'https://www.radiobook.ca/', scopeType: 'source', scopeId: 'source-1', relatedField: 'antennaCentreHeightMetres', qualityChecks: ['measurement-value', 'measurement-instrument', 'measurement-method', 'measurement-uncertainty'] }],
+  evidenceEntries: [{ id: 'evidence-1', category: 'measurement', title: 'Mast height checked', detail: 'Measured from grade to antenna centre with a laser rangefinder.', recordedOn: '2026-11-10', reviewDueOn: '2027-11-10', reviewer: 'Greg Weir, VA1GW', referenceUrl: 'https://www.radiobook.ca/', scopeType: 'source', scopeId: 'source-1', relatedField: 'antennaCentreHeightMetres', qualityChecks: ['measurement-value', 'measurement-instrument', 'measurement-method', 'measurement-uncertainty'] }],
   sources: [{
     id: 'source-1', label: '2 m vertical', frequencyMHz: 146, transmitterPowerWatts: 50,
     dutyCyclePercent: 50, feedSystemLossDb: 1, antennaGainDbi: 2.15,
@@ -70,7 +70,7 @@ describe('exposure project files', () => {
 
   it('rejects unknown versions and invalid calculation inputs', () => {
     const file = createExposureProjectFile(project, 'project-1');
-    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 7 }))).toThrow(/version/i);
+    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 8 }))).toThrow(/version/i);
     expect(() => parseExposureProjectFile(JSON.stringify({
       ...file,
       project: { ...project, sources: [{ ...project.sources[0], frequencyMHz: -1 }] }
@@ -90,7 +90,7 @@ describe('exposure project files', () => {
       }
     };
     const migrated = parseExposureProjectFile(JSON.stringify(legacy));
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.project.evidenceEntries).toEqual([]);
     expect(migrated.project.sources[0]).toMatchObject({ eastOffsetMetres: 0, northOffsetMetres: 0, patternType: 'unknown', bearingDegrees: 0, beamwidthDegrees: 90 });
     expect(migrated.project.evaluationPoints[0]).toMatchObject({ eastOffsetMetres: 20, northOffsetMetres: 0 });
@@ -102,7 +102,7 @@ describe('exposure project files', () => {
     const legacyProject = legacy.project as ExposureProjectData;
     legacyProject.sources = legacyProject.sources.map(({ patternType: _pattern, bearingDegrees: _bearing, beamwidthDegrees: _beamwidth, ...source }) => source as typeof project.sources[number]);
     const migrated = parseExposureProjectFile(JSON.stringify(legacy));
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.project.evidenceEntries).toEqual([]);
     expect(migrated.project.sources[0]).toMatchObject({ patternType: 'unknown', bearingDegrees: 0, beamwidthDegrees: 90 });
   });
@@ -111,7 +111,7 @@ describe('exposure project files', () => {
     const current = createExposureProjectFile(project, 'legacy-v3', '2026-11-11T12:00:00Z');
     const { evidenceEntries: _evidence, ...legacyProject } = current.project;
     const migrated = parseExposureProjectFile(JSON.stringify({ ...current, schemaVersion: 3, project: legacyProject }));
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.project.evidenceEntries).toEqual([]);
 
     expect(() => createExposureProjectFile({
@@ -132,7 +132,7 @@ describe('exposure project files', () => {
     const current = createExposureProjectFile(project, 'legacy-v4', '2026-11-11T12:00:00Z');
     const legacyEvidence = current.project.evidenceEntries.map(({ scopeType: _scope, scopeId: _scopeId, relatedField: _field, ...entry }) => entry);
     const migrated = parseExposureProjectFile(JSON.stringify({ ...current, schemaVersion: 4, project: { ...current.project, evidenceEntries: legacyEvidence } }));
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.project.evidenceEntries[0]).toMatchObject({ scopeType: 'project', relatedField: 'general' });
 
     expect(() => createExposureProjectFile({ ...project, evidenceEntries: [{ ...project.evidenceEntries[0], scopeId: 'missing-source' }] }, 'missing-scope')).toThrow(/invalid scope/i);
@@ -143,7 +143,7 @@ describe('exposure project files', () => {
     const current = createExposureProjectFile(project, 'legacy-v5', '2026-11-11T12:00:00Z');
     const legacyEvidence = current.project.evidenceEntries.map(({ qualityChecks: _qualityChecks, ...entry }) => entry);
     const migrated = parseExposureProjectFile(JSON.stringify({ ...current, schemaVersion: 5, project: { ...current.project, evidenceEntries: legacyEvidence } }));
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated.project.evidenceEntries[0].qualityChecks).toEqual([]);
 
     expect(() => createExposureProjectFile({
@@ -154,6 +154,19 @@ describe('exposure project files', () => {
       ...project,
       evidenceEntries: [{ ...project.evidenceEntries[0], qualityChecks: ['measurement-value', 'measurement-value'] }]
     }, 'duplicate-quality-check')).toThrow(/unique/i);
+  });
+
+  it('migrates version 6 evidence without inventing a review reminder', () => {
+    const current = createExposureProjectFile(project, 'legacy-v6', '2026-11-11T12:00:00Z');
+    const legacyEvidence = current.project.evidenceEntries.map(({ reviewDueOn: _reviewDueOn, ...entry }) => entry);
+    const migrated = parseExposureProjectFile(JSON.stringify({ ...current, schemaVersion: 6, project: { ...current.project, evidenceEntries: legacyEvidence } }));
+    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.project.evidenceEntries[0].reviewDueOn).toBeUndefined();
+
+    expect(() => createExposureProjectFile({
+      ...project,
+      evidenceEntries: [{ ...project.evidenceEntries[0], reviewDueOn: '2026-02-30' }]
+    }, 'invalid-review-reminder')).toThrow(/valid YYYY-MM-DD/i);
   });
 
   it('saves, updates, orders, and deletes local projects', () => {
