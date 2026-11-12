@@ -55,6 +55,9 @@ interface ExposureScenarioEvidence {
   recordedOn: string;
   reviewer: string;
   referenceUrl?: string;
+  scopeType: string;
+  scopeId?: string;
+  relatedField: string;
 }
 
 interface FieldDescriptor<T> {
@@ -92,7 +95,10 @@ const evidenceFields: FieldDescriptor<ExposureScenarioEvidence>[] = [
   { key: 'detail', label: 'Evidence detail', kind: 'text' },
   { key: 'recordedOn', label: 'Evidence review date', kind: 'text' },
   { key: 'reviewer', label: 'Evidence reviewer', kind: 'text' },
-  { key: 'referenceUrl', label: 'Evidence reference link', kind: 'text' }
+  { key: 'referenceUrl', label: 'Evidence reference link', kind: 'text' },
+  { key: 'scopeType', label: 'Evidence scope type', kind: 'text' },
+  { key: 'scopeId', label: 'Evidence scoped entity', kind: 'text' },
+  { key: 'relatedField', label: 'Evidence related input', kind: 'text' }
 ];
 
 function fieldChanges<T extends object>(entityKind: ScenarioInputEntityKind, entityId: string, entityLabel: string, baseline: T, current: T, fields: FieldDescriptor<T>[]): ExposureScenarioInputChange[] {

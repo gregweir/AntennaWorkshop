@@ -19,6 +19,13 @@ export interface ExposureProjectData extends ExposureProjectInput {
 }
 
 export type ExposureEvidenceCategory = 'assumption' | 'measurement' | 'source-reference' | 'review-note';
+export type ExposureEvidenceScopeType = 'project' | 'source' | 'point';
+export type ExposureEvidenceRelatedField =
+  | 'general' | 'jurisdiction' | 'environment' | 'sourceInventoryComplete'
+  | 'frequencyMHz' | 'transmitterPowerWatts' | 'dutyCyclePercent' | 'feedSystemLossDb'
+  | 'antennaGainDbi' | 'antennaLargestDimensionMetres' | 'antennaCentreHeightMetres'
+  | 'eastOffsetMetres' | 'northOffsetMetres' | 'patternType' | 'bearingDegrees' | 'beamwidthDegrees'
+  | 'heightMetres';
 
 export interface ExposureEvidenceEntry {
   id: string;
@@ -28,6 +35,9 @@ export interface ExposureEvidenceEntry {
   recordedOn: string;
   reviewer: string;
   referenceUrl?: string;
+  scopeType: ExposureEvidenceScopeType;
+  scopeId?: string;
+  relatedField: ExposureEvidenceRelatedField;
 }
 
 export interface ExposureProjectFile {
@@ -45,7 +55,7 @@ interface StorageLike {
 }
 
 export const EXPOSURE_PROJECT_FILE_KIND = 'radiobook-antenna-workshop/exposure-project';
-export const EXPOSURE_PROJECT_FILE_VERSION = 4;
+export const EXPOSURE_PROJECT_FILE_VERSION = 5;
 export const EXPOSURE_PROJECT_LIBRARY_KEY = 'radiobook:antenna-workshop:exposure-projects:v1';
 export const EXPOSURE_PROJECT_CURRENT_KEY = 'radiobook:antenna-workshop:current-exposure-project:v1';
 export const EXPOSURE_PROJECT_LIBRARY_LIMIT = 24;
@@ -77,6 +87,17 @@ function evidenceCategory(value: unknown): ExposureEvidenceCategory {
   throw new TypeError('The evidence category is not supported.');
 }
 
+function evidenceScopeType(value: unknown): ExposureEvidenceScopeType {
+  if (value === 'project' || value === 'source' || value === 'point') return value;
+  throw new TypeError('The evidence scope type is not supported.');
+}
+
+function evidenceRelatedField(value: unknown): ExposureEvidenceRelatedField {
+  const fields: ExposureEvidenceRelatedField[] = ['general', 'jurisdiction', 'environment', 'sourceInventoryComplete', 'frequencyMHz', 'transmitterPowerWatts', 'dutyCyclePercent', 'feedSystemLossDb', 'antennaGainDbi', 'antennaLargestDimensionMetres', 'antennaCentreHeightMetres', 'eastOffsetMetres', 'northOffsetMetres', 'patternType', 'bearingDegrees', 'beamwidthDegrees', 'heightMetres'];
+  if (fields.includes(value as ExposureEvidenceRelatedField)) return value as ExposureEvidenceRelatedField;
+  throw new TypeError('The evidence-related input is not supported.');
+}
+
 function dateOnly(value: unknown): string {
   const date = text(value, 'Evidence review date', 10);
   const parsed = new Date(`${date}T00:00:00Z`);
@@ -99,7 +120,7 @@ function referenceUrl(value: unknown): string | undefined {
   return parsed.toString();
 }
 
-function evidenceEntry(value: unknown): ExposureEvidenceEntry {
+function evidenceEntry(value: unknown, legacyScope = false): ExposureEvidenceEntry {
   if (!value || typeof value !== 'object') throw new TypeError('Every evidence entry must be an object.');
   const candidate = value as Record<string, unknown>;
   return {
@@ -109,8 +130,28 @@ function evidenceEntry(value: unknown): ExposureEvidenceEntry {
     detail: text(candidate.detail, 'Evidence detail', 4000),
     recordedOn: dateOnly(candidate.recordedOn),
     reviewer: text(candidate.reviewer, 'Evidence reviewer', 160),
-    referenceUrl: referenceUrl(candidate.referenceUrl)
+    referenceUrl: referenceUrl(candidate.referenceUrl),
+    scopeType: legacyScope ? 'project' : evidenceScopeType(candidate.scopeType),
+    scopeId: legacyScope || candidate.scopeId === undefined ? undefined : text(candidate.scopeId, 'Evidence scope identifier', 100),
+    relatedField: legacyScope ? 'general' : evidenceRelatedField(candidate.relatedField)
   };
+}
+
+const projectEvidenceFields: ExposureEvidenceRelatedField[] = ['general', 'jurisdiction', 'environment', 'sourceInventoryComplete'];
+const sourceEvidenceFields: ExposureEvidenceRelatedField[] = ['general', 'frequencyMHz', 'transmitterPowerWatts', 'dutyCyclePercent', 'feedSystemLossDb', 'antennaGainDbi', 'antennaLargestDimensionMetres', 'antennaCentreHeightMetres', 'eastOffsetMetres', 'northOffsetMetres', 'patternType', 'bearingDegrees', 'beamwidthDegrees'];
+const pointEvidenceFields: ExposureEvidenceRelatedField[] = ['general', 'eastOffsetMetres', 'northOffsetMetres', 'heightMetres'];
+
+function validateEvidenceScope(entry: ExposureEvidenceEntry, sources: ExposureProjectSourceInput[], points: ExposureEvaluationPointInput[]) {
+  if (entry.scopeType === 'project') {
+    if (entry.scopeId !== undefined || !projectEvidenceFields.includes(entry.relatedField)) throw new TypeError('Project evidence has an invalid scope or related input.');
+    return;
+  }
+  if (!entry.scopeId) throw new TypeError('Scoped evidence must identify a station source or evaluation point.');
+  if (entry.scopeType === 'source') {
+    if (!sources.some((source) => source.id === entry.scopeId) || !sourceEvidenceFields.includes(entry.relatedField)) throw new TypeError('Station-source evidence has an invalid scope or related input.');
+    return;
+  }
+  if (!points.some((point) => point.id === entry.scopeId) || !pointEvidenceFields.includes(entry.relatedField)) throw new TypeError('Evaluation-point evidence has an invalid scope or related input.');
 }
 
 function source(value: unknown, legacyGeometry = false, legacyPattern = false): ExposureProjectSourceInput {
@@ -158,7 +199,7 @@ function evaluationPoint(value: unknown, legacyGeometry = false): ExposureEvalua
   };
 }
 
-function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false): ExposureProjectData {
+function projectData(value: unknown, legacyGeometry = false, legacyPattern = false, legacyEvidence = false, legacyEvidenceScope = false): ExposureProjectData {
   if (!value || typeof value !== 'object') throw new TypeError('The project record is missing.');
   const candidate = value as Record<string, unknown>;
   if (!isJurisdiction(candidate.jurisdiction)) throw new TypeError('The project jurisdiction is not supported.');
@@ -169,18 +210,21 @@ function projectData(value: unknown, legacyGeometry = false, legacyPattern = fal
   }
   if (!legacyEvidence && !Array.isArray(candidate.evidenceEntries)) throw new TypeError('The project must contain an evidence-entry array.');
   const evidenceEntries = legacyEvidence ? [] : candidate.evidenceEntries as unknown[];
-  if (evidenceEntries.length > 40) throw new TypeError('A project can contain at most 40 evidence entries.');
-  const validatedEvidenceEntries = evidenceEntries.map(evidenceEntry);
+  if (evidenceEntries.length > 120) throw new TypeError('A project can contain at most 120 evidence entries.');
+  const validatedSources = candidate.sources.map((item) => source(item, legacyGeometry, legacyPattern));
+  const validatedPoints = candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry));
+  const validatedEvidenceEntries = evidenceEntries.map((entry) => evidenceEntry(entry, legacyEvidenceScope));
   if (new Set(validatedEvidenceEntries.map((entry) => entry.id)).size !== validatedEvidenceEntries.length) {
     throw new TypeError('Evidence identifiers must be unique within a project.');
   }
+  validatedEvidenceEntries.forEach((entry) => validateEvidenceScope(entry, validatedSources, validatedPoints));
   const project: ExposureProjectData = {
     title: text(candidate.title, 'Project title', 160),
     jurisdiction: candidate.jurisdiction,
     environment: candidate.environment,
     sourceInventoryComplete: candidate.sourceInventoryComplete,
-    sources: candidate.sources.map((item) => source(item, legacyGeometry, legacyPattern)),
-    evaluationPoints: candidate.evaluationPoints.map((item) => evaluationPoint(item, legacyGeometry)),
+    sources: validatedSources,
+    evaluationPoints: validatedPoints,
     evidenceEntries: validatedEvidenceEntries
   };
   calculateExposureProject(project);
@@ -209,9 +253,9 @@ export function parseExposureProjectFile(serialized: string): ExposureProjectFil
   if (!value || typeof value !== 'object') throw new TypeError('The selected file is not a project record.');
   const candidate = value as Record<string, unknown>;
   if (candidate.kind !== EXPOSURE_PROJECT_FILE_KIND) throw new TypeError('The selected file is not an Antenna Workshop exposure project.');
-  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
+  if (candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== 4 && candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION) throw new TypeError('This project-file version is not supported.');
   return createExposureProjectFile(
-    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, candidate.schemaVersion !== EXPOSURE_PROJECT_FILE_VERSION),
+    projectData(candidate.project, candidate.schemaVersion === 1, candidate.schemaVersion === 1 || candidate.schemaVersion === 2, Number(candidate.schemaVersion) < 4, Number(candidate.schemaVersion) < 5),
     text(candidate.projectId, 'Project identifier', 100),
     text(candidate.savedAt, 'Project save date', 100)
   );

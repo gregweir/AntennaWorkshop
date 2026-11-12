@@ -12,6 +12,9 @@ export type AssessmentEvidenceCategory = 'assumption' | 'measurement' | 'source-
 
 export interface AssessmentEvidenceEntry {
   category: AssessmentEvidenceCategory;
+  scopeType: 'project' | 'source' | 'point';
+  scopeId?: string;
+  relatedField: string;
 }
 
 export interface AssessmentChecklistInput extends ExposureProjectInput {
@@ -38,6 +41,34 @@ function evidenceItem(input: AssessmentChecklistInput, category: AssessmentEvide
   return count
     ? { id: `evidence-${category}`, label, status: 'recorded', detail: `${count} ${count === 1 ? 'entry is' : 'entries are'} logged. ${presentDetail}` }
     : { id: `evidence-${category}`, label, status: 'attention', detail: missingDetail };
+}
+
+interface CriticalEvidenceRequirement {
+  scopeType: AssessmentEvidenceEntry['scopeType'];
+  scopeId?: string;
+  relatedField: string;
+  label: string;
+}
+
+function criticalEvidenceItem(input: AssessmentChecklistInput): AssessmentChecklistItem {
+  const sourceFields = [
+    ['frequencyMHz', 'frequency'], ['transmitterPowerWatts', 'transmitter output'], ['dutyCyclePercent', 'duty cycle'],
+    ['feedSystemLossDb', 'feed-system loss'], ['antennaGainDbi', 'maximum antenna gain'],
+    ['antennaLargestDimensionMetres', 'largest antenna dimension'], ['antennaCentreHeightMetres', 'antenna centre height'],
+    ['eastOffsetMetres', 'east position'], ['northOffsetMetres', 'north position']
+  ] as const;
+  const pointFields = [['eastOffsetMetres', 'east position'], ['northOffsetMetres', 'north position'], ['heightMetres', 'height']] as const;
+  const requirements: CriticalEvidenceRequirement[] = [
+    { scopeType: 'project', relatedField: 'sourceInventoryComplete', label: 'project source inventory confirmation' },
+    ...input.sources.flatMap((source) => sourceFields.map(([relatedField, label]) => ({ scopeType: 'source' as const, scopeId: source.id, relatedField, label: `${source.label} ${label}` }))),
+    ...input.evaluationPoints.flatMap((point) => pointFields.map(([relatedField, label]) => ({ scopeType: 'point' as const, scopeId: point.id, relatedField, label: `${point.label} ${label}` })))
+  ];
+  const missing = requirements.filter((requirement) => !input.evidenceEntries.some((entry) => entry.scopeType === requirement.scopeType && entry.scopeId === requirement.scopeId && entry.relatedField === requirement.relatedField));
+  const covered = requirements.length - missing.length;
+  if (!missing.length) return { id: 'critical-input-evidence', label: 'Critical input evidence coverage', status: 'recorded', detail: `All ${requirements.length} critical project, source, and point values have at least one field-specific evidence entry. Content quality is not verified.` };
+  const examples = missing.slice(0, 4).map((requirement) => requirement.label).join('; ');
+  const remainder = missing.length > 4 ? `; and ${missing.length - 4} more` : '';
+  return { id: 'critical-input-evidence', label: 'Critical input evidence coverage', status: 'attention', detail: `${covered} of ${requirements.length} critical values have field-specific evidence. Missing: ${examples}${remainder}. General notes do not count as field-specific coverage.` };
 }
 
 function applicabilityItem(result: ExposureProjectResult | null): AssessmentChecklistItem {
@@ -80,6 +111,7 @@ export function calculateAssessmentChecklist(input: AssessmentChecklistInput): A
       : { id: 'source-inventory', label: 'Station-site source inventory', status: 'required', detail: 'Confirm all relevant transmitters and antennas at this station site before interpreting the calculated subtotal.' },
     applicabilityItem(result),
     outcomeItem(result),
+    criticalEvidenceItem(input),
     evidenceItem(input, 'assumption', 'Assumptions documented', 'Record assumptions that materially affect power, geometry, gain, duty cycle, or accessibility.', 'Presence is recorded; accuracy and completeness are not verified.'),
     evidenceItem(input, 'measurement', 'Measurements documented', 'Record relevant field measurements and how they were obtained.', 'Presence is recorded; method, calibration, coverage, and uncertainty are not verified.'),
     evidenceItem(input, 'source-reference', 'Source references documented', 'Record the regulations, manuals, specifications, or other sources supporting entered values.', 'Presence is recorded; authority, revision, and applicability are not verified.'),

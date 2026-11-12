@@ -1463,6 +1463,15 @@ select {
   margin: 0.4rem 0;
 }
 
+.evidence-scope {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
 .evidence-entry-list a {
   display: block;
   margin-top: 0.45rem;
@@ -1527,6 +1536,7 @@ select {
 }
 
 .evidence-record li span,
+.evidence-record li b,
 .evidence-record li small,
 .evidence-record li a {
   display: block;
@@ -1539,6 +1549,12 @@ select {
   font-family: var(--font-mono);
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.evidence-record li b {
+  margin-top: 0.2rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
 }
 
 .evidence-record h6,

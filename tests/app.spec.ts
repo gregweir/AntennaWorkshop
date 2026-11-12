@@ -312,7 +312,7 @@ test('tracks assessment blockers, documentation gaps, and external review separa
 
   await expect(checklist).toContainText('Review blockers remain');
   await expect(checklist.locator('.assessment-count-recorded')).toContainText('2 recorded');
-  await expect(checklist.locator('.assessment-count-attention')).toContainText('4 documentation gaps');
+  await expect(checklist.locator('.assessment-count-attention')).toContainText('5 documentation gaps');
   await expect(checklist.locator('.assessment-count-required')).toContainText('2 action required');
   await expect(checklist.locator('.assessment-count-external-review')).toContainText('1 external review');
   await expect(checklist).toContainText('A complete checklist is not a compliance result');
@@ -480,6 +480,9 @@ test('records, transfers, and audits assessment evidence', async ({ page }) => {
   await evidenceLog.getByRole('button', { name: 'Add to evidence log' }).click();
   await expect(evidenceLog.getByRole('alert')).toContainText('Enter a title, detail, review date, and reviewer');
   await evidenceLog.getByLabel('Evidence category').selectOption('measurement');
+  await evidenceLog.getByLabel('Evidence scope').selectOption('source');
+  await evidenceLog.getByLabel('Evidence scope item').selectOption({ label: '2 m vertical' });
+  await evidenceLog.getByLabel('Evidence related input').selectOption('antennaCentreHeightMetres');
   await evidenceLog.getByLabel('Evidence title').fill('Mast height field check');
   await evidenceLog.getByLabel('Evidence review date').fill('2026-11-12');
   await evidenceLog.getByLabel('Evidence reviewer').fill('Greg Weir, VA1GW');
@@ -507,8 +510,13 @@ test('records, transfers, and audits assessment evidence', async ({ page }) => {
   const exportedPath = await download.path();
   expect(exportedPath).not.toBeNull();
   const exported = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(exportedPath!, 'utf8')));
-  expect(exported.schemaVersion).toBe(4);
-  expect(exported.project.evidenceEntries).toMatchObject([{ category: 'measurement', title: 'Mast height field check', reviewer: 'Greg Weir, VA1GW', referenceUrl: 'https://www.radiobook.ca/' }]);
+  expect(exported.schemaVersion).toBe(5);
+  expect(exported.project.evidenceEntries).toMatchObject([{ category: 'measurement', title: 'Mast height field check', reviewer: 'Greg Weir, VA1GW', referenceUrl: 'https://www.radiobook.ca/', scopeType: 'source', scopeId: 'project-source-1', relatedField: 'antennaCentreHeightMetres' }]);
+
+  const firstSource = project.locator('.project-source-editor').first();
+  await firstSource.locator('summary').click();
+  await firstSource.getByRole('button', { name: 'Remove source' }).click();
+  await expect(evidenceLog.locator('.evidence-scope')).toContainText('Whole project · General / multiple inputs');
 });
 
 test('persists and transfers validated station projects', async ({ page }) => {
