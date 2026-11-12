@@ -49,3 +49,6 @@ jobs:
 
       - name: Run browser tests
         run: npm run test:e2e
+
+      - name: Verify production PWA offline return
+        run: npm run test:pwa

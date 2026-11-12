@@ -5,10 +5,8 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { AntennaWorkbench } from './components/AntennaWorkbench';
-import { FeedlineWorkbench } from './components/FeedlineWorkbench';
-import { ExposureReferenceWorkbench } from './components/ExposureReferenceWorkbench';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
 import { loadPreferences, savePreferences } from './preferences';
@@ -16,6 +14,8 @@ import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catal
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 
 const initialJurisdictions = jurisdictionProfiles.filter((profile) => profile.releaseStatus === 'initial');
+const FeedlineWorkbench = lazy(() => import('./components/FeedlineWorkbench').then((module) => ({ default: module.FeedlineWorkbench })));
+const ExposureReferenceWorkbench = lazy(() => import('./components/ExposureReferenceWorkbench').then((module) => ({ default: module.ExposureReferenceWorkbench })));
 
 export function App() {
   const savedPreferences = useMemo(() => loadPreferences(window.localStorage), []);
@@ -85,11 +85,13 @@ export function App() {
         </button>
       </nav>
 
-      {workshopTool === 'antennas'
-        ? <AntennaWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
-        : workshopTool === 'feedline'
-          ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
-          : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} />}
+      <Suspense fallback={<section className="workspace shell tool-loading" role="status" aria-live="polite"><p className="eyebrow">Opening workshop</p><h2>Loading the selected tool…</h2><p>The calculator and its saved on-device data will be ready momentarily.</p></section>}>
+        {workshopTool === 'antennas'
+          ? <AntennaWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
+          : workshopTool === 'feedline'
+            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
+            : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} />}
+      </Suspense>
 
       <section className="roadmap shell" aria-labelledby="roadmap-title">
         <p className="eyebrow">Workshop roadmap</p>

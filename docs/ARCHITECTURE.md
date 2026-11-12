@@ -37,4 +37,6 @@ Diagrams provide textual titles and descriptions, visible labels, high-contrast 
 
 Vite builds hashed application assets below `/antennas/`. The service worker is updated after application resources and the HTML shell are available. Releases retain the prior and current hashed assets during the transition and verify the served service-worker bytes.
 
+The default antenna-design workspace is part of the initial application entry. Feedline and RF-exposure workspaces load as separate JavaScript chunks when selected. The production build enforces a 400 KiB limit on both the initial entry and every emitted JavaScript chunk. Workbox precaches the lazy chunks so an installed application can open every workspace after returning offline.
+
 Local development listens on `0.0.0.0` for LAN access. Mobile installation testing requires trusted HTTPS; plain LAN HTTP is not treated as an installable secure origin.

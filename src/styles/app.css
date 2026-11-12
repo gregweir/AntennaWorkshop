@@ -378,6 +378,20 @@ select {
   margin-bottom: 1.5rem;
 }
 
+.tool-loading {
+  min-height: 18rem;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.tool-loading h2,
+.tool-loading p {
+  margin: 0;
+}
+
 .workspace-heading h2,
 .roadmap h2 {
   margin: 0;

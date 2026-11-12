@@ -18,10 +18,13 @@
 !/tsconfig.node.json
 !/vite.config.ts
 !/playwright.config.ts
+!/playwright.pwa.config.ts
 !/src/
 !/public/
 !/docs/
+!/scripts/
 !/tests/
+!/tests-pwa/
 
 node_modules/
 dist/
