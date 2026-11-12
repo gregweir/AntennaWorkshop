@@ -14,7 +14,7 @@ import {
 } from '../calculators/exposureProject';
 import { EXPOSURE_AGGREGATION_MODEL } from '../calculators/exposureAggregation';
 import { EXPOSURE_SCREEN_MODEL } from '../calculators/exposureScreen';
-import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
+import { feetToMetres, formatCoordinate, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import {
   createExposureProjectFile,
   deleteExposureProjectFile,
@@ -46,19 +46,19 @@ const initialSources: ExposureProjectSourceInput[] = [
     id: 'project-source-1', label: '2 m vertical', frequencyMHz: 146,
     transmitterPowerWatts: 50, dutyCyclePercent: 50, feedSystemLossDb: 1,
     antennaGainDbi: 2.15, antennaLargestDimensionMetres: 1,
-    antennaCentreHeightMetres: 10
+    antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0
   },
   {
     id: 'project-source-2', label: '70 cm vertical', frequencyMHz: 446,
     transmitterPowerWatts: 25, dutyCyclePercent: 25, feedSystemLossDb: 1.5,
     antennaGainDbi: 5, antennaLargestDimensionMetres: 0.5,
-    antennaCentreHeightMetres: 12
+    antennaCentreHeightMetres: 12, eastOffsetMetres: 4, northOffsetMetres: 2
   }
 ];
 
 const initialPoints: ExposureEvaluationPointInput[] = [
-  { id: 'project-point-1', label: 'Yard access', horizontalDistanceMetres: 15, heightMetres: 1.5 },
-  { id: 'project-point-2', label: 'Property line', horizontalDistanceMetres: 30, heightMetres: 1.5 }
+  { id: 'project-point-1', label: 'Yard access', eastOffsetMetres: 15, northOffsetMetres: 0, heightMetres: 1.5 },
+  { id: 'project-point-2', label: 'Property line', eastOffsetMetres: 30, northOffsetMetres: 5, heightMetres: 1.5 }
 ];
 
 function projectId() {
@@ -79,7 +79,7 @@ function starterProject(jurisdiction: ExposureJurisdiction, environment: Exposur
 const statusCopy = {
   'below-screening-trigger': ['All modelled points are below the screening trigger', 'Every listed location is beyond the conservative far-field boundary and its normalized source total is below the selected review trigger. This is not a compliance determination.'],
   'further-analysis-required': ['Further analysis is required at one or more points', 'At least one location reaches the selected screening trigger. Refine the model, measure the site, or apply appropriate mitigation.'],
-  'screening-inconclusive': ['The station source inventory is incomplete', 'Calculated values are displayed as subtotals, but the project cannot be interpreted until all relevant station and co-located sources are included.'],
+  'screening-inconclusive': ['The station source inventory is incomplete', 'Calculated values are displayed as subtotals, but the project cannot be interpreted until all relevant station-site and nearby sources are included.'],
   'method-inapplicable': ['Far-field screening is inapplicable at one or more points', 'At least one source–location path lies inside its conservative far-field boundary. That location requires a suitable near-field method or measurement.']
 } as const;
 
@@ -252,14 +252,14 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   const addPoint = () => {
     let id = `project-point-${nextPointId.current++}`;
     while (points.some((point) => point.id === id)) id = `project-point-${nextPointId.current++}`;
-    setPoints((current) => [...current, { id, label: `Evaluation point ${current.length + 1}`, horizontalDistanceMetres: 20, heightMetres: 1.5 }]);
+    setPoints((current) => [...current, { id, label: `Evaluation point ${current.length + 1}`, eastOffsetMetres: 20, northOffsetMetres: 0, heightMetres: 1.5 }]);
   };
   const status = result ? statusCopy[result.status] : null;
   const worst = result?.pointResults.find((point) => point.point.id === result.worstPointId);
 
   return <section className="project-section" aria-labelledby="project-heading">
     <div className="section-heading"><div><p className="eyebrow">Integrated station model · printable record</p><h3 id="project-heading">Station assessment project</h3></div><span className="model-badge">Model {EXPOSURE_PROJECT_MODEL.version}</span></div>
-    <p className="screen-intro">Model several transmitters on one common antenna support across several accessible locations. Calculated source contributions flow directly into the normalized total for each location.</p>
+    <p className="screen-intro">Position several transmitting antennas and accessible evaluation points across one station site. Three-dimensional source separations flow directly into the normalized total for each location.</p>
     {workflowMessage && <div className="workflow-message" role="status"><strong>Connected source update</strong><span>{workflowMessage}</span></div>}
 
     <div className="project-editor">
@@ -275,6 +275,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
         <p className="project-storage-message" aria-live="polite">{storageMessage}</p>
       </section>
       <label className="field project-title-field"><span>Project title</span><input value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} /></label>
+      <div className="project-coordinate-guide" role="note"><strong>Choose one site origin</strong><span>Enter every antenna and evaluation point using east-positive and north-positive offsets from the same convenient reference, such as a mast base or building corner. Negative coordinates are valid.</span></div>
       <div className="project-editor-heading"><div><p className="eyebrow">Station sources</p><h4>Transmitters and antennas</h4></div><button type="button" className="add-source" disabled={sources.length >= 8} onClick={addSource}>+ Add station source</button></div>
       <div className="project-source-list">{sources.map((source, index) => <details key={source.id} className="project-source-editor">
         <summary><span><strong>{source.label || `Source ${index + 1}`}</strong><small>{source.frequencyMHz || 0} MHz · {source.transmitterPowerWatts || 0} W{source.linkedModels ? ' · linked workflow' : ''}</small></span><b>Source {index + 1}</b></summary>
@@ -288,6 +289,8 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
           <label className="field"><span>Maximum antenna gain</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} antenna gain`} type="number" step="0.1" value={source.antennaGainDbi} onChange={(event) => updateSource(source.id, { antennaGainDbi: Number(event.target.value) })} /><span>dBi</span></span></label>
           <label className="field"><span>Largest antenna dimension</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} antenna dimension`} type="number" min="0.001" step="0.01" value={Number(displayLength(source.antennaLargestDimensionMetres).toFixed(3))} onChange={(event) => updateSource(source.id, { antennaLargestDimensionMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
           <label className="field"><span>Antenna centre height</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} antenna height`} type="number" min="0" step="0.1" value={Number(displayLength(source.antennaCentreHeightMetres).toFixed(3))} onChange={(event) => updateSource(source.id, { antennaCentreHeightMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
+          <label className="field"><span>East position</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} east position`} type="number" step="0.1" value={Number(displayLength(source.eastOffsetMetres).toFixed(3))} onChange={(event) => updateSource(source.id, { eastOffsetMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
+          <label className="field"><span>North position</span><span className="input-with-unit"><input aria-label={`Project source ${index + 1} north position`} type="number" step="0.1" value={Number(displayLength(source.northOffsetMetres).toFixed(3))} onChange={(event) => updateSource(source.id, { northOffsetMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
         </div>
         <button type="button" className="remove-source" disabled={sources.length === 1} onClick={() => { setSources((current) => current.filter((candidate) => candidate.id !== source.id)); setSourceInventoryComplete(false); }}>Remove source</button>
       </details>)}</div>
@@ -295,11 +298,12 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       <div className="project-editor-heading"><div><p className="eyebrow">Accessible locations</p><h4>Evaluation points</h4></div><button type="button" className="add-source" disabled={points.length >= 12} onClick={addPoint}>+ Add evaluation point</button></div>
       <div className="project-point-list">{points.map((point, index) => <fieldset key={point.id} className="project-point-editor"><legend>Point {index + 1}</legend>
         <label className="field"><span>Location label</span><input aria-label={`Project point ${index + 1} label`} value={point.label} onChange={(event) => updatePoint(point.id, { label: event.target.value })} /></label>
-        <label className="field"><span>Horizontal distance</span><span className="input-with-unit"><input aria-label={`Project point ${index + 1} horizontal distance`} type="number" min="0" step="0.1" value={Number(displayLength(point.horizontalDistanceMetres).toFixed(3))} onChange={(event) => updatePoint(point.id, { horizontalDistanceMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
+        <label className="field"><span>East position</span><span className="input-with-unit"><input aria-label={`Project point ${index + 1} east position`} type="number" step="0.1" value={Number(displayLength(point.eastOffsetMetres).toFixed(3))} onChange={(event) => updatePoint(point.id, { eastOffsetMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
+        <label className="field"><span>North position</span><span className="input-with-unit"><input aria-label={`Project point ${index + 1} north position`} type="number" step="0.1" value={Number(displayLength(point.northOffsetMetres).toFixed(3))} onChange={(event) => updatePoint(point.id, { northOffsetMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
         <label className="field"><span>Point height</span><span className="input-with-unit"><input aria-label={`Project point ${index + 1} height`} type="number" min="0" step="0.1" value={Number(displayLength(point.heightMetres).toFixed(3))} onChange={(event) => updatePoint(point.id, { heightMetres: readLength(Number(event.target.value)) })} /><span>{lengthUnit}</span></span></label>
         <button type="button" className="remove-source" disabled={points.length === 1} onClick={() => setPoints((current) => current.filter((candidate) => candidate.id !== point.id))}>Remove point</button>
       </fieldset>)}</div>
-      <label className="inventory-confirmation"><input type="checkbox" checked={sourceInventoryComplete} onChange={(event) => setSourceInventoryComplete(event.target.checked)} /><span><strong>Common-site source inventory assessed</strong><small>I have included all relevant transmitters and antennas on this common support or station site. Nearby sources at other sites still require separate assessment.</small></span></label>
+      <label className="inventory-confirmation"><input type="checkbox" checked={sourceInventoryComplete} onChange={(event) => setSourceInventoryComplete(event.target.checked)} /><span><strong>Station-site source inventory assessed</strong><small>I have included all relevant transmitters and antennas at this station site. Nearby sources outside the modelled site still require separate assessment.</small></span></label>
     </div>
 
     {!result && <p className="validation-message" role="alert">One or more project inputs are invalid or outside the selected jurisdiction’s power-density model. No project result is produced.</p>}
@@ -308,13 +312,13 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Project outcome</p><h4>{status[0]}</h4><p>{status[1]}</p></div>
       <ExposureProjectDiagram result={result} unitSystem={unitSystem} />
       <div className="project-point-results">{result.pointResults.map((pointResult) => <article className={pointResult.point.id === result.worstPointId ? 'project-worst-point' : ''} key={pointResult.point.id}>
-        <div><p className="eyebrow">{pointResult.point.id === result.worstPointId ? 'Greatest modelled total' : 'Evaluation point'}</p><h5>{pointResult.point.label}</h5><small>{formatLength(pointResult.point.horizontalDistanceMetres, unitSystem)} horizontal · {formatLength(pointResult.point.heightMetres, unitSystem)} high</small></div>
+        <div><p className="eyebrow">{pointResult.point.id === result.worstPointId ? 'Greatest modelled total' : 'Evaluation point'}</p><h5>{pointResult.point.label}</h5><small>E {formatCoordinate(pointResult.point.eastOffsetMetres, unitSystem)} · N {formatCoordinate(pointResult.point.northOffsetMetres, unitSystem)} · {formatLength(pointResult.point.heightMetres, unitSystem)} high</small></div>
         <strong>{(pointResult.aggregate.totalFractionOfReferenceLevel * 100).toFixed(2)}%</strong>
         <span>{statusCopy[pointResult.status][0]}</span>
-        <details><summary>Source contributions</summary><ul>{pointResult.sourceResults.map(({ source, screen, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(separationDistanceMetres, unitSystem)} separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul></details>
-        <ul className="project-print-contributions">{pointResult.sourceResults.map(({ source, screen, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(separationDistanceMetres, unitSystem)} separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul>
+        <details><summary>Source contributions</summary><ul>{pointResult.sourceResults.map(({ source, screen, horizontalSeparationMetres, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(horizontalSeparationMetres, unitSystem)} plan / {formatLength(separationDistanceMetres, unitSystem)} 3D separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul></details>
+        <ul className="project-print-contributions">{pointResult.sourceResults.map(({ source, screen, horizontalSeparationMetres, separationDistanceMetres }) => <li key={source.id}><b>{source.label}</b><span>{(screen.fractionOfReferenceLevel * 100).toFixed(2)}% · {screen.estimatedPowerDensityWattsPerSquareMetre.toPrecision(4)} W/m² · {formatLength(horizontalSeparationMetres, unitSystem)} plan / {formatLength(separationDistanceMetres, unitSystem)} 3D separation · far-field check {formatLength(screen.farFieldBoundaryMetres, unitSystem)}</span></li>)}</ul>
       </article>)}</div>
-      <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high{source.linkedModels && <> · linked models: {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion}, {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}</>}</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Maximum stated gain is applied toward every point. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not model antenna patterns, terrain, buildings, body coupling, measurement uncertainty, non-co-located sources, or near fields.</p></article></div>
+      <div className="project-record-grid"><article><p className="eyebrow">Station sources</p><ul>{sources.map((source) => <li key={source.id}><b>{source.label}</b> · {source.frequencyMHz.toFixed(3)} MHz · {source.transmitterPowerWatts.toFixed(1)} W · {source.dutyCyclePercent.toFixed(1)}% duty · {source.feedSystemLossDb.toFixed(2)} dB loss · {source.antennaGainDbi.toFixed(2)} dBi · E {formatCoordinate(source.eastOffsetMetres, unitSystem)} · N {formatCoordinate(source.northOffsetMetres, unitSystem)} · {formatLength(source.antennaCentreHeightMetres, unitSystem)} high{source.linkedModels && <> · linked models: {source.linkedModels.antennaDesignId} {source.linkedModels.antennaDesignVersion}, {source.linkedModels.feedSystemId} {source.linkedModels.feedSystemVersion}</>}</li>)}</ul></article><article><p className="eyebrow">Record limits</p><p>Maximum stated gain is applied toward every point. Antennas are treated as point sources at the entered coordinates. The model uses modified free-space propagation with the 2.56 reflected-field multiplier and does not model antenna patterns, terrain, buildings, body coupling, measurement uncertainty, off-site sources, or near fields.</p></article></div>
       <div className="project-provenance"><p><strong>Models:</strong> {EXPOSURE_PROJECT_MODEL.id} {EXPOSURE_PROJECT_MODEL.version} · {EXPOSURE_SCREEN_MODEL.id} {EXPOSURE_SCREEN_MODEL.version} · {EXPOSURE_AGGREGATION_MODEL.id} {EXPOSURE_AGGREGATION_MODEL.version}</p><p><strong>Reviewed:</strong> {EXPOSURE_PROJECT_MODEL.reviewedOn}. This record is a preliminary engineering screen, not certification or a complete compliance determination.</p>{worst && <p><strong>Greatest modelled total:</strong> {worst.point.label}, {(worst.aggregate.totalFractionOfReferenceLevel * 100).toFixed(2)}% of frequency-normalized reference levels.</p>}</div>
     </div>}
   </section>;

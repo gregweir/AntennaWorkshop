@@ -40,6 +40,8 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
   const [gainReference, setGainReference] = useState<GainReference>('dBi');
   const [dutyCyclePercent, setDutyCyclePercent] = useState(50);
   const [antennaCentreHeightMetres, setAntennaCentreHeightMetres] = useState(10);
+  const [antennaEastMetres, setAntennaEastMetres] = useState(0);
+  const [antennaNorthMetres, setAntennaNorthMetres] = useState(0);
   const frequencyMHz = Number(frequencyText);
   const availableBands = getBandsForJurisdiction(jurisdiction);
   const activeBand = findBandForFrequency(frequencyMHz, jurisdiction);
@@ -48,6 +50,8 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
   const cableLengthDisplay = unitSystem === 'metric' ? cableLengthMetres : metresToFeet(cableLengthMetres);
   const lossRateDisplay = unitSystem === 'metric' ? lossDbPer100Metres : lossDbPer100Metres * 0.3048;
   const antennaHeightDisplay = unitSystem === 'metric' ? antennaCentreHeightMetres : metresToFeet(antennaCentreHeightMetres);
+  const antennaEastDisplay = unitSystem === 'metric' ? antennaEastMetres : metresToFeet(antennaEastMetres);
+  const antennaNorthDisplay = unitSystem === 'metric' ? antennaNorthMetres : metresToFeet(antennaNorthMetres);
 
   const powerResult = useMemo(() => {
     try {
@@ -121,6 +125,8 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
           {antennaHandoff && <>
             <PowerField label="Exposure duty cycle" value={dutyCyclePercent} unit="%" min={0.01} max={100} step={0.1} onChange={(value) => setDutyCyclePercent(Number(value))} help="Enter the applicable time-averaged transmit duty cycle; it is not inferred from mode or operating habits." />
             <PowerField label="Installed antenna centre height" value={Number(antennaHeightDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={0} step={0.1} onChange={(value) => setAntennaCentreHeightMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Measure to the antenna radiation centre used for station-project geometry." />
+            <PowerField label="Installed antenna east position" value={Number(antennaEastDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={-1_000_000} max={1_000_000} step={0.1} onChange={(value) => setAntennaEastMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Enter an east-positive coordinate relative to a convenient site origin." />
+            <PowerField label="Installed antenna north position" value={Number(antennaNorthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={-1_000_000} max={1_000_000} step={0.1} onChange={(value) => setAntennaNorthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Enter a north-positive coordinate using the same site origin as evaluation points." />
           </>}
         </>}
         {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : 'radiated power'}.</p>}
@@ -144,6 +150,8 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
             feedSystemLossDb,
             antennaGainDbi: radiatedResult.antennaGainDbi,
             antennaCentreHeightMetres,
+            eastOffsetMetres: antennaEastMetres,
+            northOffsetMetres: antennaNorthMetres,
             feedSystemModelId: RADIATED_POWER_MODEL.id,
             feedSystemModelVersion: RADIATED_POWER_MODEL.version
           }

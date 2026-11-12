@@ -26,6 +26,8 @@ export interface ExposureProjectSourceInput {
   antennaGainDbi: number;
   antennaLargestDimensionMetres: number;
   antennaCentreHeightMetres: number;
+  eastOffsetMetres: number;
+  northOffsetMetres: number;
   linkedModels?: {
     antennaDesignId: string;
     antennaDesignVersion: string;
@@ -37,7 +39,8 @@ export interface ExposureProjectSourceInput {
 export interface ExposureEvaluationPointInput {
   id: string;
   label: string;
-  horizontalDistanceMetres: number;
+  eastOffsetMetres: number;
+  northOffsetMetres: number;
   heightMetres: number;
 }
 
@@ -51,6 +54,7 @@ export interface ExposureProjectInput {
 
 export interface ExposureProjectSourceResult {
   source: ExposureProjectSourceInput;
+  horizontalSeparationMetres: number;
   separationDistanceMetres: number;
   screen: ExposureScreenResult;
 }
@@ -73,7 +77,7 @@ export interface ExposureProjectResult {
 
 export const EXPOSURE_PROJECT_MODEL = {
   id: 'multi-source-multi-point-far-field-project',
-  version: '1.0.0',
+  version: '2.0.0',
   reviewedOn: '2026-11-11'
 } as const;
 
@@ -108,18 +112,25 @@ export function calculateExposureProject(input: ExposureProjectInput): ExposureP
   for (const source of input.sources) {
     validateIdentity(source.id, source.label, sourceIds, 'station RF source');
     validateFinite(source.antennaCentreHeightMetres, 'Antenna centre height', 0, 100_000);
+    validateFinite(source.eastOffsetMetres, 'Source east coordinate', -1_000_000, 1_000_000);
+    validateFinite(source.northOffsetMetres, 'Source north coordinate', -1_000_000, 1_000_000);
   }
   const pointIds = new Set<string>();
   for (const point of input.evaluationPoints) {
     validateIdentity(point.id, point.label, pointIds, 'evaluation point');
-    validateFinite(point.horizontalDistanceMetres, 'Horizontal distance', 0, 1_000_000);
+    validateFinite(point.eastOffsetMetres, 'Evaluation-point east coordinate', -1_000_000, 1_000_000);
+    validateFinite(point.northOffsetMetres, 'Evaluation-point north coordinate', -1_000_000, 1_000_000);
     validateFinite(point.heightMetres, 'Evaluation-point height', 0, 100_000);
   }
 
   const pointResults = input.evaluationPoints.map((point): ExposureProjectPointResult => {
     const sourceResults = input.sources.map((source): ExposureProjectSourceResult => {
+      const horizontalSeparationMetres = Math.hypot(
+        point.eastOffsetMetres - source.eastOffsetMetres,
+        point.northOffsetMetres - source.northOffsetMetres
+      );
       const separationDistanceMetres = Math.hypot(
-        point.horizontalDistanceMetres,
+        horizontalSeparationMetres,
         source.antennaCentreHeightMetres - point.heightMetres
       );
       if (separationDistanceMetres < 0.001) {
@@ -137,7 +148,7 @@ export function calculateExposureProject(input: ExposureProjectInput): ExposureP
         separationDistanceMetres,
         nearbySourcesAssessed: true
       });
-      return { source, separationDistanceMetres, screen };
+      return { source, horizontalSeparationMetres, separationDistanceMetres, screen };
     });
     const aggregate = calculateExposureAggregation(
       input.jurisdiction,

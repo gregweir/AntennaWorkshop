@@ -25,6 +25,8 @@ describe('station source workflow', () => {
       feedSystemLossDb: 1.8,
       antennaGainDbi: 2.15,
       antennaCentreHeightMetres: 12,
+      eastOffsetMetres: -3,
+      northOffsetMetres: 4,
       feedSystemModelId: 'erp-eirp',
       feedSystemModelVersion: '1.0.0'
     });
@@ -36,7 +38,9 @@ describe('station source workflow', () => {
       feedSystemLossDb: 1.8,
       antennaGainDbi: 2.15,
       antennaLargestDimensionMetres: 10.03,
-      antennaCentreHeightMetres: 12
+      antennaCentreHeightMetres: 12,
+      eastOffsetMetres: -3,
+      northOffsetMetres: 4
     });
     expect(transfer.source.linkedModels?.antennaDesignId).toBe('half-wave-dipole');
   });
@@ -49,6 +53,8 @@ describe('station source workflow', () => {
       feedSystemLossDb: 1.8,
       antennaGainDbi: 2.15,
       antennaCentreHeightMetres: 12,
+      eastOffsetMetres: 0,
+      northOffsetMetres: 0,
       feedSystemModelId: 'erp-eirp',
       feedSystemModelVersion: '1.0.0'
     })).toThrow(/duty cycle/i);

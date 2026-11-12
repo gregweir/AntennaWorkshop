@@ -170,6 +170,8 @@ test('carries an antenna and feed-system source into a station project', async (
   await page.getByLabel('Antenna gain').fill('3');
   await page.getByLabel('Exposure duty cycle').fill('25');
   await page.getByLabel('Installed antenna centre height').fill('11');
+  await page.getByLabel('Installed antenna east position').fill('6');
+  await page.getByLabel('Installed antenna north position').fill('-3');
   await page.getByRole('button', { name: 'Add to station project' }).click();
 
   const project = page.locator('.project-section');
@@ -183,7 +185,9 @@ test('carries an antenna and feed-system source into a station project', async (
   await expect(transferred.getByLabel('Project source 3 duty cycle')).toHaveValue('25');
   await expect(transferred.getByLabel('Project source 3 feed loss')).toHaveValue('2');
   await expect(transferred.getByLabel('Project source 3 antenna gain')).toHaveValue('3');
-  await expect(project.getByRole('checkbox', { name: /Common-site source inventory assessed/ })).not.toBeChecked();
+  await expect(transferred.getByLabel('Project source 3 east position')).toHaveValue('6');
+  await expect(transferred.getByLabel('Project source 3 north position')).toHaveValue('-3');
+  await expect(project.getByRole('checkbox', { name: /Station-site source inventory assessed/ })).not.toBeChecked();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('half-wave-dipole');
 
   await page.reload();
@@ -278,14 +282,15 @@ test('calculates a multi-source station project across accessible locations', as
 
   await expect(project.getByRole('heading', { name: 'Station assessment project' })).toBeVisible();
   await expect(project.locator('.screen-outcome')).toContainText('station source inventory is incomplete');
-  await expect(project.getByRole('img', { name: /Station exposure evaluation geometry/ })).toBeVisible();
+  await expect(project.getByRole('img', { name: /Station site plan/ })).toBeVisible();
+  await expect(project.getByRole('img', { name: /Elevation section/ })).toBeVisible();
   await expect(project.locator('.project-point-results article')).toHaveCount(2);
   await expect(project.getByRole('button', { name: 'Print assessment' })).toBeVisible();
 
-  await project.getByRole('checkbox', { name: /Common-site source inventory assessed/ }).check();
+  await project.getByRole('checkbox', { name: /Station-site source inventory assessed/ }).check();
   await expect(project.locator('.screen-outcome')).toContainText('All modelled points are below the screening trigger');
 
-  await project.getByRole('spinbutton', { name: 'Project point 1 horizontal distance' }).fill('0.05');
+  await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('0.05');
   await project.getByRole('spinbutton', { name: 'Project point 1 height' }).fill('10');
   await expect(project.locator('.screen-outcome')).toContainText('Far-field screening is inapplicable');
 
@@ -306,7 +311,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
   await project.getByLabel('Project title').fill('Field day station');
   await page.locator('.global-controls select').selectOption('US');
   await page.getByLabel('Exposure environment').selectOption('controlled');
-  await project.getByRole('spinbutton', { name: 'Project point 1 horizontal distance' }).fill('42');
+  await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('42');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('Field day station');
 
   await page.reload();
@@ -316,7 +321,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
   await expect(project.getByLabel('Project title')).toHaveValue('Field day station');
   await expect(page.locator('.global-controls select')).toHaveValue('US');
   await expect(page.getByLabel('Exposure environment')).toHaveValue('controlled');
-  await expect(project.getByRole('spinbutton', { name: 'Project point 1 horizontal distance' })).toHaveValue('42');
+  await expect(project.getByRole('spinbutton', { name: 'Project point 1 east position' })).toHaveValue('42');
 
   const downloadPromise = page.waitForEvent('download');
   await project.getByRole('button', { name: 'Export JSON' }).click();
@@ -355,5 +360,5 @@ test('shows corporate branding, attribution, and public project links', async ({
   await expect(page.getByRole('link', { name: 'Visit Tartanleaf.com Inc.' })).toHaveAttribute('href', 'https://www.tartanleaf.com/');
   await expect(page.getByRole('link', { name: 'Source code' })).toHaveAttribute('href', 'https://github.com/gregweir/AntennaWorkshop');
   await expect(page.getByRole('link', { name: 'gweir@tartanleaf.com' })).toHaveAttribute('href', 'mailto:gweir@tartanleaf.com');
-  await expect(page.locator('.site-footer')).toContainText('Developed by Greg Weir');
+  await expect(page.locator('.site-footer')).toContainText('Developed by Greg Weir, VA1GW');
 });

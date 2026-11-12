@@ -26,7 +26,7 @@ The public repository currently includes:
 - Canada- and United States-aware amateur-band selection with metric and imperial presentation.
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
 - Official Canadian and United States RF power-density reference levels.
-- Conservative single-source far-field screening, frequency-normalized multiple-source aggregation, and printable multi-point station projects.
+- Conservative single-source far-field screening, frequency-normalized multiple-source aggregation, and printable multi-point station projects with independent source coordinates and plan/elevation graphics.
 - An on-device station-project library with validated, versioned JSON import and export.
 - A connected antenna-to-system-to-exposure workflow that preserves typed inputs and calculator-model provenance.
 - An installable PWA shell, persistent preferences, explicit update prompts, and automated unit and browser tests.

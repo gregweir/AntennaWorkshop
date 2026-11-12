@@ -27,6 +27,8 @@ export interface StationSourceSystemInput {
   feedSystemLossDb: number;
   antennaGainDbi: number;
   antennaCentreHeightMetres: number;
+  eastOffsetMetres: number;
+  northOffsetMetres: number;
   feedSystemModelId: string;
   feedSystemModelVersion: string;
 }
@@ -60,6 +62,8 @@ export function createStationSourceTransfer(
   finiteInRange(system.feedSystemLossDb, 'Feed-system loss', 0, 100);
   finiteInRange(system.antennaGainDbi, 'Antenna gain', -100, 100);
   finiteInRange(system.antennaCentreHeightMetres, 'Antenna centre height', 0, 100_000);
+  finiteInRange(system.eastOffsetMetres, 'Antenna east coordinate', -1_000_000, 1_000_000);
+  finiteInRange(system.northOffsetMetres, 'Antenna north coordinate', -1_000_000, 1_000_000);
   return {
     transferId,
     source: {
@@ -71,6 +75,8 @@ export function createStationSourceTransfer(
       antennaGainDbi: system.antennaGainDbi,
       antennaLargestDimensionMetres: design.largestDimensionMetres,
       antennaCentreHeightMetres: system.antennaCentreHeightMetres,
+      eastOffsetMetres: system.eastOffsetMetres,
+      northOffsetMetres: system.northOffsetMetres,
       linkedModels: {
         antennaDesignId: design.antennaModelId,
         antennaDesignVersion: design.antennaModelVersion,

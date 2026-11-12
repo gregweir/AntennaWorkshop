@@ -26,9 +26,10 @@ const project: ExposureProjectData = {
   sources: [{
     id: 'source-1', label: '2 m vertical', frequencyMHz: 146, transmitterPowerWatts: 50,
     dutyCyclePercent: 50, feedSystemLossDb: 1, antennaGainDbi: 2.15,
-    antennaLargestDimensionMetres: 1, antennaCentreHeightMetres: 10
+    antennaLargestDimensionMetres: 1, antennaCentreHeightMetres: 10,
+    eastOffsetMetres: 3, northOffsetMetres: -2
   }],
-  evaluationPoints: [{ id: 'point-1', label: 'Property line', horizontalDistanceMetres: 20, heightMetres: 1.5 }]
+  evaluationPoints: [{ id: 'point-1', label: 'Property line', eastOffsetMetres: 20, northOffsetMetres: 5, heightMetres: 1.5 }]
 };
 
 function memoryStorage() {
@@ -67,11 +68,29 @@ describe('exposure project files', () => {
 
   it('rejects unknown versions and invalid calculation inputs', () => {
     const file = createExposureProjectFile(project, 'project-1');
-    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 2 }))).toThrow(/version/i);
+    expect(() => parseExposureProjectFile(JSON.stringify({ ...file, schemaVersion: 3 }))).toThrow(/version/i);
     expect(() => parseExposureProjectFile(JSON.stringify({
       ...file,
       project: { ...project, sources: [{ ...project.sources[0], frequencyMHz: -1 }] }
     }))).toThrow();
+  });
+
+  it('migrates version 1 common-support geometry to site coordinates', () => {
+    const legacy = {
+      kind: 'radiobook-antenna-workshop/exposure-project',
+      schemaVersion: 1,
+      projectId: 'legacy-project',
+      savedAt: '2026-11-11T12:00:00Z',
+      project: {
+        ...project,
+        sources: project.sources.map(({ eastOffsetMetres: _east, northOffsetMetres: _north, ...source }) => source),
+        evaluationPoints: [{ id: 'point-1', label: 'Property line', horizontalDistanceMetres: 20, heightMetres: 1.5 }]
+      }
+    };
+    const migrated = parseExposureProjectFile(JSON.stringify(legacy));
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.project.sources[0]).toMatchObject({ eastOffsetMetres: 0, northOffsetMetres: 0 });
+    expect(migrated.project.evaluationPoints[0]).toMatchObject({ eastOffsetMetres: 20, northOffsetMetres: 0 });
   });
 
   it('saves, updates, orders, and deletes local projects', () => {

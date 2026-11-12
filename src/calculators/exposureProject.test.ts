@@ -20,18 +20,18 @@ const project: ExposureProjectInput = {
       id: 'vhf', label: 'VHF vertical', frequencyMHz: 146,
       transmitterPowerWatts: 50, dutyCyclePercent: 50, feedSystemLossDb: 1,
       antennaGainDbi: 2.15, antennaLargestDimensionMetres: 1,
-      antennaCentreHeightMetres: 10
+      antennaCentreHeightMetres: 10, eastOffsetMetres: 0, northOffsetMetres: 0
     },
     {
       id: 'uhf', label: 'UHF vertical', frequencyMHz: 446,
       transmitterPowerWatts: 25, dutyCyclePercent: 25, feedSystemLossDb: 1.5,
       antennaGainDbi: 5, antennaLargestDimensionMetres: 0.5,
-      antennaCentreHeightMetres: 12
+      antennaCentreHeightMetres: 12, eastOffsetMetres: 4, northOffsetMetres: 3
     }
   ],
   evaluationPoints: [
-    { id: 'yard', label: 'Yard', horizontalDistanceMetres: 15, heightMetres: 1.5 },
-    { id: 'property-line', label: 'Property line', horizontalDistanceMetres: 30, heightMetres: 1.5 }
+    { id: 'yard', label: 'Yard', eastOffsetMetres: 15, northOffsetMetres: 0, heightMetres: 1.5 },
+    { id: 'property-line', label: 'Property line', eastOffsetMetres: 30, northOffsetMetres: 5, heightMetres: 1.5 }
   ]
 };
 
@@ -40,6 +40,8 @@ describe('integrated exposure project', () => {
     const result = calculateExposureProject(project);
     const yard = result.pointResults[0];
     expect(yard.sourceResults[0].separationDistanceMetres).toBeCloseTo(Math.hypot(15, 8.5), 10);
+    expect(yard.sourceResults[1].horizontalSeparationMetres).toBeCloseTo(Math.hypot(11, -3), 10);
+    expect(yard.sourceResults[1].separationDistanceMetres).toBeCloseTo(Math.hypot(11, -3, 10.5), 10);
     expect(yard.aggregate.totalFractionOfReferenceLevel).toBeCloseTo(
       yard.sourceResults.reduce((sum, source) => sum + source.screen.fractionOfReferenceLevel, 0),
       10
@@ -63,7 +65,7 @@ describe('integrated exposure project', () => {
   it('refuses far-field interpretation when any source is too close to a point', () => {
     const result = calculateExposureProject({
       ...project,
-      evaluationPoints: [{ id: 'antenna', label: 'At antenna', horizontalDistanceMetres: 0.05, heightMetres: 10 }]
+      evaluationPoints: [{ id: 'antenna', label: 'At antenna', eastOffsetMetres: 0.05, northOffsetMetres: 0, heightMetres: 10 }]
     });
     expect(result.status).toBe('method-inapplicable');
     expect(result.pointResults[0].status).toBe('method-inapplicable');
@@ -73,7 +75,7 @@ describe('integrated exposure project', () => {
     const result = calculateExposureProject({
       ...project,
       sources: project.sources.map((source) => ({ ...source, transmitterPowerWatts: 1000 })),
-      evaluationPoints: [{ id: 'close', label: 'Close point', horizontalDistanceMetres: 5, heightMetres: 1.5 }]
+      evaluationPoints: [{ id: 'close', label: 'Close point', eastOffsetMetres: 5, northOffsetMetres: 0, heightMetres: 1.5 }]
     });
     expect(result.pointResults[0].aggregate.totalFractionOfReferenceLevel).toBeGreaterThanOrEqual(0.5);
     expect(result.status).toBe('further-analysis-required');
@@ -85,7 +87,7 @@ describe('integrated exposure project', () => {
     expect(() => calculateExposureProject({ ...project, sources: [project.sources[0], project.sources[0]] })).toThrow(/unique/);
     expect(() => calculateExposureProject({
       ...project,
-      evaluationPoints: [{ id: 'same', label: 'At centre', horizontalDistanceMetres: 0, heightMetres: 10 }],
+      evaluationPoints: [{ id: 'same', label: 'At centre', eastOffsetMetres: 0, northOffsetMetres: 0, heightMetres: 10 }],
       sources: [project.sources[0]]
     })).toThrow(/coincide/);
   });

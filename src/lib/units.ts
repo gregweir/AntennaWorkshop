@@ -18,6 +18,13 @@ export function feetToMetres(feet: number): number {
   return feet * METRES_PER_FOOT;
 }
 
+export function formatCoordinate(metres: number, unitSystem: UnitSystem): string {
+  if (!Number.isFinite(metres)) return '—';
+  return unitSystem === 'metric'
+    ? `${metres.toFixed(3)} m`
+    : `${metresToFeet(metres).toFixed(3)} ft`;
+}
+
 export function formatLength(metres: number, unitSystem: UnitSystem): string {
   if (!Number.isFinite(metres) || metres < 0) {
     return '—';

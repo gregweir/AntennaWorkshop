@@ -883,6 +883,26 @@ select {
   margin: 0;
 }
 
+.project-coordinate-guide {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--accent-technical);
+  background: var(--bg-surface);
+}
+
+.project-coordinate-guide strong {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+}
+
+.project-coordinate-guide span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .project-editor-heading,
 .project-report-heading {
   display: flex;
@@ -987,7 +1007,7 @@ select {
 
 .project-point-editor {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.8rem;
   align-items: end;
   padding: 1rem;
@@ -1031,6 +1051,21 @@ select {
   background: var(--bg-surface);
 }
 
+.project-diagram-views {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.project-plan-diagram,
+.project-elevation-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
 .project-ground,
 .project-mast line,
 .project-mast path {
@@ -1046,10 +1081,27 @@ select {
 
 .project-source text,
 .project-point text,
-.project-axis-label {
+.project-axis-label,
+.project-view-title,
+.project-north-arrow text {
   fill: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: 10px;
+}
+
+.project-view-title {
+  fill: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.project-north-arrow line,
+.project-north-arrow path {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
 .project-source-0 line,
@@ -2559,6 +2611,10 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .project-diagram-views {
+    grid-template-columns: 1fr;
+  }
+
   .workflow-handoff,
   .linked-workflow {
     grid-template-columns: 1fr;
@@ -2630,6 +2686,11 @@ select {
   }
 
   .workflow-message {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-coordinate-guide {
     align-items: stretch;
     flex-direction: column;
   }

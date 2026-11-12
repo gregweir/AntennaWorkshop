@@ -104,7 +104,7 @@ export function App() {
 
     <footer className="site-footer"><div className="shell footer-layout">
       <a className="footer-mark" href="https://www.tartanleaf.com/" aria-label="Visit Tartanleaf.com Inc."><img src="/antennas/TartanleafLogo.jpg" alt="Tartanleaf tartan maple-leaf logo" width="76" height="76" /></a>
-      <div className="footer-copy"><strong>RadioBook Antenna Workshop</strong><p>Practical calculations still require measurement, tuning, and attention to the method's limits.</p><small>Copyright 2026 Tartanleaf.com Inc. · Developed by Greg Weir.</small></div>
+      <div className="footer-copy"><strong>RadioBook Antenna Workshop</strong><p>Practical calculations still require measurement, tuning, and attention to the method's limits.</p><small>Copyright 2026 Tartanleaf.com Inc. · Developed by Greg Weir, VA1GW.</small></div>
       <nav className="footer-links" aria-label="Project and company links"><a href="https://www.radiobook.ca/">RadioBook</a><a href="https://www.tartanleaf.com/">Tartanleaf.com Inc.</a><a href="https://github.com/gregweir/AntennaWorkshop">Source code</a><a href="https://github.com/gregweir/AntennaWorkshop/blob/main/LICENSE">MPL-2.0 licence</a><a href="mailto:gweir@tartanleaf.com">gweir@tartanleaf.com</a></nav>
     </div></footer>
   </>;

@@ -1,6 +1,6 @@
 # Attribution
 
-RadioBook Antenna Workshop was developed by Greg Weir for Tartanleaf.com Inc.
+RadioBook Antenna Workshop was developed by Greg Weir, VA1GW, for Tartanleaf.com Inc.
 
 Copyright 2026 Tartanleaf.com Inc.
 

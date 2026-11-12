@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { formatLength, metresToFeet } from './units';
+import { formatCoordinate, formatLength, metresToFeet } from './units';
 
 describe('length units', () => {
   it('converts metres to feet', () => {
@@ -20,5 +20,11 @@ describe('length units', () => {
 
   it('carries rounded inches into the foot value', () => {
     expect(formatLength(0.3047, 'imperial')).toBe('1 ft 0 in');
+  });
+
+  it('formats signed site coordinates in one consistent unit', () => {
+    expect(formatCoordinate(0, 'metric')).toBe('0.000 m');
+    expect(formatCoordinate(-3.5, 'metric')).toBe('-3.500 m');
+    expect(formatCoordinate(-0.3048, 'imperial')).toBe('-1.000 ft');
   });
 });
