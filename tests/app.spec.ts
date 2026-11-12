@@ -303,6 +303,38 @@ test('calculates a multi-source station project across accessible locations', as
   await expect(project.locator('.project-print-contributions').first()).toBeVisible();
 });
 
+test('edits station geometry with pointer and keyboard controls', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  const project = page.locator('.project-section');
+  const editor = project.getByRole('group', { name: 'Editable station site plan' });
+  const yardMarker = editor.getByRole('button', { name: /Yard access evaluation point/ });
+  const yardEast = project.getByRole('spinbutton', { name: 'Project point 1 east position' });
+
+  await yardMarker.scrollIntoViewIfNeeded();
+  const hitBox = await yardMarker.locator('.site-editor-hit').boundingBox();
+  expect(hitBox).not.toBeNull();
+  await page.mouse.move(hitBox!.x + hitBox!.width / 2, hitBox!.y + hitBox!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(hitBox!.x + hitBox!.width / 2 + 45, hitBox!.y + hitBox!.height / 2 - 20, { steps: 4 });
+  await page.mouse.up();
+  await expect(yardEast).not.toHaveValue('15');
+
+  const northBefore = Number(await project.getByRole('spinbutton', { name: 'Project point 1 north position' }).inputValue());
+  await yardMarker.focus();
+  await yardMarker.press('Shift+ArrowUp');
+  await expect(project.getByRole('spinbutton', { name: 'Project point 1 north position' })).toHaveValue((northBefore + 0.1).toString());
+
+  const inventory = project.getByRole('checkbox', { name: /Station-site source inventory assessed/ });
+  await inventory.check();
+  const sourceMarker = editor.getByRole('button', { name: /2 m vertical antenna/ });
+  await sourceMarker.focus();
+  await sourceMarker.press('ArrowRight');
+  await expect(project.locator('input[aria-label="Project source 1 east position"]')).toHaveValue('1');
+  await expect(inventory).not.toBeChecked();
+  await expect(project.locator('.site-layout-status')).toContainText('2 m vertical moved');
+});
+
 test('persists and transfers validated station projects', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();
@@ -346,6 +378,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
 test('has no horizontal overflow on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
   const dimensions = await page.evaluate(() => ({
     viewport: window.innerWidth,
     content: document.documentElement.scrollWidth

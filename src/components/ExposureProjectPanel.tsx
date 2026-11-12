@@ -30,6 +30,7 @@ import {
 import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/exposureLimits';
 import type { StationSourceTransfer } from '../workflows/stationSourceWorkflow';
 import { ExposureProjectDiagram } from './ExposureProjectDiagram';
+import { SiteLayoutEditor } from './SiteLayoutEditor';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -276,6 +277,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
       </section>
       <label className="field project-title-field"><span>Project title</span><input value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} /></label>
       <div className="project-coordinate-guide" role="note"><strong>Choose one site origin</strong><span>Enter every antenna and evaluation point using east-positive and north-positive offsets from the same convenient reference, such as a mast base or building corner. Negative coordinates are valid.</span></div>
+      <SiteLayoutEditor sources={sources} points={points} unitSystem={unitSystem} onSourcePositionChange={(id, eastOffsetMetres, northOffsetMetres) => updateSource(id, { eastOffsetMetres, northOffsetMetres })} onPointPositionChange={(id, eastOffsetMetres, northOffsetMetres) => updatePoint(id, { eastOffsetMetres, northOffsetMetres })} />
       <div className="project-editor-heading"><div><p className="eyebrow">Station sources</p><h4>Transmitters and antennas</h4></div><button type="button" className="add-source" disabled={sources.length >= 8} onClick={addSource}>+ Add station source</button></div>
       <div className="project-source-list">{sources.map((source, index) => <details key={source.id} className="project-source-editor">
         <summary><span><strong>{source.label || `Source ${index + 1}`}</strong><small>{source.frequencyMHz || 0} MHz · {source.transmitterPowerWatts || 0} W{source.linkedModels ? ' · linked workflow' : ''}</small></span><b>Source {index + 1}</b></summary>
