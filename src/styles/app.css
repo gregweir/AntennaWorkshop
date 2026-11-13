@@ -3507,7 +3507,8 @@ select {
   flex-wrap: wrap;
 }
 
-.acma-record-actions button {
+.acma-record-actions button,
+.acma-record-import {
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--accent-technical);
   border-radius: var(--radius-sm);
@@ -3516,6 +3517,29 @@ select {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 800;
+  text-align: center;
+}
+
+.acma-record-import {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.acma-record-import input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.acma-record-import:focus-within {
+  outline: 3px solid color-mix(in srgb, var(--accent-technical) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .acma-record-actions .danger-button {
@@ -3533,6 +3557,61 @@ select {
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   box-shadow: inset 4px 0 0 var(--tl-coral);
+}
+
+.acma-record-history {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.acma-record-history h4,
+.acma-record-history p {
+  margin: 0;
+}
+
+.acma-record-history > div > p:last-child {
+  max-width: 68rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.acma-record-history ol {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.acma-record-history li {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.acma-record-history li div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.acma-record-history li span {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  overflow-wrap: anywhere;
+}
+
+.acma-record-history button {
+  flex: 0 0 auto;
 }
 
 .acma-record-readiness h4,
@@ -5592,6 +5671,11 @@ select {
     flex-direction: column;
   }
 
+  .acma-record-history li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .exposure-mode-picker,
   .exposure-context-panel,
   .project-library,
@@ -5765,7 +5849,8 @@ select {
 
   .acma-record-library,
   .acma-record-privacy,
-  .acma-record-readiness {
+  .acma-record-readiness,
+  .acma-record-history {
     display: none;
   }
 

@@ -543,7 +543,23 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
   await expect(record.getByLabel('Operator or corporate name')).toHaveValue('Test Operator');
   const downloadPromise = page.waitForEvent('download');
   await record.getByRole('button', { name: 'Download JSON' }).click();
-  await expect((await downloadPromise).suggestedFilename()).toBe('home-station-assessment.acma-eme-record.json');
+  const downloadedRecord = await downloadPromise;
+  await expect(downloadedRecord.suggestedFilename()).toBe('home-station-assessment.acma-eme-record.json');
+  await record.getByLabel('Operator or corporate name').fill('Updated Operator');
+  await record.getByRole('button', { name: 'Save draft' }).click();
+  const history = record.getByRole('region', { name: 'Earlier saved revisions' });
+  await expect(history.locator('li')).toHaveCount(1);
+  await expect(history).toContainText('operator name');
+  await history.getByRole('button', { name: 'Restore revision 1' }).click();
+  await expect(record.getByLabel('Operator or corporate name')).toHaveValue('Test Operator');
+  await expect(record.getByRole('status').filter({ hasText: 'Revision restored as an unsaved draft' })).toBeVisible();
+  await record.getByRole('button', { name: 'Save draft' }).click();
+  await expect(record.getByRole('region', { name: 'Earlier saved revisions' }).locator('li')).toHaveCount(2);
+  const downloadedPath = await downloadedRecord.path();
+  expect(downloadedPath).toBeTruthy();
+  await record.getByLabel('Import ACMA assessment record JSON').setInputFiles(downloadedPath!);
+  await expect(record.getByRole('status').filter({ hasText: 'imported as a new local copy' })).toBeVisible();
+  await expect(record.getByLabel('Saved ACMA assessment records').locator('option')).toHaveCount(3);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 

@@ -5,9 +5,9 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ACMA_ASSESSMENT_MODEL } from '../calculators/acmaAssessment';
-import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
+import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
 import { StepByStepHelp } from './ContextHelp';
 
 function newRecord() {
@@ -19,11 +19,16 @@ function filename(title: string) {
   return `${safe}.acma-eme-record.json`;
 }
 
+function fieldLabel(field: string) {
+  return field.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
 export function AcmaAssessmentRecordPanel() {
   const initialRecords = useMemo(() => loadAcmaAssessmentRecords(window.localStorage), []);
   const [records, setRecords] = useState(initialRecords);
   const [record, setRecord] = useState<AcmaAssessmentRecord>(() => initialRecords[0] ?? newRecord());
   const [message, setMessage] = useState('');
+  const importInput = useRef<HTMLInputElement>(null);
   const gaps = acmaRecordRequiredGaps(record);
   const update = <K extends keyof AcmaAssessmentRecord>(field: K, value: AcmaAssessmentRecord[K]) => {
     setRecord((current) => ({ ...current, [field]: value }));
@@ -32,8 +37,10 @@ export function AcmaAssessmentRecordPanel() {
   const save = () => {
     const next = { ...record, updatedAt: new Date().toISOString() };
     try {
-      setRecords(saveAcmaAssessmentRecord(next, window.localStorage));
-      setRecord(next);
+      const savedRecords = saveAcmaAssessmentRecord(next, window.localStorage);
+      const saved = savedRecords.find((candidate) => candidate.id === next.id) ?? next;
+      setRecords(savedRecords);
+      setRecord(saved);
       setMessage('Draft saved on this device');
     } catch {
       setMessage('This browser could not save the draft. Download or print a copy before leaving.');
@@ -62,9 +69,32 @@ export function AcmaAssessmentRecordPanel() {
     URL.revokeObjectURL(url);
     setMessage('JSON record copy downloaded');
   };
+  const importRecord = async (file?: File) => {
+    if (!file) return;
+    try {
+      const imported = parseAcmaAssessmentRecord(await file.text(), crypto.randomUUID(), new Date().toISOString());
+      const savedRecords = saveAcmaAssessmentRecord(imported, window.localStorage);
+      const saved = savedRecords.find((candidate) => candidate.id === imported.id) ?? imported;
+      setRecords(savedRecords);
+      setRecord(saved);
+      setMessage('JSON record imported as a new local copy');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The selected record could not be imported.');
+    } finally {
+      if (importInput.current) importInput.current.value = '';
+    }
+  };
+  const restoreRevision = (index: number) => {
+    try {
+      setRecord(restoreAcmaAssessmentRevision(record, record.revisions[index], new Date().toISOString()));
+      setMessage('Revision restored as an unsaved draft');
+    } catch {
+      setMessage('The selected record revision could not be restored.');
+    }
+  };
 
   return <section className="acma-record-section exposure-screen-section" aria-labelledby="acma-record-heading">
-    <div className="section-heading"><div><p className="eyebrow">Australia · clause 6 documentation</p><h3 id="acma-record-heading">Assessment record worksheet</h3></div><span className="model-badge">Local record v1</span></div>
+    <div className="section-heading"><div><p className="eyebrow">Australia · clause 6 documentation</p><h3 id="acma-record-heading">Assessment record worksheet</h3></div><span className="model-badge">Local record v2</span></div>
     <p className="screen-intro">Prepare and retain the declaration, assessment evidence, assessor details, and station configuration required for a higher-risk amateur station.</p>
     <div className="acma-record-privacy" role="note"><strong>Personal information stays in this browser unless you print or download it.</strong><span>Browser storage can be cleared or lost. Keep a separate protected copy of any operational record.</span></div>
     <StepByStepHelp title="Prepare the clause 6 record package" intro="Complete the worksheet from the actual assessment and station documentation; do not estimate missing legal or technical facts." steps={[
@@ -73,14 +103,19 @@ export function AcmaAssessmentRecordPanel() {
       { title: 'Attach the assessment basis', detail: 'Identify the assessor, qualification, date, applicable standard or transitional basis, and the actual measurements or calculations.' },
       { title: 'Document any agent arrangement', detail: 'Where an agent is used, keep the written agreement and enter a reference that connects this worksheet to it.' },
       { title: 'Make the declaration deliberately', detail: 'Only the responsible person can make the required compliance statement. The application never checks it automatically.' },
-      { title: 'Save, export, and revisit', detail: 'Keep the record accessible in English and create a new declaration when its information changes. Reassess after relevant station changes.' }
+      { title: 'Save, export, and revisit', detail: 'Keep the record accessible in English, retain protected JSON copies, and create a new declaration when its information changes. Saved edits preserve earlier local revisions.' }
     ]} limit="This worksheet checks whether named fields contain text. It does not verify measurements, calculations, qualifications, signatures, station facts, standard applicability, or compliance." />
 
     <div className="acma-record-library">
       <label className="field"><span>Saved records on this device</span><select aria-label="Saved ACMA assessment records" value={records.some((candidate) => candidate.id === record.id) ? record.id : ''} onChange={(event) => selectRecord(event.target.value)}><option value="">Unsaved draft</option>{records.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title || 'Untitled record'} · {new Date(candidate.updatedAt).toLocaleDateString()}</option>)}</select></label>
-      <div className="acma-record-actions"><button type="button" onClick={startNew}>New draft</button><button type="button" onClick={save}>Save draft</button><button type="button" onClick={download}>Download JSON</button><button type="button" onClick={() => window.print()}>Print record</button><button type="button" className="danger-button" onClick={remove}>Delete saved record</button></div>
+      <div className="acma-record-actions"><button type="button" onClick={startNew}>New draft</button><button type="button" onClick={save}>Save draft</button><button type="button" onClick={download}>Download JSON</button><label className="acma-record-import"><span>Import JSON</span><input ref={importInput} type="file" accept=".json,application/json" aria-label="Import ACMA assessment record JSON" onChange={(event) => void importRecord(event.target.files?.[0])} /></label><button type="button" onClick={() => window.print()}>Print record</button><button type="button" className="danger-button" onClick={remove}>Delete saved record</button></div>
       <p role="status" aria-live="polite">{message}</p>
     </div>
+
+    {record.revisions.length > 0 && <section className="acma-record-history" aria-labelledby="acma-record-history-heading">
+      <div><p className="eyebrow">Non-destructive history</p><h4 id="acma-record-history-heading">Earlier saved revisions</h4><p>Restoring a revision opens it as an unsaved draft. Your current saved record remains unchanged until you choose Save draft.</p></div>
+      <ol>{record.revisions.map((revision, index) => <li key={`${revision.replacedAt}-${revision.previousUpdatedAt}`}><div><strong>Saved {new Date(revision.previousUpdatedAt).toLocaleString()}</strong><span>Replaced {new Date(revision.replacedAt).toLocaleString()} · Changed: {revision.changedFields.map(fieldLabel).join(', ')}</span></div><button type="button" onClick={() => restoreRevision(index)}>Restore revision {index + 1}</button></li>)}</ol>
+    </section>}
 
     <div className="acma-record-readiness" role="status"><div><p className="eyebrow">Documentation check</p><h4>{gaps.length ? `${gaps.length} required ${gaps.length === 1 ? 'item' : 'items'} not documented` : 'All named fields contain an entry'}</h4><p>{gaps.length ? gaps.join(' · ') : 'Content still requires responsible technical and legal review.'}</p></div><div className="acma-readiness-mark" aria-hidden="true">{gaps.length ? '!' : '✓'}</div></div>
 

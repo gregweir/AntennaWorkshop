@@ -96,7 +96,7 @@ The reviewer should resolve each item explicitly:
 9. Are the interface, printed record, and exported project vocabulary sufficiently clear that users cannot confuse screening, exemption, evaluation, mitigation, and demonstrated compliance?
 10. Does the Australian lookup preserve the correct spatial and temporal basis, field-region requirements, `ES` treatment, additional peak-field and limb-current checks, and distinction between RPS S-1 tables and the Amateur Class Licence conditions?
 11. Does the Australian gateway distinguish clause 3 application from a compliance presumption, preserve the continuing clause 2 condition, and correctly describe clauses 4 and 6 without overlooking station changes or transitional provisions?
-12. Does the Australian record worksheet capture the required clause 6 information without turning field presence, local saving, printing, or export into an approval or compliance claim, and are its privacy and retention warnings adequate?
+12. Does the Australian record worksheet capture the required clause 6 information without turning field presence, local saving, printing, JSON import/export, or revision restoration into an approval or compliance claim, and are its validation, non-overwrite, privacy, and retention safeguards adequate?
 
 ## Reproduction procedure
 
