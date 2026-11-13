@@ -10,6 +10,7 @@ import { ACMA_ASSESSMENT_MODEL } from '../calculators/acmaAssessment';
 import { ACMA_ASSESSMENT_ROUTES, ACMA_ASSESSMENT_STANDARDS, evaluateAcmaEvidence } from '../calculators/acmaEvidence';
 import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
+import { AcmaAssessmentPrintReport } from './AcmaAssessmentPrintReport';
 import { AcmaStationChangePanel } from './AcmaStationChangePanel';
 
 function newRecord() {
@@ -34,6 +35,9 @@ export function AcmaAssessmentRecordPanel() {
   const gaps = acmaRecordRequiredGaps(record);
   const evidenceReadiness = evaluateAcmaEvidence(record);
   const selectedRoute = ACMA_ASSESSMENT_ROUTES.find((route) => route.id === record.assessmentRoute);
+  const savedRecord = records.find((candidate) => candidate.id === record.id);
+  const isSaved = Boolean(savedRecord);
+  const hasUnsavedChanges = savedRecord ? JSON.stringify(savedRecord) !== JSON.stringify(record) : true;
   const update = <K extends keyof AcmaAssessmentRecord>(field: K, value: AcmaAssessmentRecord[K]) => {
     setRecord((current) => ({ ...current, [field]: value }));
     setMessage('Unsaved changes');
@@ -113,7 +117,7 @@ export function AcmaAssessmentRecordPanel() {
     ]} limit="This worksheet checks whether named fields contain text. It does not verify measurements, calculations, qualifications, signatures, station facts, standard applicability, or compliance." />
 
     <div className="acma-record-library">
-      <label className="field"><span>Saved records on this device</span><select aria-label="Saved ACMA assessment records" value={records.some((candidate) => candidate.id === record.id) ? record.id : ''} onChange={(event) => selectRecord(event.target.value)}><option value="">Unsaved draft</option>{records.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title || 'Untitled record'} · {new Date(candidate.updatedAt).toLocaleDateString()}</option>)}</select></label>
+      <label className="field"><span>Saved records on this device</span><select aria-label="Saved ACMA assessment records" value={isSaved ? record.id : ''} onChange={(event) => selectRecord(event.target.value)}><option value="">Unsaved draft</option>{records.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title || 'Untitled record'} · {new Date(candidate.updatedAt).toLocaleDateString()}</option>)}</select></label>
       <div className="acma-record-actions"><button type="button" onClick={startNew}>New draft</button><button type="button" onClick={save}>Save draft</button><button type="button" onClick={download}>Download JSON</button><label className="acma-record-import"><span>Import JSON</span><input ref={importInput} type="file" accept=".json,application/json" aria-label="Import ACMA assessment record JSON" onChange={(event) => void importRecord(event.target.files?.[0])} /></label><button type="button" onClick={() => window.print()}>Print record</button><button type="button" className="danger-button" onClick={remove}>Delete saved record</button></div>
       <p role="status" aria-live="polite">{message}</p>
     </div>
@@ -191,6 +195,7 @@ export function AcmaAssessmentRecordPanel() {
       <fieldset className="acma-declaration"><legend>Responsible-person declaration</legend><p>The required declaration states that operation of the station complies with Schedule 1 clause 2(1). Select this only when the responsible person has actually made and retained that declaration.</p><label className="acma-record-check"><input type="checkbox" checked={record.declarationMade} onChange={(event) => update('declarationMade', event.target.checked)} /> A declaration containing the required compliance statement has been made and retained</label></fieldset>
     </div>
 
-    <div className="acma-record-footer"><p><strong>Worksheet status:</strong> {gaps.length ? 'Draft with documentation gaps' : 'Named fields completed; technical and legal review still required'}.</p><p>Source: <a href={ACMA_ASSESSMENT_MODEL.source.url} target="_blank" rel="noreferrer">{ACMA_ASSESSMENT_MODEL.sourceRevision}</a>. Last saved: {records.some((candidate) => candidate.id === record.id) ? new Date(record.updatedAt).toLocaleString() : 'not saved'}.</p></div>
+    <div className="acma-record-footer"><p><strong>Worksheet status:</strong> {gaps.length ? 'Draft with documentation gaps' : 'Named fields completed; technical and legal review still required'}.</p><p>Source: <a href={ACMA_ASSESSMENT_MODEL.source.url} target="_blank" rel="noreferrer">{ACMA_ASSESSMENT_MODEL.sourceRevision}</a>. Last saved: {savedRecord ? new Date(savedRecord.updatedAt).toLocaleString() : 'not saved'}.</p></div>
+    <AcmaAssessmentPrintReport record={record} savedAt={savedRecord?.updatedAt} hasUnsavedChanges={hasUnsavedChanges} />
   </section>;
 }

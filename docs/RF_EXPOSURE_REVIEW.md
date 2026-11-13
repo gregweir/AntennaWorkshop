@@ -101,6 +101,7 @@ The reviewer should resolve each item explicitly:
 12. Does the Australian record worksheet capture the required clause 6 information without turning field presence, local saving, printing, JSON import/export, or revision restoration into an approval or compliance claim, and are its validation, non-overwrite, privacy, and retention safeguards adequate?
 13. Does the Australian clause 4 evidence map accurately distinguish the current named-standard route from subclauses 4(4), 4(6), 4(7), and 4(8), keep record anchors separate from optional reproducibility prompts, and avoid deciding standard applicability, transition eligibility, continuous possession, or compliance?
 14. Does the Australian change log correctly distinguish clause 5's post-change clause 3 question, clause 4 assessment action, and clause 6(4) declaration replacement without implying that every change requires reassessment or that documented follow-up authorizes operation?
+15. Does the Australian archival print report reproduce every current record field and change entry without clipping, preserve draft/saved and missing-information states, identify its source, and remain unmistakably a record copy rather than a compliance certificate?
 
 ## Reproduction procedure
 

@@ -3920,6 +3920,10 @@ select {
   margin: 0.2rem 0;
 }
 
+.acma-print-report {
+  display: none;
+}
+
 .arpansa-reference-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -6036,6 +6040,10 @@ select {
 }
 
 @media print {
+  @page {
+    margin: 12mm;
+  }
+
   .skip-link,
   .site-header,
   .hero,
@@ -6115,18 +6123,161 @@ select {
     grid-column: 1 / -1;
   }
 
-  .acma-record-section,
-  .acma-record-form fieldset,
-  .acma-record-footer {
-    break-inside: avoid;
-    box-shadow: none;
+  .acma-record-section > :not(.acma-print-report) {
+    display: none !important;
   }
 
-  .acma-record-grid input,
-  .acma-record-grid select,
-  .acma-record-grid textarea {
-    border-color: #bbb;
-    background: white;
+  .acma-print-report {
+    display: block;
     color: black;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    line-height: 1.35;
+  }
+
+  .acma-print-heading {
+    display: flex;
+    gap: 10mm;
+    align-items: center;
+    padding-bottom: 5mm;
+    border-bottom: 2px solid #163348;
+  }
+
+  .acma-print-heading img {
+    width: 15mm;
+    height: 15mm;
+    object-fit: contain;
+  }
+
+  .acma-print-heading p,
+  .acma-print-heading h1,
+  .acma-print-heading span {
+    margin: 0;
+  }
+
+  .acma-print-heading p,
+  .acma-print-heading span {
+    color: #4b5862;
+    font-size: 8pt;
+  }
+
+  .acma-print-heading h1 {
+    font-size: 18pt;
+    line-height: 1.1;
+  }
+
+  .acma-print-warning {
+    display: grid;
+    gap: 1mm;
+    margin: 5mm 0;
+    padding: 3mm;
+    border: 1px solid #a14135;
+    border-left-width: 4px;
+    background: #fff8f6;
+  }
+
+  .acma-print-warning span {
+    font-size: 8pt;
+  }
+
+  .acma-print-report section {
+    margin: 5mm 0;
+  }
+
+  .acma-print-report h2 {
+    margin: 0 0 2mm;
+    padding-bottom: 1mm;
+    border-bottom: 1px solid #87959f;
+    color: #163348;
+    font-size: 12pt;
+    break-after: avoid;
+  }
+
+  .acma-print-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid #c8ced2;
+    border-left: 1px solid #c8ced2;
+  }
+
+  .acma-print-field {
+    min-width: 0;
+    padding: 2mm;
+    border-right: 1px solid #c8ced2;
+    border-bottom: 1px solid #c8ced2;
+    break-inside: avoid;
+  }
+
+  .acma-print-wide {
+    grid-column: 1 / -1;
+  }
+
+  .acma-print-field dt {
+    margin-bottom: 0.7mm;
+    color: #4b5862;
+    font-size: 6.5pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .acma-print-field dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  .acma-print-declaration {
+    padding: 3mm;
+    border: 1px solid #163348;
+    break-inside: avoid;
+  }
+
+  .acma-print-declaration p {
+    margin: 1mm 0 0;
+  }
+
+  .acma-print-change-log {
+    display: grid;
+    gap: 4mm;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .acma-print-change-log li {
+    break-inside: avoid;
+  }
+
+  .acma-print-change-log h3 {
+    margin: 0 0 1.5mm;
+    font-size: 10pt;
+  }
+
+  .acma-print-empty,
+  .acma-print-summary-limit {
+    margin: 0;
+    color: #4b5862;
+    font-size: 8pt;
+  }
+
+  .acma-print-summary-limit {
+    margin-top: 2mm;
+    font-weight: 700;
+  }
+
+  .acma-print-report footer {
+    margin-top: 7mm;
+    padding-top: 3mm;
+    border-top: 2px solid #163348;
+    color: #4b5862;
+    font-size: 7pt;
+    overflow-wrap: anywhere;
+  }
+
+  .acma-print-report footer p {
+    margin: 0.7mm 0;
   }
 }
