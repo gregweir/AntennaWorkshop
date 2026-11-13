@@ -129,6 +129,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           ? 'This factor scales both the radiator and corrected quarter-wave radial baseline. Soil, conductor insulation, base hardware, radial layout, and nearby objects still affect the installed resonance and impedance.'
           : antennaType === 'ground-plane'
             ? 'This factor scales the elevated radiator and radial lengths together. Conductor size, radial slope, support hardware, feed arrangement, height, and surroundings still affect the installed antenna.'
+            : antennaType === 'dipole' || antennaType === 'inverted-v'
+              ? 'This factor scales the free-space half-wave estimate before it is divided into equal legs. Conductor insulation, diameter, support geometry, height, and surroundings still shift the installed resonance.'
+              : antennaType === 'full-wave-loop'
+                ? 'This factor scales the complete free-space wavelength into a practical starting perimeter. The selected shape changes the displayed side or diameter, not the total perimeter.'
       : undefined;
   const trimAllowanceTooltip = antennaType === 'efhw'
     ? 'This percentage is added after the corrected resonant estimate. Install the antenna before trimming, remove wire in small increments, and remeasure because removed wire cannot be restored easily.'
@@ -140,6 +144,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           ? 'This allowance is added to the vertical radiator only; the ground-radial length uses the corrected quarter-wave baseline and selected multiplier. Install before trimming the radiator in small steps.'
           : antennaType === 'ground-plane'
             ? 'This allowance is added to both the radiator and elevated radials. Keep the radials equal and symmetrical while tuning the installed antenna.'
+            : antennaType === 'dipole' || antennaType === 'inverted-v'
+              ? 'This percentage is added to the total corrected length before it is divided into equal legs. Install first, then trim both legs equally in small steps.'
+              : antennaType === 'full-wave-loop'
+                ? 'This percentage is added to the complete loop perimeter. Install the closed loop before trimming and preserve the intended shape and symmetry while making small changes.'
       : undefined;
   const selectDesign = (type: AntennaType) => {
     setAntennaType(type);
@@ -168,6 +176,24 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           </button>
         ))}
       </div>
+
+      {antennaType === 'dipole' && <StepByStepHelp title="Build and tune a centre-fed dipole" intro="Use this sequence to turn two equal calculated legs into a measured antenna in its final support geometry. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the design frequency', detail: 'Select the frequency where you want the installed antenna to resonate, rather than relying only on the conventional band name.' },
+        { title: 'Plan the installed span', detail: 'Choose supports, height, orientation, centre location, endpoint clearances, feedline route, and safe access before cutting wire.' },
+        { title: 'Prepare the centre feed', detail: 'Use a mechanically secure centre insulator and balanced feed arrangement with suitable common-mode control for the installation.' },
+        { title: 'Cut two equal long legs', detail: 'Retain the selected trim allowance and measure each leg from the electrical centre connection to its endpoint.' },
+        { title: 'Install before measuring', detail: 'Raise the antenna in its intended position with both legs straight, equal, and clear of conductive or lossy objects.' },
+        { title: 'Tune symmetrically', detail: 'Use low analyser power and remove equal small amounts from both ends, then remeasure after every change in the final geometry.' }
+      ]} limit="This calculator does not predict installed feedpoint impedance, bandwidth, common-mode current, losses, support coupling, or radiation pattern." />}
+
+      {antennaType === 'inverted-v' && <StepByStepHelp title="Build and tune an inverted-V" intro="Use this sequence to preserve equal sloping legs and the selected apex geometry while tuning the installed antenna. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the apex and endpoints', detail: 'Plan the apex height, endpoint locations, included angle, safe clearances, and access without treating the drawing as a support-height prescription.' },
+        { title: 'Prepare the centre feed', detail: 'Use a strong centre insulator and balanced feed arrangement with suitable common-mode control at the high support.' },
+        { title: 'Cut equal sloping legs', detail: 'Retain adjustment allowance on both legs and measure each from the electrical centre connection to its endpoint.' },
+        { title: 'Keep both legs symmetrical', detail: 'Support both sides at the same angle and height relationship, avoiding nearby conductors, buildings, vegetation, and reachable wire ends.' },
+        { title: 'Install before measuring', detail: 'Raise the complete antenna with its final feedline route before evaluating resonance or impedance.' },
+        { title: 'Tune both sides equally', detail: 'Use low analyser power, trim equal small amounts from both endpoints, and recheck after every change in the installed geometry.' }
+      ]} limit="The calculated span and drop describe idealized geometry, not required support heights. This tool does not predict installed impedance, bandwidth, losses, common-mode current, or pattern." />}
 
       {antennaType === 'efhw' && <StepByStepHelp title="Build and tune an EFHW" intro="Use this sequence to turn the calculated wire length into a measured antenna system. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the fundamental', detail: 'Design for the lowest intended band and select the frequency where you want the first resonance.' },
@@ -223,6 +249,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Measure and tune after mounting', detail: 'Use low analyser power, preserve radial equality and symmetry, and make small radiator or equal-radial adjustments before rechecking.' }
       ]} limit="This calculator does not predict feedpoint impedance, support and mast coupling, matching, bandwidth, common-mode current, or the installed radiation pattern." />}
 
+      {antennaType === 'full-wave-loop' && <StepByStepHelp title="Build and tune a full-wave loop" intro="Use this sequence to preserve the calculated perimeter while choosing a practical installed shape, plane, and feed arrangement. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the installed plane', detail: 'Decide whether the loop will be vertical, horizontal, or sloped and plan supports, height, orientation, clearances, and feedline routing.' },
+        { title: 'Choose a practical shape', detail: 'Use a square, triangle, or circle as the starting geometry while recognizing that distortion changes impedance and pattern.' },
+        { title: 'Cut the complete perimeter long', detail: 'Retain the selected trim allowance and mark support and feedpoint locations without changing the total conductor length.' },
+        { title: 'Prepare the feed arrangement', detail: 'Choose a feedpoint and balanced feed, matching, and common-mode-control approach appropriate to the desired bands and installed geometry.' },
+        { title: 'Install before measuring', detail: 'Raise and close the complete loop in its intended shape and plane before judging resonance or impedance.' },
+        { title: 'Tune the perimeter evenly', detail: 'Use low analyser power, make small distributed or symmetrical length changes, preserve the intended shape, and remeasure each intended band.' }
+      ]} limit="This calculator does not predict feedpoint impedance, matching ratio, bandwidth, multiband response, losses, common-mode current, or the installed radiation pattern." />}
+
       <div className="calculator-layout">
         <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
           <label className="field">
@@ -246,7 +281,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             <small>Use the frequency where you want resonance, not just the band name.</small>
           </label>
 
-          {antennaType === 'inverted-v' && <NumberField label="Included apex angle" value={includedAngleDegrees} min={60} max={180} step={1} unit="degrees" help="ARRL guidance recommends 90°–120°; wider values are supported for comparison." onChange={setIncludedAngleDegrees} />}
+          {antennaType === 'inverted-v' && <NumberField label="Included apex angle" tooltip="This is the angle between the two wire legs at the centre support. Narrower angles reduce endpoint span and increase drop while also changing feedpoint impedance and pattern; the installed result must be measured." value={includedAngleDegrees} min={60} max={180} step={1} unit="degrees" help="ARRL guidance recommends 90°–120°; wider values are supported for comparison." onChange={setIncludedAngleDegrees} />}
           {antennaType === 'ground-plane' && <>
             <NumberField label="Number of radials" tooltip="These are elevated counterpoise wires connected to the coax-shield side of the feedpoint, not ground-mounted wires. Use at least three, keep them equal, and distribute them symmetrically around the radiator." value={radialCount} min={3} max={64} step={1} unit="wires" help="The drawing shows four directions; the wire total uses the count entered." onChange={setRadialCount} />
             <NumberField label="Radial slope below horizontal" tooltip="This is the downward angle of every elevated radial. Equal droop often raises the feedpoint resistance toward 50 Ω, but the actual result depends on the complete installation and must be measured." value={radialSlopeDegrees} min={0} max={60} step={1} unit="degrees" help="Drooping elevated radials can raise feedpoint impedance; verify the installed match." onChange={setRadialSlopeDegrees} />
@@ -279,13 +314,13 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           </>}
           {antennaType === 'moxon' && <NumberField label="Conductor diameter" value={moxonConductorDiameterMillimetres} min={0.01} max={100} step={0.01} unit="mm" help="Use a constant outside diameter. Tapered elements require an equivalent diameter and separate modelling." onChange={setMoxonConductorDiameterMillimetres} />}
           {antennaType === 'yagi' && <div className="model-note"><strong>NBS reference geometry</strong><p>This scales the measured 0.4λ design as a complete system, including its 0.0085λ element diameter. Different tubing or a conductive boom requires correction or modelling.</p></div>}
-          {antennaType === 'full-wave-loop' && <label className="field">
-            <span>Loop shape</span>
-            <select value={loopShape} onChange={(event) => setLoopShape(event.target.value as LoopShape)}>
+          {antennaType === 'full-wave-loop' && <div className="field">
+            <span className="field-label-with-help"><label htmlFor="full-wave-loop-shape">Loop shape</label><HelpTip label="Loop shape">The selected idealized shape converts one perimeter into equal sides or a diameter. Real support sag, unequal sides, non-planar installation, feedpoint choice, and nearby objects change impedance and pattern.</HelpTip></span>
+            <select id="full-wave-loop-shape" aria-label="Loop shape" value={loopShape} onChange={(event) => setLoopShape(event.target.value as LoopShape)}>
               <option value="square">Square</option><option value="triangle">Equilateral triangle</option><option value="circle">Circle</option>
             </select>
             <small>Perimeter stays constant; this converts it into equal sides or a diameter.</small>
-          </label>}
+          </div>}
 
           {advancedOpen && antennaType !== 'moxon' && antennaType !== 'yagi' && <div className="advanced-fields">
             {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" tooltip="This value is a planning assumption used only to show nominal transformed resistance. A real feedpoint also has reactance and changes with height, wire shape, ground, nearby objects, return path, frequency, and loss." value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}

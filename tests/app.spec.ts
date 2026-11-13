@@ -34,10 +34,19 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
 });
 
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
+  await expect(page.getByText('Plan the installed span')).toBeHidden();
+  await page.getByText('Build and tune a centre-fed dipole').click();
+  await expect(page.getByText('Plan the installed span')).toBeVisible();
+
   await page.getByRole('button', { name: /Inverted-V/ }).click();
   await expect(page.getByRole('heading', { name: 'Inverted-V dipole' })).toBeVisible();
-  await expect(page.getByLabel('Included apex angle')).toHaveValue('120');
+  await expect(page.getByLabel('Included apex angle', { exact: true })).toHaveValue('120');
   await expect(page.getByRole('img', { name: /Dimensioned inverted-V/ })).toBeVisible();
+  await expect(page.getByText('Keep both legs symmetrical')).toBeHidden();
+  await page.getByText('Build and tune an inverted-V').click();
+  await expect(page.getByText('Keep both legs symmetrical')).toBeVisible();
+  await page.getByLabel('Help: Included apex angle').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Included apex angle' })).toContainText('angle between the two wire legs');
 
   await page.getByRole('button', { name: /EFHW/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
@@ -150,9 +159,14 @@ test('switches among graphical antenna designs and updates construction results'
   await expect(page.getByRole('note').filter({ hasText: 'Radial slope below horizontal' })).toContainText('actual result depends on the complete installation');
 
   await page.getByRole('button', { name: /Full-wave loop/ }).click();
-  await page.getByLabel('Loop shape').selectOption('circle');
+  await page.getByLabel('Loop shape', { exact: true }).selectOption('circle');
   await expect(page.getByRole('img', { name: /Dimensioned full-wave circle loop/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Diameter');
+  await expect(page.getByText('Choose the installed plane')).toBeHidden();
+  await page.getByText('Build and tune a full-wave loop').click();
+  await expect(page.getByText('Choose the installed plane')).toBeVisible();
+  await page.getByLabel('Help: Loop shape').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Loop shape' })).toContainText('one perimeter');
 });
 
 test('calculates feedline loss and preserves physical values across unit changes', async ({ page }) => {

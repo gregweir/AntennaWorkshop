@@ -54,6 +54,8 @@ J-pole and Slim Jim guides must explain the construction-medium correction facto
 
 Quarter-wave vertical guidance must distinguish a ground-mounted RF radial field from equal elevated counterpoise radials. The ground-mounted workflow must cover radial count and length, the radiator-only trim allowance, base and feed connections, and separate lightning and electrical-safety grounding. The elevated ground-plane workflow must cover equal radial count, symmetrical slope, shared cut allowance, coax routing, and common-mode control. Neither may promise impedance, efficiency, matching, or installed pattern.
 
+Centre-fed dipole and inverted-V guidance must preserve equal legs, balanced feeding, common-mode control, endpoint safety, final support geometry, and symmetrical trimming. Inverted-V guidance must explain that the apex angle changes span and drop without prescribing support height. Full-wave-loop guidance must preserve total perimeter while distinguishing the selected idealized shape from the installed plane, feedpoint, matching, and distorted geometry. These guides may not promise impedance, bandwidth, multiband response, or pattern.
+
 ## Visual language
 
 Visuals are functional rather than decorative:
