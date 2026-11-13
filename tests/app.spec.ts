@@ -526,6 +526,27 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
 
   await page.getByRole('button', { name: 'Imperial' }).click();
   await expect(gateway.getByRole('spinbutton', { name: 'Base height of lowest antenna' })).toHaveValue('32.808');
+
+  await page.getByRole('button', { name: /Assessment record/ }).click();
+  const record = page.getByRole('region', { name: 'Assessment record worksheet' });
+  await expect(record.locator('.acma-record-readiness')).toContainText('18 required items not documented');
+  await record.getByLabel('Record title').fill('Home station assessment');
+  await record.getByLabel('Operator or corporate name').fill('Test Operator');
+  await record.getByLabel('Operator type').selectOption('body-corporate');
+  await expect(record.getByLabel('ACN, ARBN, or registration number')).toBeVisible();
+  await record.getByRole('checkbox', { name: /An agent is used/ }).check();
+  await expect(record.getByLabel('Written agent-agreement reference')).toBeVisible();
+  await record.getByRole('button', { name: 'Save draft' }).click();
+  await expect(record.getByRole('status').filter({ hasText: 'Draft saved' })).toBeVisible();
+  await record.getByRole('button', { name: 'New draft' }).click();
+  await record.getByLabel('Saved ACMA assessment records').selectOption({ index: 1 });
+  await expect(record.getByLabel('Operator or corporate name')).toHaveValue('Test Operator');
+  const downloadPromise = page.waitForEvent('download');
+  await record.getByRole('button', { name: 'Download JSON' }).click();
+  await expect((await downloadPromise).suggestedFilename()).toBe('home-station-assessment.acma-eme-record.json');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
   await page.getByRole('button', { name: /ARPANSA limits/ }).click();
   const panel = page.getByRole('region', { name: 'ARPANSA RPS S-1 reference levels' });
   await expect(panel).toContainText('30-minute average');

@@ -3317,7 +3317,7 @@ select {
 }
 
 .exposure-mode-picker-au {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .acma-input-grid {
@@ -3450,6 +3450,202 @@ select {
   margin: 0;
   font-family: var(--font-mono);
   font-weight: 900;
+}
+
+.acma-record-privacy {
+  display: flex;
+  gap: 0.4rem 1rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--tl-coral);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--tl-coral) 8%, var(--bg-surface));
+}
+
+.acma-record-privacy span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.acma-record-library {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  gap: 0.75rem 1rem;
+  align-items: end;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.acma-record-library .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.acma-record-library select {
+  width: 100%;
+}
+
+.acma-record-library > p {
+  grid-column: 1 / -1;
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.acma-record-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.acma-record-actions button {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.acma-record-actions .danger-button {
+  border-color: var(--tl-coral);
+}
+
+.acma-record-readiness {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: inset 4px 0 0 var(--tl-coral);
+}
+
+.acma-record-readiness h4,
+.acma-record-readiness p {
+  margin: 0;
+}
+
+.acma-record-readiness h4 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.acma-record-readiness > div > p:last-child {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.acma-readiness-mark {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 3px solid var(--tl-coral);
+  border-radius: 50%;
+  place-items: center;
+  color: var(--tl-coral);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.acma-record-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.acma-record-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.acma-record-form legend {
+  padding: 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.acma-record-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+}
+
+.acma-record-grid .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.acma-record-grid input,
+.acma-record-grid select,
+.acma-record-grid textarea {
+  width: 100%;
+}
+
+.acma-record-grid textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.acma-record-wide {
+  grid-column: span 2;
+}
+
+.acma-record-check {
+  display: flex;
+  gap: 0.55rem;
+  align-items: start;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  font-weight: 800;
+}
+
+.acma-record-check input {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.05rem;
+}
+
+.acma-declaration {
+  box-shadow: inset 4px 0 0 var(--tl-coral);
+}
+
+.acma-declaration p {
+  margin-top: 0;
+  color: var(--text-secondary);
+}
+
+.acma-record-footer {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 2px solid var(--tl-navy);
+  font-size: 0.78rem;
+}
+
+.acma-record-footer p {
+  margin: 0.2rem 0;
 }
 
 .arpansa-reference-grid {
@@ -5167,12 +5363,21 @@ select {
   }
 
   .acma-input-grid,
-  .acma-result-layout {
+  .acma-result-layout,
+  .acma-record-library {
     grid-template-columns: 1fr;
   }
 
   .acma-check {
     grid-column: 1;
+  }
+
+  .acma-record-library > p {
+    grid-column: 1;
+  }
+
+  .acma-record-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .exposure-mode-picker-uk,
@@ -5374,6 +5579,19 @@ select {
     padding: 1rem;
   }
 
+  .acma-record-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .acma-record-wide {
+    grid-column: 1;
+  }
+
+  .acma-record-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .exposure-mode-picker,
   .exposure-context-panel,
   .project-library,
@@ -5545,6 +5763,12 @@ select {
     display: none;
   }
 
+  .acma-record-library,
+  .acma-record-privacy,
+  .acma-record-readiness {
+    display: none;
+  }
+
   .assessment-evidence-guide,
   .step-by-step-help,
   .context-help,
@@ -5595,5 +5819,20 @@ select {
   .project-print-contributions {
     display: block;
     grid-column: 1 / -1;
+  }
+
+  .acma-record-section,
+  .acma-record-form fieldset,
+  .acma-record-footer {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .acma-record-grid input,
+  .acma-record-grid select,
+  .acma-record-grid textarea {
+    border-color: #bbb;
+    background: white;
+    color: black;
   }
 }
