@@ -18,7 +18,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['antenna-mark.svg', 'TartanleafLogo.jpg', 'pwa-192.png', 'pwa-512.png'],
+      includeAssets: ['favicon.ico', 'antenna-mark.svg', 'TartanleafLogo.jpg', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
         name: 'RadioBook Antenna Workshop',
         short_name: 'Antenna Workshop',
