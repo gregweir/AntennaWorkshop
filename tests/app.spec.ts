@@ -96,6 +96,33 @@ test('plans a balanced-line doublet without inventing a tuner-side impedance', a
   await expect(page.locator('.result-summary')).toContainText('66 ft 6.125 in');
 });
 
+test('plans loaded dipoles and verticals with adjustable coil positions', async ({ page }) => {
+  await page.getByRole('button', { name: /Loaded dipole/ }).click();
+  await expect(page.getByRole('heading', { name: 'Inductively loaded dipole' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned centre-fed loaded dipole/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build two equal series loading coils');
+  await expect(page.locator('.result-summary')).toContainText('Physical shortening');
+  await expect(page.locator('.result-summary')).toContainText('µH each');
+  await page.getByLabel('Help: Coil position from centre').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Coil position from centre' })).toContainText('requires greater reactance');
+  await expect(page.getByText('Build two equal high-Q coils')).toBeHidden();
+  await page.getByText('Build and tune a loaded dipole').click();
+  await expect(page.getByText('Build two equal high-Q coils')).toBeVisible();
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Available total span' })).toHaveValue('24.606');
+  await expect(page.getByRole('spinbutton', { name: 'Conductor outside diameter' })).toHaveValue('0.0787');
+
+  await page.getByRole('button', { name: /Loaded vertical/ }).click();
+  await expect(page.getByRole('heading', { name: 'Inductively loaded vertical' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned inductively loaded vertical/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build one base-loading coil');
+  await page.getByRole('spinbutton', { name: 'Coil position from base' }).fill('5.741');
+  await expect(page.locator('.result-summary')).toContainText('Build one series loading coil');
+  await expect(page.locator('.caution-card')).toContainText('Inductance alone does not describe the finished coil');
+  await page.getByText('Build and tune a loaded vertical').click();
+  await expect(page.getByText('Plan the RF return system')).toBeVisible();
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
@@ -1084,6 +1111,14 @@ test('persists and transfers validated station projects', async ({ page }) => {
 
 test('has no horizontal overflow on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: /Loaded vertical/ }).click();
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  const loadedDimensions = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    content: document.documentElement.scrollWidth
+  }));
+  expect(loadedDimensions.content).toBe(loadedDimensions.viewport);
+
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Station project/ }).click();
   const dimensions = await page.evaluate(() => ({
