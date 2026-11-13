@@ -493,6 +493,39 @@ test('applies the Ofcom assessment and distance workflows for United Kingdom sta
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test('looks up Australian whole-body and local ARPANSA reference levels', async ({ page }) => {
+  await page.locator('.global-controls select').selectOption('AU');
+  await expect(page.getByText('Jurisdiction: Australia')).toBeVisible();
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+
+  await expect(page.getByRole('button', { name: /ARPANSA limits/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Single source/ })).toHaveCount(0);
+  const panel = page.getByRole('region', { name: 'ARPANSA RPS S-1 reference levels' });
+  await expect(panel).toContainText('30-minute average');
+  await expect(panel).toContainText('6-minute average');
+  await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('3.5');
+  await expect(panel).toContainText('ES — use peak-field level');
+  await expect(panel).toContainText('83 V/m · 21 A/m');
+  await expect(panel).toContainText('45 mA when grounded');
+
+  await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('146');
+  await expect(panel).toContainText('27.700 V/m');
+  await expect(panel).toContainText('2.000 W/m²');
+  await expect(panel).toContainText('62.000 V/m');
+  await expect(panel).toContainText('10.000 W/m²');
+  await expect(panel).toContainText('Table 7 ends at 10 MHz');
+
+  await page.getByLabel('Exposure environment', { exact: true }).selectOption('controlled');
+  await expect(panel).toContainText('61.000 V/m');
+  await expect(panel).toContainText('50.000 W/m²');
+
+  await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('0.099');
+  await expect(panel.getByRole('alert')).toContainText('0.1 to 300,000 MHz');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test('normalizes and sums multiple RF sources without inferring compliance', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Measured sources/ }).click();

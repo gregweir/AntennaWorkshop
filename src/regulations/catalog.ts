@@ -75,12 +75,17 @@ export const jurisdictionProfiles: JurisdictionProfile[] = [
   {
     code: 'AU',
     name: 'Australia',
-    releaseStatus: 'research',
+    releaseStatus: 'initial',
     sources: [
       {
         title: 'RPS S-1 — Standard for Limiting Exposure to Radiofrequency Fields',
         authority: 'Australian Radiation Protection and Nuclear Safety Agency',
         url: 'https://www.arpansa.gov.au/regulation-and-licensing/regulatory-publications/radiation-protection-series/codes-and-standards/rpss-1'
+      },
+      {
+        title: 'Our rules for electromagnetic energy',
+        authority: 'Australian Communications and Media Authority',
+        url: 'https://www.acma.gov.au/our-rules-eme'
       }
     ]
   }

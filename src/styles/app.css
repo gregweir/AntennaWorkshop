@@ -3316,6 +3316,51 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.exposure-mode-picker-au {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.arpansa-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.arpansa-reference-grid article {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.arpansa-reference-grid h4 {
+  margin: 0.2rem 0 0.8rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.arpansa-reference-grid dl {
+  margin: 0;
+}
+
+.arpansa-reference-grid dl div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.arpansa-reference-grid dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: right;
+}
+
 .ofcom-distance-inputs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4982,6 +5027,10 @@ select {
   .ofcom-intermediates,
   .ofcom-multiple-source,
   .ofcom-multiple-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .arpansa-reference-grid {
     grid-template-columns: 1fr;
   }
 

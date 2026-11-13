@@ -9,7 +9,7 @@ The application will run in a desktop or mobile browser, install as an offline-c
 ## Confirmed decisions
 
 - Canada is the default jurisdiction, with a prominent persistent selector.
-- Canada, United States, and initial United Kingdom Ofcom assessment workflows are available. Australia requires further scoping.
+- Canada, United States, and United Kingdom assessment workflows are available. Australia includes an initial ARPANSA reference-table workflow; station-field prediction and exclusion-distance methods require further scoping.
 - Station location, not browsing location, determines the applicable jurisdiction. Network-derived location may suggest a first-visit default but never overrides an explicit selection.
 - Metric is the default unit system. Imperial conversion is available everywhere through a single toggle.
 - Design frequency inputs include jurisdiction-aware amateur-band selectors. The interface distinguishes conventional band names from the actual wavelength at the selected frequency.
@@ -29,12 +29,13 @@ The public repository currently includes:
 - A United States single-source FCC routine-evaluation exemption workflow covering all three criteria in 47 CFR § 1.1307(b)(3)(i), with ERP/EIRP distinctions and explicit non-compliance vocabulary.
 - A United States multiple-source FCC exemption workflow covering the special 1 mW conditions and mixed close-proximity, distance-ERP, and existing-evaluation fractions in § 1.1307(b)(3)(ii).
 - United Kingdom Ofcom workflows covering the no-action, retained average-power record, and assessment-required branches plus conservative v1.1 single- and multiple-transmitter compliance-distance reproductions with explicit antenna and reflection limitations.
+- Australian ARPANSA RPS S-1 whole-body, local, peak-field, and limb-current reference levels with explicit quantity, averaging, field-region, and occupational-control guidance.
 - Conservative single-source far-field screening, frequency-normalized multiple-source aggregation, and printable multi-point station projects with independent source coordinates, accessible drag/touch/keyboard layout, illustrative azimuth envelopes, and descriptive source-to-point bearing analysis.
 - An on-device station-project library with validated, versioned JSON import/export, a searchable and filterable evidence log scoped to projects, sources, points, and individual inputs, reusable templates, self-declared quality prompts, documentation summaries, and optional author-set review reminders. A derived assessment checklist keeps blockers, category and field-level documentation gaps, and external review distinct, and a guided action prepares the evidence form for a selected missing critical value. An optional station-assessment guide and contextual help explain shared coordinates, duty cycle, gain, antenna dimensions, height references, and inventory confirmation without hiding the complete controls. The workspace also supports non-destructive baseline-versus-scenario comparison, a typed audit of changed inputs, and read-only sensitivity curves with custom ranges, screening-trigger annotations, accessible data tables, and CSV export.
 - A connected antenna-to-system-to-exposure workflow that preserves typed inputs and calculator-model provenance.
 - An installable PWA shell, persistent preferences, explicit update prompts, and automated unit and browser tests.
 
-Near-field exposure methods, independent RF review, and production deployment remain release blockers.
+Australian station-field prediction, near-field exposure methods, independent RF review, and production deployment remain release blockers.
 
 ## Core experience
 
@@ -105,6 +106,8 @@ The Ofcom gateway must distinguish EIRP from ERP, use maximum radiated power in 
 The Ofcom compliance-distance workflow must reproduce calculator v1.1 frequency boundaries, EIRP conversion, six-minute averaging, reflection coefficients, ICNIRP 1998 reference levels, and E/H treatment below 10 MHz. It must disclose when an antenna exceeds half a wavelength or a highly reflective surface can invalidate the simplified assumptions. A distance result must be measured from the closest part of the antenna, retained with its inputs and source revision, and never presented as compliance without the required public-access controls.
 
 The conservative Ofcom multiple-transmitter workflow must convert each source to EIRP, sum all source powers, combine each source’s maximum transmission time within six minutes, and cap that combined input at the calculator’s 360-second maximum. It must calculate the summed power and combined time at every distinct entered frequency and select the greatest distance. Duplicate frequency entries may share one evaluation but must remain individually visible in the source inventory. The workflow must state that this method is deliberately very conservative and does not model separate antenna positions, simultaneous field addition, patterns, or equipment belonging to other spectrum users.
+
+The Australian reference workflow must reproduce RPS S-1 (Rev. 1) Tables 4, 5, 7, and 8 from 100 kHz to 300 GHz. It must keep general-public and occupational scenarios, whole-body and local spatial bases, 30- and 6-minute averaging periods, electric field, magnetic field, incident power density, peak fields, and limb current distinct. “ES” must be explained as an electrostimulation-limited case rather than no restriction. The workflow must not offer the existing Canadian/United States far-field screen under Australian jurisdiction until its method and regulatory applicability are separately reviewed.
 
 ## Acceptance criteria for the first public beta
 

@@ -21,6 +21,7 @@ import { FccMultipleExemptionPanel } from './FccMultipleExemptionPanel';
 import { OfcomAssessmentPanel } from './OfcomAssessmentPanel';
 import { OfcomComplianceDistancePanel } from './OfcomComplianceDistancePanel';
 import { OfcomMultipleDistancePanel } from './OfcomMultipleDistancePanel';
+import { ArpansaReferencePanel } from './ArpansaReferencePanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
@@ -31,7 +32,7 @@ interface Props {
   onSourceConsumed: () => void;
 }
 
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple';
+type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
@@ -48,6 +49,10 @@ const ukViewOptions: Array<{ id: ExposureView; title: string; description: strin
   { id: 'ofcom-multiple', title: 'Multiple transmitters', description: 'Conservative collective distance' }
 ];
 
+const australianViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
+  { id: 'arpansa-reference', title: 'ARPANSA limits', description: 'Whole-body, local, peak, and limb-current levels' }
+];
+
 export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed }: Props) {
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [environment, setEnvironment] = useState<ExposureEnvironment>('uncontrolled');
@@ -59,13 +64,15 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const bandSource = getBandSource(jurisdiction);
   const profile = jurisdictionProfiles.find((item) => item.code === jurisdiction);
   const isUk = jurisdiction === 'GB';
-  const availableViews = isUk ? ukViewOptions : viewOptions;
+  const isAustralia = jurisdiction === 'AU';
+  const availableViews = isUk ? ukViewOptions : isAustralia ? australianViewOptions : viewOptions;
   useEffect(() => {
     if (isUk && view !== 'ofcom-assessment' && view !== 'ofcom-distance' && view !== 'ofcom-multiple') setView('ofcom-assessment');
-    if (!isUk && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple')) setView('reference');
-  }, [isUk, view]);
-  const needsFrequency = (!isUk && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance');
-  const needsEnvironment = !isUk && view !== 'fcc-exemption' && view !== 'fcc-multiple';
+    if (isAustralia && view !== 'arpansa-reference') setView('arpansa-reference');
+    if (!isUk && !isAustralia && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple' || view === 'arpansa-reference')) setView('reference');
+  }, [isAustralia, isUk, view]);
+  const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || isAustralia;
+  const needsEnvironment = (!isUk && !isAustralia && view !== 'fcc-exemption' && view !== 'fcc-multiple') || isAustralia;
   const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
 
   const levels = useMemo(() => {
@@ -82,11 +89,18 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
 
   const selected = levels?.[environment] ?? null;
   const model = exposureJurisdiction === 'US' ? EXPOSURE_LIMIT_MODELS.US : EXPOSURE_LIMIT_MODELS.CA;
+  const frequencyHelp = jurisdiction === 'AU'
+    ? 'RPS S-1 spans 0.1 to 300,000 MHz; the required field quantity changes with frequency and field region.'
+    : jurisdiction === 'GB'
+      ? 'The Ofcom compliance-distance calculator spans 1 to 300,000 MHz.'
+      : jurisdiction === 'US'
+        ? 'The FCC MPE power-density table spans 0.3 to 100,000 MHz.'
+        : 'Canadian power-density reference levels begin at 10 MHz; lower frequencies require electric- and magnetic-field treatment.';
 
   return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title">
     <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div><span className="model-badge">Preliminary beta</span></div>
     <div className="exposure-status" role="note"><strong>Preliminary tools only</strong><span>Reference lookup, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
-    <div className={`exposure-mode-picker ${isUk ? 'exposure-mode-picker-uk' : ''}`} aria-label="RF exposure workflow">
+    <div className={`exposure-mode-picker ${isUk ? 'exposure-mode-picker-uk' : ''} ${isAustralia ? 'exposure-mode-picker-au' : ''}`} aria-label="RF exposure workflow">
       {availableViews.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}
     </div>
 
@@ -95,7 +109,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
       {needsEnvironment && <div className="field"><span className="field-label-with-help"><label htmlFor="exposure-environment">Exposure environment</label><HelpTip label="Exposure environment">Use uncontrolled limits wherever the general public may be exposed or whenever the jurisdiction's controlled-environment conditions are not met. Controlled limits require characterized fields, RF awareness, appropriate training or information, and the ability to control or mitigate exposure.</HelpTip></span><select id="exposure-environment" value={environment} onChange={(event) => setEnvironment(event.target.value as ExposureEnvironment)}><option value="uncontrolled">General public / uncontrolled</option><option value="controlled">Occupational / controlled</option></select><small>Controlled limits require the jurisdiction’s awareness, training, characterization, and exposure-control conditions.</small></div>}
       {needsFrequency && <>
         <label className="field"><span>Amateur band</span><select className="band-select" value={activeBand?.id ?? 'custom'} onChange={(event) => { const band = availableBands.find((candidate) => candidate.id === event.target.value); if (band) setFrequencyText(band.designMHz.toFixed(band.designMHz < 30 ? 3 : 1)); }}><option value="custom">Custom frequency</option>{availableBands.map((band) => <option key={band.id} value={band.id}>{band.label} · {formatFrequencyRange(band)}</option>)}</select><small>Loads a representative frequency for the selected workflow.</small></label>
-        <label className="field"><span>Evaluation frequency</span><span className="input-with-unit"><input aria-label="Evaluation frequency" type="number" min="0.001" step="0.001" value={frequencyText} onChange={(event) => setFrequencyText(event.target.value)} /><span>MHz</span></span><small>Canadian power-density reference levels begin at 10 MHz; lower frequencies require electric- and magnetic-field treatment.</small></label>
+        <label className="field"><span>Evaluation frequency</span><span className="input-with-unit"><input aria-label="Evaluation frequency" type="number" min="0.001" step="0.001" value={frequencyText} onChange={(event) => setFrequencyText(event.target.value)} /><span>MHz</span></span><small>{frequencyHelp}</small></label>
       </>}
     </form>
 
@@ -130,5 +144,6 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     {isUk && view === 'ofcom-assessment' && <OfcomAssessmentPanel />}
     {isUk && view === 'ofcom-distance' && <OfcomComplianceDistancePanel frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {isUk && view === 'ofcom-multiple' && <OfcomMultipleDistancePanel unitSystem={unitSystem} />}
+    {isAustralia && view === 'arpansa-reference' && <ArpansaReferencePanel frequencyMHz={frequencyMHz} environment={environment} />}
   </section>;
 }

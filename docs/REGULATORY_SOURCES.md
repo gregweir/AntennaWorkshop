@@ -31,8 +31,9 @@ The [RF exposure independent review package](RF_EXPOSURE_REVIEW.md) maps these m
 
 ## Australia
 
-- ARPANSA RPS S-1, *Standard for Limiting Exposure to Radiofrequency Fields — 100 kHz to 300 GHz*.
-- Applicable ACMA licence conditions and electromagnetic-energy compliance guidance, to be scoped before implementation.
+- ARPANSA RPS S-1 (Rev. 1), *Standard for Limiting Exposure to Radiofrequency Fields — 100 kHz to 300 GHz* — Tables 4, 5, 7, and 8 are implemented as a reference-level lookup.
+- ACMA, *Our rules for EME* — connects transmitter operation to the ARPANSA standard and current licence conditions.
+- Radiocommunications (Amateur Stations) Class Licence 2023 and current applicable transmitter conditions — station obligations requiring further workflow scoping.
 
 ## Implementation rule
 
@@ -47,6 +48,8 @@ The Ofcom assessment gateway implements the decision thresholds in guidance para
 The Ofcom compliance-distance model reproduces calculator v1.1. ERP is multiplied by 1.64 to obtain EIRP; average EIRP uses the maximum transmitting seconds in six minutes. The reflection coefficient is 1.0 through 12 MHz and 0.6 above 12 MHz. From 1 MHz to below 10 MHz, distance is the larger result obtained from the ICNIRP 1998 E- and H-field reference levels. From 10 MHz through 300 GHz, the model uses the calculator’s piecewise power-density reference level. The 450 MHz worked vector with 200 W EIRP and two transmitting minutes reproduces Ofcom’s published 2.46 m result. The tool flags antennas longer than half a wavelength and nearby highly reflective surfaces because Ofcom identifies these as limitations that may require more advanced assessment. It does not model complex installations, antenna patterns, multiple simultaneous transmitters, terrain, buildings, or access control, and a calculated distance is not by itself proof of compliance.
 
 The conservative multiple-transmitter model follows Ofcom’s calculator instructions: sum all transmitter powers after conversion to EIRP, combine their maximum transmission times within the same six-minute period, calculate once at every frequency in use, and retain the largest distance. Combined times above 360 seconds are visibly saturated at the calculator’s 100% duty-cycle maximum. The official example of two 100 W EIRP transmitters at 450 and 1800 MHz, each active for one minute, produces two calculations using 200 W and two minutes; 450 MHz governs at 2.46 m. This method can substantially overestimate distance and does not replace a dedicated multi-source assessment when the simple result is impractical or its assumptions are not applicable.
+
+The Australian reference model reproduces ARPANSA RPS S-1 (Rev. 1) whole-body Table 4 and local-exposure Table 5, including every piecewise frequency boundary from 100 kHz to 300 GHz. It separately reports Table 7 peak E/H levels through 10 MHz and Table 8 limb-current levels through 110 MHz. Whole-body values use a 30-minute average; local values use a 6-minute average. The interface preserves `ES` where the table defers to electrostimulation peak-field levels and does not convert it into a numeric field limit. It also preserves when E field, H field, or incident power density is not applicable. The lookup does not predict fields, determine a boundary, assess basic restrictions, or demonstrate compliance. No Australian station-field calculator is enabled pending method and regulatory review.
 
 The preliminary far-field screen uses the maximum stated antenna gain and the TN-261 modified free-space expression, including the 2.56 power-density multiplier arising from a reflected electric field 60% as strong as the direct field. Canadian uncontrolled scenarios escalate for detailed review at 50% of the applicable Safety Code 6 limit. For all jurisdictions, the result is inconclusive when other RF sources have not been assessed and inapplicable inside the conservative far-field boundary.
 
