@@ -203,6 +203,44 @@ test('designs two matched parallel-LC traps for a two-band dipole', async ({ pag
   await expect(page.getByRole('spinbutton', { name: 'Insulated wire outside diameter' })).toHaveValue('0.0787');
 });
 
+test('plans a measured-inductance small transmitting loop without inferring performance', async ({ page }) => {
+  await page.getByRole('button', { name: /Small loop/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Small transmitting loop' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Lower tuning frequency' })).toHaveValue('14.000');
+  await expect(page.getByRole('spinbutton', { name: 'Upper tuning frequency' })).toHaveValue('14.350');
+  await expect(page.getByRole('img', { name: /Dimensioned circular small transmitting loop tuning plan/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Entered capacitor covers the ideal range');
+  await expect(page.locator('.result-summary')).toContainText('39.2–41.7 pF');
+  await expect(page.locator('.result-summary')).toContainText('Measured finished-loop inductance');
+  await expect(page.locator('.small-loop-boundary')).toContainText('under 1/16 λ');
+  await expect(page.getByRole('button', { name: 'Show advanced' })).toBeHidden();
+
+  await expect(page.getByText('Measure the finished loop inductance')).toBeHidden();
+  await page.getByText('Build and tune a small transmitting loop').click();
+  await expect(page.getByText('Measure the finished loop inductance')).toBeVisible();
+  await page.getByLabel('Help: Measured finished-loop inductance').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Measured finished-loop inductance' })).toContainText('complete main loop');
+
+  await page.getByRole('spinbutton', { name: 'Variable-capacitor maximum' }).fill('40');
+  await expect(page.locator('.result-summary')).toContainText('Revise the capacitor or tuning range');
+  await page.getByRole('spinbutton', { name: 'Parallel fixed and stray capacitance' }).fill('50');
+  await expect(page.locator('.result-summary')).toContainText('No positive variable-C solution');
+  await page.getByRole('spinbutton', { name: 'Parallel fixed and stray capacitance' }).fill('10');
+  await page.getByRole('spinbutton', { name: 'Variable-capacitor maximum' }).fill('100');
+
+  await page.locator('select.band-select').selectOption('40m');
+  await expect(page.getByRole('spinbutton', { name: 'Lower tuning frequency' })).toHaveValue('7.000');
+  await expect(page.getByRole('spinbutton', { name: 'Upper tuning frequency' })).toHaveValue('7.300');
+  await expect(page.locator('.workflow-handoff')).toContainText('Range centre');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Resonance does not establish a safe transmitting system' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Main-loop circumference' })).toHaveValue('9.843');
+  await expect(page.locator('.result-summary')).toContainText('3 ft 1.625 in');
+  await expect(page.locator('.provenance-card')).toContainText('small-transmitting-loop-measured-inductance');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

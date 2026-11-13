@@ -4862,6 +4862,32 @@ select {
   display: grid;
   grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.65fr);
   gap: 1.5rem;
+  align-items: start;
+}
+
+.small-loop-layout {
+  grid-template-columns: 1fr;
+}
+
+.small-loop-layout .input-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.small-loop-layout .input-panel > .field,
+.small-loop-layout .small-loop-editor {
+  margin: 0;
+}
+
+.small-loop-layout .small-loop-editor,
+.small-loop-layout .result-summary,
+.small-loop-layout .validation-message {
+  grid-column: 1 / -1;
+}
+
+.small-loop-layout .small-loop-editor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .input-panel,
@@ -5077,7 +5103,8 @@ select {
 
 .fan-frequency-editor,
 .doublet-system-editor,
-.loaded-antenna-editor {
+.loaded-antenna-editor,
+.small-loop-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5088,7 +5115,8 @@ select {
 
 .fan-frequency-editor legend,
 .doublet-system-editor legend,
-.loaded-antenna-editor legend {
+.loaded-antenna-editor legend,
+.small-loop-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5101,8 +5129,13 @@ select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.small-loop-editor {
+  grid-template-columns: 1fr;
+}
+
 .doublet-system-editor > .field,
-.loaded-antenna-editor > .field {
+.loaded-antenna-editor > .field,
+.small-loop-editor > .field {
   margin: 0;
 }
 
@@ -5196,6 +5229,60 @@ path.loading-coil {
   stroke: var(--tl-coral);
   stroke-linecap: round;
   stroke-width: 2.5;
+}
+
+.small-loop-conductor path,
+.small-loop-conductor line {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 9;
+}
+
+.small-loop-capacitor line,
+.small-loop-capacitor path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.small-loop-coupling circle,
+.small-loop-coupling line {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-dasharray: 6 4;
+  stroke-width: 3;
+}
+
+.small-loop-boundary rect {
+  stroke-width: 1.5;
+}
+
+.small-loop-boundary text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.small-loop-boundary.boundary-pass rect {
+  fill: color-mix(in srgb, var(--success) 14%, var(--bg-surface));
+  stroke: var(--success);
+}
+
+.small-loop-boundary.boundary-pass text {
+  fill: var(--success);
+}
+
+.small-loop-boundary.boundary-stop rect {
+  fill: color-mix(in srgb, var(--danger) 12%, var(--bg-surface));
+  stroke: var(--danger);
+}
+
+.small-loop-boundary.boundary-stop text {
+  fill: var(--danger);
 }
 
 .coil-construction-panel {
@@ -6320,6 +6407,11 @@ path.loading-coil {
     align-items: stretch;
   }
 
+  .small-loop-layout .input-panel,
+  .small-loop-layout .small-loop-editor {
+    grid-template-columns: 1fr;
+  }
+
   .exposure-status {
     align-items: flex-start;
     flex-direction: column;
@@ -6594,7 +6686,8 @@ path.loading-coil {
   }
 
   .doublet-system-editor,
-  .loaded-antenna-editor {
+  .loaded-antenna-editor,
+  .small-loop-editor {
     grid-template-columns: 1fr;
   }
 
