@@ -5184,6 +5184,20 @@ path.loading-coil {
   stroke-width: 4;
 }
 
+.trap-symbol rect {
+  fill: var(--bg-elevated);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.trap-symbol path,
+.trap-symbol line {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 2.5;
+}
+
 .validation-message {
   color: var(--danger);
   font-weight: 700;

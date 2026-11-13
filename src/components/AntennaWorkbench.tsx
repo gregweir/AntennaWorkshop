@@ -12,6 +12,7 @@ import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope
 import { calculateHalfWaveDipole, HALF_WAVE_DIPOLE_MODEL } from '../calculators/dipole';
 import { calculateDoublet, DOUBLET_MODEL } from '../calculators/doublet';
 import { calculateLoadedDipole, calculateLoadedVertical, LOADED_ANTENNA_MODEL } from '../calculators/loadedAntennas';
+import { calculateTrapDipole, TRAP_DIPOLE_MODEL } from '../calculators/trapDipole';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
@@ -31,15 +32,17 @@ import { FanDipoleDiagram } from './FanDipoleDiagram';
 import { DoubletDiagram } from './DoubletDiagram';
 import { LoadedDipoleDiagram } from './LoadedDipoleDiagram';
 import { LoadedVerticalDiagram } from './LoadedVerticalDiagram';
+import { TrapDipoleDiagram } from './TrapDipoleDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
-type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'loaded-dipole' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
+type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'loaded-dipole' | 'trap-dipole' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
 
 const designs: Record<AntennaType, { name: string; short: string; description: string }> = {
   dipole: { name: 'Centre-fed half-wave dipole', short: 'Dipole', description: 'Two straight legs' },
   'fan-dipole': { name: 'Multiband fan dipole', short: 'Fan dipole', description: 'Parallel resonant wire pairs' },
   doublet: { name: 'Balanced-line multiband doublet', short: 'Doublet', description: 'Equal legs · balanced line · tuner' },
   'loaded-dipole': { name: 'Inductively loaded dipole', short: 'Loaded dipole', description: 'Shortened span · two series coils' },
+  'trap-dipole': { name: 'Two-band parallel-LC trap dipole', short: 'Trap dipole', description: 'Two bands · matched parallel traps' },
   'inverted-v': { name: 'Inverted-V dipole', short: 'Inverted-V', description: 'Single high support' },
   efhw: { name: 'End-fed half-wave (EFHW)', short: 'EFHW', description: 'End transformer · multiband potential' },
   ocfd: { name: 'Off-centre-fed dipole (OCFD)', short: 'OCFD', description: 'Unequal legs · multiband potential' },
@@ -74,6 +77,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   const [loadedDipoleCoilPositionMetres, setLoadedDipoleCoilPositionMetres] = useState(2.5);
   const [loadedDipoleHeightMetres, setLoadedDipoleHeightMetres] = useState(8);
   const [loadedDipoleConductorDiameterMillimetres, setLoadedDipoleConductorDiameterMillimetres] = useState(2);
+  const [trapUpperFrequencyText, setTrapUpperFrequencyText] = useState('21.200');
+  const [trapDipoleSpanMetres, setTrapDipoleSpanMetres] = useState(7.5);
+  const [trapPositionMetres, setTrapPositionMetres] = useState(2.5);
+  const [trapDipoleHeightMetres, setTrapDipoleHeightMetres] = useState(8);
+  const [trapDipoleConductorDiameterMillimetres, setTrapDipoleConductorDiameterMillimetres] = useState(2);
   const [loadedVerticalHeightMetres, setLoadedVerticalHeightMetres] = useState(3.5);
   const [loadedVerticalCoilPositionMetres, setLoadedVerticalCoilPositionMetres] = useState(0);
   const [loadedVerticalConductorDiameterMillimetres, setLoadedVerticalConductorDiameterMillimetres] = useState(25);
@@ -100,6 +108,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   const shownLoadedDipoleCoilPosition = unitSystem === 'metric' ? loadedDipoleCoilPositionMetres : metresToFeet(loadedDipoleCoilPositionMetres);
   const shownLoadedDipoleHeight = unitSystem === 'metric' ? loadedDipoleHeightMetres : metresToFeet(loadedDipoleHeightMetres);
   const shownLoadedDipoleDiameter = unitSystem === 'metric' ? loadedDipoleConductorDiameterMillimetres : loadedDipoleConductorDiameterMillimetres / 25.4;
+  const shownTrapDipoleSpan = unitSystem === 'metric' ? trapDipoleSpanMetres : metresToFeet(trapDipoleSpanMetres);
+  const shownTrapPosition = unitSystem === 'metric' ? trapPositionMetres : metresToFeet(trapPositionMetres);
+  const shownTrapDipoleHeight = unitSystem === 'metric' ? trapDipoleHeightMetres : metresToFeet(trapDipoleHeightMetres);
+  const shownTrapDipoleDiameter = unitSystem === 'metric' ? trapDipoleConductorDiameterMillimetres : trapDipoleConductorDiameterMillimetres / 25.4;
   const shownLoadedVerticalHeight = unitSystem === 'metric' ? loadedVerticalHeightMetres : metresToFeet(loadedVerticalHeightMetres);
   const shownLoadedVerticalCoilPosition = unitSystem === 'metric' ? loadedVerticalCoilPositionMetres : metresToFeet(loadedVerticalCoilPositionMetres);
   const shownLoadedVerticalDiameter = unitSystem === 'metric' ? loadedVerticalConductorDiameterMillimetres : loadedVerticalConductorDiameterMillimetres / 25.4;
@@ -115,6 +127,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       if (antennaType === 'fan-dipole') return { type: antennaType, value: calculateFanDipole({ frequenciesMHz: [frequencyMHz, ...fanAdditionalFrequencyTexts.map(Number)], lengthCorrectionFactor, trimAllowancePercent }) } as const;
       if (antennaType === 'doublet') return { type: antennaType, value: calculateDoublet({ lowestFrequencyMHz: frequencyMHz, lengthCorrectionFactor, trimAllowancePercent, balancedLineLengthMetres: doubletLineLengthMetres, balancedLineVelocityFactor: doubletLineVelocityFactor, balancedLineImpedanceOhms: doubletLineImpedanceOhms, lineCheckFrequencyMHz: Number(doubletCheckFrequencyText) }) } as const;
       if (antennaType === 'loaded-dipole') return { type: antennaType, value: calculateLoadedDipole({ frequencyMHz, lengthCorrectionFactor, totalSpanMetres: loadedDipoleSpanMetres, loadingPointFromCentreMetres: loadedDipoleCoilPositionMetres, heightAboveGroundMetres: loadedDipoleHeightMetres, conductorDiameterMillimetres: loadedDipoleConductorDiameterMillimetres }) } as const;
+      if (antennaType === 'trap-dipole') return { type: antennaType, value: calculateTrapDipole({ lowerFrequencyMHz: frequencyMHz, upperFrequencyMHz: Number(trapUpperFrequencyText), lengthCorrectionFactor, totalSpanMetres: trapDipoleSpanMetres, trapPositionFromCentreMetres: trapPositionMetres, heightAboveGroundMetres: trapDipoleHeightMetres, conductorDiameterMillimetres: trapDipoleConductorDiameterMillimetres }) } as const;
       if (antennaType === 'inverted-v') return { type: antennaType, value: calculateInvertedV({ ...common, includedAngleDegrees }) } as const;
       if (antennaType === 'efhw') return { type: antennaType, value: calculateEfhw({ ...common, transformerRatio, estimatedEndImpedanceOhms }) } as const;
       if (antennaType === 'ocfd') return { type: antennaType, value: calculateOcfd({ ...common, transformerRatio, feedpointPercentFromEnd, estimatedFeedpointImpedanceOhms: estimatedOcfdImpedanceOhms }) } as const;
@@ -129,7 +142,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     } catch {
       return null;
     }
-  }, [antennaType, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, frequencyMHz, groundRadialCount, groundRadialLengthMultiplier, includedAngleDegrees, jpoleTapPercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, loopShape, moxonConductorDiameterMillimetres, radialCount, radialSlopeDegrees, slimJimGapPercent, transformerRatio, trimAllowancePercent]);
+  }, [antennaType, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, frequencyMHz, groundRadialCount, groundRadialLengthMultiplier, includedAngleDegrees, jpoleTapPercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, loopShape, moxonConductorDiameterMillimetres, radialCount, radialSlopeDegrees, slimJimGapPercent, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent]);
 
   const model = antennaType === 'dipole'
     ? HALF_WAVE_DIPOLE_MODEL
@@ -139,6 +152,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         ? DOUBLET_MODEL
         : antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical'
           ? LOADED_ANTENNA_MODEL
+          : antennaType === 'trap-dipole'
+            ? TRAP_DIPOLE_MODEL
         : antennaType === 'inverted-v'
       ? ANTENNA_MODELS.invertedV
       : antennaType === 'efhw'
@@ -160,7 +175,9 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
                 : ANTENNA_MODELS.fullWaveLoop;
 
   const recommendedFactor = antennaType === 'full-wave-loop' ? 1.02 : antennaType === 'jpole' || antennaType === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95;
-  const lengthCorrectionTooltip = antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical'
+  const lengthCorrectionTooltip = antennaType === 'trap-dipole'
+    ? 'This factor defines the practical quarter-wave references used at both design frequencies. The published worked example uses about 0.95. Finished traps, wire, height, ground, and nearby objects still require installed tuning on both bands.'
+    : antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical'
     ? 'This factor defines the practical quarter-wave reference used by the loading model. The published worked example uses about 0.95. Coil construction, conductor geometry, ground, and nearby objects still require installed tuning.'
     : antennaType === 'efhw'
     ? 'This factor scales the free-space half-wave estimate for practical wire construction. It does not correct the transformer, feedline, return path, or effects of the installed surroundings.'
@@ -255,6 +272,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Install before judging resonance', detail: 'Raise the complete antenna at its entered height with the final feedline, supports, and surroundings before measuring.' },
         { title: 'Tune at low power', detail: 'Adjust both coils or both outer wire sections equally in small steps, remeasure after each change, then verify heating and voltage clearance at intended power.' }
       ]} limit="This is a first-order, single-band starting model. It does not design the physical coils or predict coil Q, self-capacitance, loss, heating, voltage, feedpoint impedance, matching, bandwidth, efficiency, or radiation pattern." />}
+
+      {antennaType === 'trap-dipole' && <StepByStepHelp title="Build and tune a two-band trap dipole" intro="Use this sequence to build two matched parallel-LC traps and commission the complete antenna on both design frequencies. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose lower and upper design frequencies', detail: 'Select the intended resonance within each operating band. The trap’s calculated parallel resonance will fall between these two frequencies, not on either one.' },
+        { title: 'Enter the installed geometry', detail: 'Set the complete space-limited span, average wire height, conductor diameter, and equal centre-to-trap distance. Both wire sections must remain within the model’s quarter-wave constraints.' },
+        { title: 'Select suitable components', detail: 'Choose capacitors and coil construction with suitable RF current, voltage, loss, Q, temperature stability, weather protection, and safety margin for the intended power and duty cycle.' },
+        { title: 'Build and measure a matched pair', detail: 'Make both parallel LC networks mechanically identical and measure their resonant frequency and component values with suitable RF test equipment before installation.' },
+        { title: 'Install symmetrically', detail: 'Place the traps at equal distances from the feedpoint, keep both wire arms equal, support trap weight and tension independently, and use an appropriate balanced feed and common-mode-control arrangement.' },
+        { title: 'Tune and verify both bands', detail: 'Start at low power, adjust in small controlled steps, sweep both bands after every change, and verify trap heating, voltage clearance, feedline current, match, and stability at intended power.' }
+      ]} limit="This model calculates ideal component targets, not a power-rated physical trap. It does not predict component Q, parasitics, loss, heating, voltage, bandwidth, feedpoint impedance, matching, efficiency, or radiation pattern." />}
 
       {antennaType === 'inverted-v' && <StepByStepHelp title="Build and tune an inverted-V" intro="Use this sequence to preserve equal sloping legs and the selected apex geometry while tuning the installed antenna. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the apex and endpoints', detail: 'Plan the apex height, endpoint locations, included angle, safe clearances, and access without treating the drawing as a support-height prescription.' },
@@ -412,6 +438,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             <NumberField label="Conductor outside diameter" tooltip="Use the actual outside diameter represented by the model. Insulated, bundled, cage, tapered, or unusual conductors need an appropriate equivalent diameter and may require electromagnetic modelling." value={Number(shownLoadedDipoleDiameter.toFixed(unitSystem === 'metric' ? 2 : 4))} min={unitSystem === 'metric' ? 0.01 : 0.0004} max={unitSystem === 'metric' ? 1_000 : 39.37} step={unitSystem === 'metric' ? 0.1 : 0.001} unit={unitSystem === 'metric' ? 'mm' : 'in'} help="Outside diameter used by the characteristic-impedance approximation." onChange={(value) => setLoadedDipoleConductorDiameterMillimetres(unitSystem === 'metric' ? value : value * 25.4)} />
           </fieldset>}
 
+          {antennaType === 'trap-dipole' && <fieldset className="loaded-antenna-editor trap-dipole-editor">
+            <legend>Two-band trap geometry</legend>
+            <div className="field"><span className="field-label-with-help"><label htmlFor="trap-upper-frequency">Upper design frequency</label><HelpTip label="Upper design frequency">This must be above the primary design frequency. The calculated parallel-LC resonance lies between the two design frequencies so the same trap is inductive on the lower band and capacitive on the upper band.</HelpTip></span><span className="input-with-unit"><input id="trap-upper-frequency" aria-label="Upper design frequency" type="number" min="0.001" step="0.001" value={trapUpperFrequencyText} onChange={(event) => setTrapUpperFrequencyText(event.target.value)} /><span>MHz</span></span><small>Choose the intended upper-band resonance; this is not the trap’s own resonant frequency.</small></div>
+            <NumberField label="Available total span" tooltip="Enter the complete physical endpoint-to-endpoint span. Each arm is half this value and is divided into an inner section and an outer section by its trap." value={Number(shownTrapDipoleSpan.toFixed(3))} min={unitSystem === 'metric' ? 0.02 : 0.066} max={unitSystem === 'metric' ? 20_000 : 65_617} step={unitSystem === 'metric' ? 0.1 : 0.25} unit={unitSystem === 'metric' ? 'm' : 'ft'} help="Complete span, divided into two identical physical arms." onChange={(value) => setTrapDipoleSpanMetres(unitSystem === 'metric' ? value : feetToMetres(value))} />
+            <NumberField label="Trap position from centre" tooltip="Measure the same distance from the feedpoint to each trap. The inner and outer wire sections must each remain shorter than the corrected quarter-wave reference on the upper frequency." value={Number(shownTrapPosition.toFixed(3))} min={unitSystem === 'metric' ? 0.01 : 0.033} max={Number((shownTrapDipoleSpan / 2).toFixed(3))} step={unitSystem === 'metric' ? 0.1 : 0.25} unit={unitSystem === 'metric' ? 'm' : 'ft'} help="Use the same position on both arms; moving the traps changes both required reactances." onChange={(value) => setTrapPositionMetres(unitSystem === 'metric' ? value : feetToMetres(value))} />
+            <NumberField label="Installed wire height" tooltip="The method models each arm as a single-wire transmission line above ground. Enter the planned average wire height. Sloping legs, uneven terrain, buildings, vegetation, and real soil require separate modelling or measurement." value={Number(shownTrapDipoleHeight.toFixed(3))} min={unitSystem === 'metric' ? 0.01 : 0.033} max={unitSystem === 'metric' ? 10_000 : 32_808} step={unitSystem === 'metric' ? 0.1 : 0.25} unit={unitSystem === 'metric' ? 'm' : 'ft'} help="Average model height above ground; tune only after final installation." onChange={(value) => setTrapDipoleHeightMetres(unitSystem === 'metric' ? value : feetToMetres(value))} />
+            <NumberField label="Conductor outside diameter" tooltip="Use the outside diameter represented by the model. Insulated, bundled, cage, tapered, or unusual conductors may require an equivalent diameter and electromagnetic modelling." value={Number(shownTrapDipoleDiameter.toFixed(unitSystem === 'metric' ? 2 : 4))} min={unitSystem === 'metric' ? 0.01 : 0.0004} max={unitSystem === 'metric' ? 1_000 : 39.37} step={unitSystem === 'metric' ? 0.1 : 0.001} unit={unitSystem === 'metric' ? 'mm' : 'in'} help="Outside diameter used by the single-wire characteristic-impedance approximation." onChange={(value) => setTrapDipoleConductorDiameterMillimetres(unitSystem === 'metric' ? value : value * 25.4)} />
+          </fieldset>}
+
           {antennaType === 'loaded-vertical' && <fieldset className="loaded-antenna-editor">
             <legend>Shortened geometry</legend>
             <NumberField label="Physical radiator height" tooltip="Enter the conductive length from the base feedpoint to the open end. It must be shorter than the corrected quarter-wave reference at the design frequency." value={Number(shownLoadedVerticalHeight.toFixed(3))} min={unitSystem === 'metric' ? 0.01 : 0.033} max={unitSystem === 'metric' ? 10_000 : 32_808} step={unitSystem === 'metric' ? 0.1 : 0.25} unit={unitSystem === 'metric' ? 'm' : 'ft'} help="Conductive base-to-tip length; support and unbonded hardware do not count." onChange={(value) => setLoadedVerticalHeightMetres(unitSystem === 'metric' ? value : feetToMetres(value))} />
@@ -464,7 +499,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" tooltip="This value is a planning assumption used only to show nominal transformed resistance. A real feedpoint also has reactance and changes with height, wire shape, ground, nearby objects, return path, frequency, and loss." value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}
             {antennaType === 'ocfd' && <NumberField label="Estimated OCFD feedpoint impedance" tooltip="This value is a resistance assumption used only for the nominal transformed-impedance display. The real feedpoint has resistance and reactance that vary with frequency, split, height, ground, wire geometry, and nearby conductors." value={estimatedOcfdImpedanceOhms} min={20} max={5000} step={10} unit="Ω" help="A nominal planning value; height, split, ground, and frequency change both resistance and reactance." onChange={setEstimatedOcfdImpedanceOhms} />}
             <NumberField label="Length correction factor" tooltip={lengthCorrectionTooltip} value={lengthCorrectionFactor} min={0.5} max={1.2} step={0.01} unit="ratio" help={`${recommendedFactor.toFixed(2)} is the default practical starting factor for this design; measure and tune after installation.`} onChange={setLengthCorrectionFactor} />
-            {antennaType !== 'loaded-dipole' && antennaType !== 'loaded-vertical' && <NumberField label="Extra length for trimming" tooltip={trimAllowanceTooltip} value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />}
+            {antennaType !== 'loaded-dipole' && antennaType !== 'loaded-vertical' && antennaType !== 'trap-dipole' && <NumberField label="Extra length for trimming" tooltip={trimAllowanceTooltip} value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />}
           </div>}
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
@@ -476,6 +511,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {calculation?.type === 'fan-dipole' && <FanDipoleDiagram elements={calculation.value.elements} unitSystem={unitSystem} />}
           {calculation?.type === 'doublet' && <DoubletDiagram legMetres={calculation.value.cutLegMetres} totalMetres={calculation.value.cutTotalMetres} feedlineMetres={calculation.value.balancedLineLengthMetres} feedlineImpedanceOhms={calculation.value.balancedLineImpedanceOhms} unitSystem={unitSystem} />}
           {calculation?.type === 'loaded-dipole' && <LoadedDipoleDiagram totalSpanMetres={calculation.value.totalSpanMetres} loadingPointFromCentreMetres={calculation.value.loadingPointFromCentreMetres} inductanceMicrohenries={calculation.value.inductanceMicrohenries} unitSystem={unitSystem} />}
+          {calculation?.type === 'trap-dipole' && <TrapDipoleDiagram totalSpanMetres={calculation.value.totalSpanMetres} trapPositionFromCentreMetres={calculation.value.trapPositionFromCentreMetres} inductanceMicrohenries={calculation.value.inductanceMicrohenries} capacitancePicofarads={calculation.value.capacitancePicofarads} trapResonanceMHz={calculation.value.trapResonanceMHz} unitSystem={unitSystem} />}
           {calculation?.type === 'inverted-v' && <InvertedVDiagram legMetres={calculation.value.legMetres} spanMetres={calculation.value.endpointSpanMetres} dropMetres={calculation.value.apexDropMetres} angleDegrees={includedAngleDegrees} unitSystem={unitSystem} />}
           {calculation?.type === 'efhw' && <EfhwDiagram radiatorMetres={calculation.value.radiatorMetres} transformerRatio={transformerRatio} unitSystem={unitSystem} />}
           {calculation?.type === 'ocfd' && <OcfdDiagram shortLegMetres={calculation.value.shortLegMetres} longLegMetres={calculation.value.longLegMetres} totalMetres={calculation.value.cutLengthMetres} feedpointPercent={feedpointPercentFromEnd} transformerRatio={transformerRatio} unitSystem={unitSystem} />}
@@ -512,16 +548,18 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         <article>
           <p className="eyebrow">Build and tune</p>
           <h3>A starting point, not a promise</h3>
-          <p>{calculation.type === 'moxon' ? 'Installation height, nearby objects, conductor construction, feed arrangement, and ground conditions shift resonance and the directional pattern. Build to the calculated geometry, install in the intended position, measure, and make small symmetrical adjustments.' : calculation.type === 'yagi' ? 'Scale every dimension together, preserve element alignment, and measure from element centre to element centre along the boom. Verify the feed match and pattern in the final mounting arrangement before transmitting.' : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical' ? 'The displayed inductance is a starting target for the entered idealized geometry. Build the coil with adjustment range, install the complete antenna and RF return system, measure at low power, and tune in small steps.' : 'Installation height, nearby objects, conductor construction, feed arrangement, and ground conditions shift resonance and impedance. Build long, install in the intended position, measure, and trim in small steps.'}</p>
+          <p>{calculation.type === 'moxon' ? 'Installation height, nearby objects, conductor construction, feed arrangement, and ground conditions shift resonance and the directional pattern. Build to the calculated geometry, install in the intended position, measure, and make small symmetrical adjustments.' : calculation.type === 'yagi' ? 'Scale every dimension together, preserve element alignment, and measure from element centre to element centre along the boom. Verify the feed match and pattern in the final mounting arrangement before transmitting.' : calculation.type === 'trap-dipole' ? 'The displayed inductance and capacitance are ideal targets for two matched traps. Measure each finished trap, install the complete antenna, tune at low power, and recheck both operating bands after every adjustment.' : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical' ? 'The displayed inductance is a starting target for the entered idealized geometry. Build the coil with adjustment range, install the complete antenna and RF return system, measure at low power, and tune in small steps.' : 'Installation height, nearby objects, conductor construction, feed arrangement, and ground conditions shift resonance and impedance. Build long, install in the intended position, measure, and trim in small steps.'}</p>
         </article>
         <article>
           <p className="eyebrow">Calculation</p>
           <h3>Traceable working</h3>
-          <p className="formula">{calculation.type === 'moxon' ? 'A–D = Cebik regression(log₁₀(d ÷ λ)) × λ' : calculation.type === 'yagi' ? 'Element lengths and spacings = NBS ratios × λ' : calculation.type === 'fan-dipole' ? 'Each pair: L = (c ÷ f) × ½ × correction factor' : calculation.type === 'doublet' ? 'Radiator L ≈ (c ÷ flow) × ½ · line phase = 360° × length ÷ (λ × VF)' : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical' ? 'Xload = Z₀[cot(βouter) − tan(βinner)] · L = Xload ÷ (2πf)' : 'L = (c ÷ f) × design fraction × correction factor'}</p>
+          <p className="formula">{calculation.type === 'moxon' ? 'A–D = Cebik regression(log₁₀(d ÷ λ)) × λ' : calculation.type === 'yagi' ? 'Element lengths and spacings = NBS ratios × λ' : calculation.type === 'fan-dipole' ? 'Each pair: L = (c ÷ f) × ½ × correction factor' : calculation.type === 'doublet' ? 'Radiator L ≈ (c ÷ flow) × ½ · line phase = 360° × length ÷ (λ × VF)' : calculation.type === 'trap-dipole' ? 'X₁, X₂ = Z₀[cot(βouter) − tan(βinner)] · f₀, L, C from parallel-LC reactance' : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical' ? 'Xload = Z₀[cot(βouter) − tan(βinner)] · L = Xload ÷ (2πf)' : 'L = (c ÷ f) × design fraction × correction factor'}</p>
           {calculation.type === 'moxon'
             ? <p>The constant-diameter regression is valid only from 0.00001 to 0.01 wavelengths. Dimensions are model starting points and do not include a trim allowance.</p>
             : calculation.type === 'yagi'
               ? <p>The NBS ratios are reflector 0.482λ, driven element 0.500λ, director 0.424λ, and 0.200λ spacing on each side of the driven element.</p>
+              : calculation.type === 'trap-dipole'
+                ? <p>The method solves the required positive lower-band and negative upper-band reactances for the entered geometry, then finds one ideal parallel-LC network with those reactances. Its resonance must fall between the design frequencies.</p>
               : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical'
                 ? <p>The published method treats each radiator arm as a single-wire transmission line and replaces the omitted electrical length with positive series reactance. It is a geometry-sensitive approximation, not a physical coil design or NEC solution.</p>
               : calculation.type === 'ground-mounted-vertical'
@@ -553,6 +591,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           <h3>Inductance alone does not describe the finished coil</h3>
           <p>Coil Q, series resistance, self-capacitance, self-resonant frequency, form material, weatherproofing, lead length, current, and voltage determine whether a physical coil is suitable. Shortening generally reduces bandwidth and can reduce efficiency. Verify resonance, match, common-mode current, heating, and voltage clearance in the complete installed system; use electromagnetic modelling or experienced technical review for critical designs.</p>
         </article>}
+        {calculation.type === 'trap-dipole' && <article className="caution-card">
+          <p className="eyebrow">Trap construction and power</p>
+          <h3>Ideal L and C values are not a power rating</h3>
+          <p>Real coils and capacitors add resistance, lead inductance, stray capacitance, tolerance, temperature drift, and weather exposure. Trap current and voltage can be substantial, while loss and heating affect efficiency and reliability. Measure and match both traps, provide mechanical and electrical safety margin, tune at low power, and verify both bands again at the intended power and duty cycle.</p>
+        </article>}
         {calculation.type === 'jpole' && <article className="caution-card">
           <p className="eyebrow">J-pole tuning and installation</p>
           <h3>The tap is part of the matching network</h3>
@@ -581,7 +624,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         <article className="provenance-card">
           <p className="eyebrow">Method and sources</p>
           <h3>Model {model.version}</h3>
-          <p>{calculation.type === 'moxon' ? 'The wavelength uses the exact SI speed of light in vacuum. Cebik’s regression converts frequency and constant conductor diameter into the A–E construction geometry.' : calculation.type === 'yagi' ? 'The wavelength uses the exact SI speed of light in vacuum. Dimensions reproduce the National Bureau of Standards three-element, 0.4-wavelength reference design at its documented diameter ratio.' : calculation.type === 'fan-dipole' ? 'Each wire pair is calculated as an independent corrected half-wave starting length. The model intentionally does not estimate mutual coupling or the parallel combination of installed impedances.' : calculation.type === 'doublet' ? 'The radiator uses a corrected half-wave starting length at the lowest selected frequency. Feedline phase uses physical length, selected velocity factor, and check frequency without inferring the unknown complex load.' : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical' ? 'The Birnbaum/Lopes single-wire transmission-line method calculates the series reactance replacing omitted radiator length, then converts reactance to an ideal inductance at the design frequency. The vertical uses the article’s stated vertical applicability without modelling the real ground or return system.' : 'The wavelength uses the exact SI speed of light in vacuum. Empirical factors provide practical wire-cutting estimates and remain adjustable for conductor and installation differences.'}</p>
+          <p>{calculation.type === 'moxon' ? 'The wavelength uses the exact SI speed of light in vacuum. Cebik’s regression converts frequency and constant conductor diameter into the A–E construction geometry.' : calculation.type === 'yagi' ? 'The wavelength uses the exact SI speed of light in vacuum. Dimensions reproduce the National Bureau of Standards three-element, 0.4-wavelength reference design at its documented diameter ratio.' : calculation.type === 'fan-dipole' ? 'Each wire pair is calculated as an independent corrected half-wave starting length. The model intentionally does not estimate mutual coupling or the parallel combination of installed impedances.' : calculation.type === 'doublet' ? 'The radiator uses a corrected half-wave starting length at the lowest selected frequency. Feedline phase uses physical length, selected velocity factor, and check frequency without inferring the unknown complex load.' : calculation.type === 'trap-dipole' ? 'The Birnbaum/Lopes method calculates the two reactances required by the entered wire geometry, then solves the parallel-LC network that supplies those reactances. The result reproduces the published worked example without claiming the finished antenna’s impedance or performance.' : calculation.type === 'loaded-dipole' || calculation.type === 'loaded-vertical' ? 'The Birnbaum/Lopes single-wire transmission-line method calculates the series reactance replacing omitted radiator length, then converts reactance to an ideal inductance at the design frequency. The vertical uses the article’s stated vertical applicability without modelling the real ground or return system.' : 'The wavelength uses the exact SI speed of light in vacuum. Empirical factors provide practical wire-cutting estimates and remain adjustable for conductor and installation differences.'}</p>
           <ul>{model.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul>
           <small>Model ID: {model.id} · Reviewed {model.reviewedOn}</small>
         </article>
@@ -604,6 +647,7 @@ type Calculation = NonNullable<
   | { type: 'fan-dipole'; value: ReturnType<typeof calculateFanDipole> }
   | { type: 'doublet'; value: ReturnType<typeof calculateDoublet> }
   | { type: 'loaded-dipole'; value: ReturnType<typeof calculateLoadedDipole> }
+  | { type: 'trap-dipole'; value: ReturnType<typeof calculateTrapDipole> }
   | { type: 'inverted-v'; value: ReturnType<typeof calculateInvertedV> }
   | { type: 'efhw'; value: ReturnType<typeof calculateEfhw> }
   | { type: 'ocfd'; value: ReturnType<typeof calculateOcfd> }
@@ -623,6 +667,7 @@ function largestAntennaDimension(calculation: Calculation, loopShape: LoopShape)
   if (calculation.type === 'fan-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.longestSpanMetres });
   if (calculation.type === 'doublet') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutTotalMetres });
   if (calculation.type === 'loaded-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.totalSpanMetres });
+  if (calculation.type === 'trap-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.totalSpanMetres });
   if (calculation.type === 'inverted-v') return calculateLargestAntennaDimension({ shape: 'inverted-v', endpointSpanMetres: calculation.value.endpointSpanMetres, legMetres: calculation.value.legMetres });
   if (calculation.type === 'efhw') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.radiatorMetres });
   if (calculation.type === 'ocfd') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutLengthMetres });
@@ -653,6 +698,9 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { ca
   } else if (calculation.type === 'loaded-dipole') {
     headline = 'Build two equal series loading coils'; primary = `${calculation.value.inductanceMicrohenries.toFixed(2)} µH each`;
     details = [['Physical span', formatLength(calculation.value.totalSpanMetres, unitSystem)], ['Centre to each coil', formatLength(calculation.value.loadingPointFromCentreMetres, unitSystem)], ['Outer wire after each coil', formatLength(calculation.value.outerSectionMetres, unitSystem)], ['Required coil reactance', `${calculation.value.requiredReactanceOhms.toFixed(0)} Ω`], ['Physical shortening', `${calculation.value.shorteningPercent.toFixed(1)}% per arm`]];
+  } else if (calculation.type === 'trap-dipole') {
+    headline = 'Build two matched parallel-LC traps'; primary = `${calculation.value.inductanceMicrohenries.toFixed(2)} µH ∥ ${calculation.value.capacitancePicofarads.toFixed(1)} pF each`;
+    details = [['Physical span', formatLength(calculation.value.totalSpanMetres, unitSystem)], ['Centre to each trap', formatLength(calculation.value.trapPositionFromCentreMetres, unitSystem)], ['Outer wire after each trap', formatLength(calculation.value.outerSectionMetres, unitSystem)], ['Trap parallel resonance', `${calculation.value.trapResonanceMHz.toFixed(3)} MHz`], [`Reactance at ${calculation.value.lowerFrequencyMHz.toFixed(3)} MHz`, `+j${calculation.value.lowerRequiredReactanceOhms.toFixed(0)} Ω`], [`Reactance at ${calculation.value.upperFrequencyMHz.toFixed(3)} MHz`, `−j${Math.abs(calculation.value.upperRequiredReactanceOhms).toFixed(0)} Ω`]];
   } else if (calculation.type === 'inverted-v') {
     headline = 'Cut two equal sloping legs'; primary = `${formatLength(calculation.value.legMetres, unitSystem)} each`;
     details = [['Endpoint span', formatLength(calculation.value.endpointSpanMetres, unitSystem)], ['Vertical drop', formatLength(calculation.value.apexDropMetres, unitSystem)]];
@@ -687,7 +735,7 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { ca
     headline = 'Cut one continuous loop'; primary = formatLength(calculation.value.perimeterMetres, unitSystem);
     details = [[loopShape === 'circle' ? 'Diameter' : 'Each side', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Resonant perimeter', formatLength(calculation.value.resonantLengthMetres, unitSystem)]];
   }
-  details.push([calculation.type === 'fan-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
+  details.push([calculation.type === 'trap-dipole' ? 'Lower-band free-space wavelength' : calculation.type === 'fan-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
   return <div className="result-summary" aria-live="polite"><p>{headline}</p><strong>{primary}</strong><dl>{details.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}</dl></div>;
 }
 

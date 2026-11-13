@@ -123,6 +123,36 @@ test('plans loaded dipoles and verticals with adjustable coil positions', async 
   await expect(page.getByText('Plan the RF return system')).toBeVisible();
 });
 
+test('designs two matched parallel-LC traps for a two-band dipole', async ({ page }) => {
+  await page.getByRole('button', { name: /Trap dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency', exact: true }).fill('10.100');
+  await page.getByRole('spinbutton', { name: 'Upper design frequency' }).fill('14.050');
+  await page.getByRole('spinbutton', { name: 'Available total span' }).fill('12.192');
+  await page.getByRole('spinbutton', { name: 'Trap position from centre' }).fill('4.2672');
+  await page.getByRole('spinbutton', { name: 'Installed wire height' }).fill('6.096');
+  await page.getByRole('spinbutton', { name: 'Conductor outside diameter' }).fill('3.175');
+
+  await expect(page.getByRole('heading', { name: 'Two-band parallel-LC trap dipole' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned two-band parallel-LC trap dipole/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build two matched parallel-LC traps');
+  await expect(page.locator('.result-summary')).toContainText('2.93 µH ∥ 52.7 pF each');
+  await expect(page.locator('.result-summary')).toContainText('12.811 MHz');
+  await expect(page.locator('.result-summary')).toContainText('+j491 Ω');
+  await expect(page.locator('.result-summary')).toContainText('−j1274 Ω');
+  await page.getByLabel('Help: Upper design frequency').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Upper design frequency' })).toContainText('resonance lies between the two design frequencies');
+  await expect(page.getByText('Build and measure a matched pair')).toBeHidden();
+  await page.getByText('Build and tune a two-band trap dipole').click();
+  await expect(page.getByText('Build and measure a matched pair')).toBeVisible();
+  await expect(page.locator('.caution-card')).toContainText('Ideal L and C values are not a power rating');
+
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Available total span' })).toHaveValue('40');
+  await expect(page.getByRole('spinbutton', { name: 'Trap position from centre' })).toHaveValue('14');
+  await expect(page.getByRole('spinbutton', { name: 'Installed wire height' })).toHaveValue('20');
+  await expect(page.getByRole('spinbutton', { name: 'Conductor outside diameter' })).toHaveValue('0.125');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
@@ -1111,7 +1141,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
 
 test('has no horizontal overflow on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole('button', { name: /Loaded vertical/ }).click();
+  await page.getByRole('button', { name: /Trap dipole/ }).click();
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const loadedDimensions = await page.evaluate(() => ({
     viewport: window.innerWidth,
