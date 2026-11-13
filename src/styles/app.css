@@ -4866,12 +4866,14 @@ select {
 }
 
 .small-loop-layout,
-.collinear-layout {
+.collinear-layout,
+.quad-layout {
   grid-template-columns: 1fr;
 }
 
 .small-loop-layout .input-panel,
-.collinear-layout .input-panel {
+.collinear-layout .input-panel,
+.quad-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4880,7 +4882,9 @@ select {
 .small-loop-layout .input-panel > .field,
 .small-loop-layout .small-loop-editor,
 .collinear-layout .input-panel > .field,
-.collinear-layout .collinear-editor {
+.collinear-layout .collinear-editor,
+.quad-layout .input-panel > .field,
+.quad-layout .quad-editor {
   margin: 0;
 }
 
@@ -4889,12 +4893,17 @@ select {
 .small-loop-layout .validation-message,
 .collinear-layout .collinear-editor,
 .collinear-layout .result-summary,
-.collinear-layout .validation-message {
+.collinear-layout .validation-message,
+.quad-layout .quad-editor,
+.quad-layout .advanced-fields,
+.quad-layout .result-summary,
+.quad-layout .validation-message {
   grid-column: 1 / -1;
 }
 
 .small-loop-layout .small-loop-editor,
-.collinear-layout .collinear-editor {
+.collinear-layout .collinear-editor,
+.quad-layout .quad-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5113,7 +5122,8 @@ select {
 .doublet-system-editor,
 .loaded-antenna-editor,
 .small-loop-editor,
-.collinear-editor {
+.collinear-editor,
+.quad-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5126,7 +5136,8 @@ select {
 .doublet-system-editor legend,
 .loaded-antenna-editor legend,
 .small-loop-editor legend,
-.collinear-editor legend {
+.collinear-editor legend,
+.quad-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5137,6 +5148,10 @@ select {
 
 .collinear-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quad-editor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .loaded-antenna-editor {
@@ -5150,7 +5165,8 @@ select {
 .doublet-system-editor > .field,
 .loaded-antenna-editor > .field,
 .small-loop-editor > .field,
-.collinear-editor > .field {
+.collinear-editor > .field,
+.quad-editor > .field {
   margin: 0;
 }
 
@@ -5331,6 +5347,57 @@ path.loading-coil {
   fill: var(--text-primary);
   font-size: 12px;
   font-weight: 700;
+}
+
+.quad-boom line,
+.quad-spreaders line {
+  stroke: var(--text-muted);
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.quad-boom circle {
+  fill: var(--bg-surface);
+  stroke: var(--text-muted);
+  stroke-width: 3;
+}
+
+.quad-driven path,
+.quad-reflector path {
+  fill: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 7;
+}
+
+.quad-driven path {
+  stroke: var(--tl-coral);
+}
+
+.quad-reflector path {
+  stroke: var(--accent-technical);
+}
+
+.quad-feedpoint circle {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.quad-feedpoint text,
+.quad-forward text {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.quad-forward line,
+.quad-forward path {
+  fill: var(--tl-coral);
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
 }
 
 .coil-construction-panel {
@@ -6458,7 +6525,9 @@ path.loading-coil {
   .small-loop-layout .input-panel,
   .small-loop-layout .small-loop-editor,
   .collinear-layout .input-panel,
-  .collinear-layout .collinear-editor {
+  .collinear-layout .collinear-editor,
+  .quad-layout .input-panel,
+  .quad-layout .quad-editor {
     grid-template-columns: 1fr;
   }
 
@@ -6738,7 +6807,8 @@ path.loading-coil {
   .doublet-system-editor,
   .loaded-antenna-editor,
   .small-loop-editor,
-  .collinear-editor {
+  .collinear-editor,
+  .quad-editor {
     grid-template-columns: 1fr;
   }
 

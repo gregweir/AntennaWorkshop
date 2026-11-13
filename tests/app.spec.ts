@@ -281,6 +281,40 @@ test('plans an equal-section phased wire collinear without inventing gain or mat
   await expect(page.locator('.result-summary')).toContainText('33 ft 8.625 in each');
 });
 
+test('plans a two-element cubical quad without inventing directional performance', async ({ page }) => {
+  await page.getByRole('button', { name: /Cubical quad/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Two-element cubical quad' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Driven-to-reflector spacing' })).toHaveValue('0.2');
+  await expect(page.getByLabel('Cubical quad polarization', { exact: true })).toHaveValue('horizontal');
+  await expect(page.getByRole('img', { name: /Dimensioned two-element diamond cubical quad/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build one driven loop and one 5% larger reflector');
+  await expect(page.locator('.result-summary')).toContainText('22.111 m + 23.217 m');
+  await expect(page.locator('.result-summary')).toContainText('Driven-loop side5.528 m');
+  await expect(page.locator('.result-summary')).toContainText('Driven-to-reflector boom spacing4.222 m');
+  await expect(page.locator('.quad-feedpoint')).toContainText('horizontal feedpoint');
+  await expect(page.locator('.quad-forward')).toContainText('Forward direction');
+
+  await expect(page.getByText('Choose and model element spacing')).toBeHidden();
+  await page.getByText('Build and commission a two-element cubical quad').click();
+  await expect(page.getByText('Choose and model element spacing')).toBeVisible();
+  await page.getByLabel('Help: Cubical quad polarization').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Cubical quad polarization' })).toContainText('bottom corner produces horizontal polarization');
+
+  await page.getByRole('spinbutton', { name: 'Driven-to-reflector spacing' }).fill('0.25');
+  await expect(page.locator('.result-summary')).toContainText('5.278 m');
+  await page.getByLabel('Cubical quad polarization', { exact: true }).selectOption('vertical');
+  await expect(page.locator('.quad-feedpoint')).toContainText('vertical feedpoint');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Extra loop length for trimming' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Loop dimensions alone do not define the finished beam' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('arrl-two-element-cubical-quad');
+
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.locator('.result-summary')).toContainText('18 ft 1.625 in');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
