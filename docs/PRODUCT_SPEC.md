@@ -76,6 +76,8 @@ The axial-mode helix guide must calculate circumference, diameter, turn spacing,
 
 The discone guide must use the sourced lower-frequency cone-slant and disc-diameter equations, accept a 25–40° cone half-angle, and derive cone height and base diameter geometrically. Radial disc and cone constructions must expose whole-number element counts, individual cut lengths, and total conductor while explaining that radial structures only approximate solid surfaces. The feed guidance must keep the disc-to-cone separation as short as practical without inventing a universal gap dimension. The workflow must not infer an upper-frequency limit, bandwidth, impedance, VSWR, gain, elevation pattern, exposure result, or safe power rating.
 
+The log-periodic dipole-array guide must implement Carrel’s τ element scaling, σ centre-spacing definition, apex-angle relationship, and structural-bandwidth equation. It must distinguish requested operating bandwidth from structural bandwidth through an explicit active-region factor, round the element count up, and expose every full cut length, half length, next-element spacing, boom position, half-wave reference, and alternating balanced-boom connection. It must show the short-element feed end and forward direction while treating the boom line, transition, termination, conductor geometry, match, gain, pattern, measured bandwidth, exposure result, and safe power rating as separate modelling and verification work.
+
 J-pole and Slim Jim guides must explain the construction-medium correction factor, parallel matching geometry, paired coax-tap adjustment, feedline choking, and installed vertical measurement. Slim Jim guidance must additionally preserve the interrupted folded side and gap. Neither guide may promise feedpoint impedance, bandwidth, pattern, or a universal tap or gap position from a low-SWR result.
 
 Quarter-wave vertical guidance must distinguish a ground-mounted RF radial field from equal elevated counterpoise radials. The ground-mounted workflow must cover radial count and length, the radiator-only trim allowance, base and feed connections, and separate lightning and electrical-safety grounding. The elevated ground-plane workflow must cover equal radial count, symmetrical slope, shared cut allowance, coax routing, and common-mode control. Neither may promise impedance, efficiency, matching, or installed pattern.
@@ -103,7 +105,7 @@ Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon
 
 The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
-Advanced families later include other multiband designs, detailed small-loop loss and component modelling, detailed collinear-array, cubical-quad, helical, and discone modelling, log-periodics, receive antennas, detailed trap and capacitor construction, and matching networks.
+Advanced families later include other multiband designs, detailed small-loop loss and component modelling, detailed collinear-array, cubical-quad, helical, discone, and log-periodic modelling, receive antennas, detailed trap and capacitor construction, and matching networks.
 
 ## RF exposure
 

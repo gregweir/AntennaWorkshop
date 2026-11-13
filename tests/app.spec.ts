@@ -398,6 +398,50 @@ test('plans a radial discone without inventing an upper usable frequency', async
   await expect(page.locator('.result-summary')).toContainText('1 ft 8.5 in cone slant');
 });
 
+test('plans a log-periodic element schedule without predicting finished performance', async ({ page }) => {
+  await page.getByRole('button', { name: /Log-periodic/ }).click();
+  await page.locator('select.band-select').selectOption('2m');
+  await expect(page.getByRole('spinbutton', { name: 'Lower operating frequency' })).toHaveValue('144.0');
+  await expect(page.getByRole('spinbutton', { name: 'Upper operating frequency' })).toHaveValue('148.0');
+
+  await expect(page.getByRole('heading', { name: 'Log-periodic dipole array' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Tau length scale' })).toHaveValue('0.92');
+  await expect(page.getByRole('spinbutton', { name: 'Sigma spacing factor' })).toHaveValue('0.12');
+  await expect(page.getByRole('img', { name: /Dimensioned log-periodic dipole array/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build and alternately connect 6 scaled dipoles');
+  await expect(page.locator('.result-summary')).toContainText('1.065 m element-centre span');
+  await expect(page.locator('.result-summary')).toContainText('Included apex angle18.9°');
+  await expect(page.locator('.result-summary')).toContainText('Smallest-element half-wave reference218.486 MHz');
+  await expect(page.locator('.result-summary')).toContainText('Predicted impedance, gain, and SWRNot inferred · model and measure');
+  await expect(page.getByRole('table')).toContainText('A-left / B-right');
+  await expect(page.getByRole('table')).toContainText('B-left / A-right');
+  await expect(page.getByRole('row', { name: /1 1.067 m 53.3 cm 25.0 cm 0.0 cm 144.000 MHz A-left/ })).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Log-periodic design advisories' })).toHaveCount(0);
+
+  await page.getByRole('spinbutton', { name: 'Upper operating frequency' }).fill('450');
+  await expect(page.locator('select.band-select')).toHaveValue('custom');
+  await page.locator('select.band-select').selectOption('2m');
+
+  await expect(page.getByText('Alternate the balanced connections')).toBeHidden();
+  await page.getByText('Build and commission a log-periodic dipole array').click();
+  await expect(page.getByText('Alternate the balanced connections')).toBeVisible();
+  await page.getByLabel('Help: Sigma spacing factor').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Sigma spacing factor' })).toContainText('centre spacing to the next smaller dipole');
+
+  await page.getByRole('spinbutton', { name: 'Sigma spacing factor' }).fill('0.04');
+  await expect(page.getByRole('complementary', { name: 'Log-periodic design advisories' })).toContainText('below σ = 0.05');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Active-region bandwidth factor' })).toHaveValue('1.46');
+  await expect(page.getByRole('spinbutton', { name: 'Extra element length for trimming' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'A scaled element schedule is not a finished wideband feed system' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('carrel-log-periodic-geometry');
+
+  await page.getByRole('spinbutton', { name: 'Sigma spacing factor' }).fill('0.12');
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.locator('.result-summary')).toContainText('3 ft 5.875 in element-centre span');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

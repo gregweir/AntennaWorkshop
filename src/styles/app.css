@@ -4869,7 +4869,8 @@ select {
 .collinear-layout,
 .quad-layout,
 .helix-layout,
-.discone-layout {
+.discone-layout,
+.lpda-layout {
   grid-template-columns: 1fr;
 }
 
@@ -4877,7 +4878,8 @@ select {
 .collinear-layout .input-panel,
 .quad-layout .input-panel,
 .helix-layout .input-panel,
-.discone-layout .input-panel {
+.discone-layout .input-panel,
+.lpda-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4892,7 +4894,9 @@ select {
 .helix-layout .input-panel > .field,
 .helix-layout .helix-editor,
 .discone-layout .input-panel > .field,
-.discone-layout .discone-editor {
+.discone-layout .discone-editor,
+.lpda-layout .input-panel > .field,
+.lpda-layout .lpda-editor {
   margin: 0;
 }
 
@@ -4915,7 +4919,12 @@ select {
 .discone-layout .advanced-fields,
 .discone-layout .result-summary,
 .discone-layout .discone-advisory,
-.discone-layout .validation-message {
+.discone-layout .validation-message,
+.lpda-layout .lpda-editor,
+.lpda-layout .advanced-fields,
+.lpda-layout .result-summary,
+.lpda-layout .lpda-advisory,
+.lpda-layout .validation-message {
   grid-column: 1 / -1;
 }
 
@@ -4923,7 +4932,8 @@ select {
 .collinear-layout .collinear-editor,
 .quad-layout .quad-editor,
 .helix-layout .helix-editor,
-.discone-layout .discone-editor {
+.discone-layout .discone-editor,
+.lpda-layout .lpda-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5145,7 +5155,8 @@ select {
 .collinear-editor,
 .quad-editor,
 .helix-editor,
-.discone-editor {
+.discone-editor,
+.lpda-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5161,7 +5172,8 @@ select {
 .collinear-editor legend,
 .quad-editor legend,
 .helix-editor legend,
-.discone-editor legend {
+.discone-editor legend,
+.lpda-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5186,6 +5198,10 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.lpda-editor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .loaded-antenna-editor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -5200,7 +5216,8 @@ select {
 .collinear-editor > .field,
 .quad-editor > .field,
 .helix-editor > .field,
-.discone-editor > .field {
+.discone-editor > .field,
+.lpda-editor > .field {
   margin: 0;
 }
 
@@ -5488,14 +5505,16 @@ path.loading-coil {
 }
 
 .helix-advisory ul,
-.discone-advisory ul {
+.discone-advisory ul,
+.lpda-advisory ul {
   margin: 0.55rem 0 0;
   padding-left: 1.2rem;
   color: var(--text-secondary);
 }
 
 .helix-advisory li + li,
-.discone-advisory li + li {
+.discone-advisory li + li,
+.lpda-advisory li + li {
   margin-top: 0.35rem;
 }
 
@@ -5541,6 +5560,102 @@ path.loading-coil {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 800;
+}
+
+.lpda-envelope path {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-dasharray: 6 5;
+  stroke-width: 1.5;
+}
+
+.lpda-envelope text,
+.lpda-beam text,
+.lpda-elements text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.lpda-boom line {
+  stroke: var(--accent-technical);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.lpda-elements line {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.lpda-elements circle {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 1.5;
+}
+
+.lpda-beam line,
+.lpda-beam path {
+  fill: var(--accent-technical);
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.lpda-schedule {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.lpda-schedule h3,
+.lpda-schedule p {
+  margin: 0;
+}
+
+.lpda-schedule > p {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.lpda-schedule .table-scroll {
+  max-width: 100%;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.lpda-schedule table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  background: var(--bg-surface);
+  font-size: 0.72rem;
+}
+
+.lpda-schedule th,
+.lpda-schedule td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.lpda-schedule thead th {
+  position: sticky;
+  top: 0;
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  font-family: var(--font-mono);
+}
+
+.lpda-schedule tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 .coil-construction-panel {
@@ -6674,7 +6789,9 @@ path.loading-coil {
   .helix-layout .input-panel,
   .helix-layout .helix-editor,
   .discone-layout .input-panel,
-  .discone-layout .discone-editor {
+  .discone-layout .discone-editor,
+  .lpda-layout .input-panel,
+  .lpda-layout .lpda-editor {
     grid-template-columns: 1fr;
   }
 
@@ -6957,7 +7074,8 @@ path.loading-coil {
   .collinear-editor,
   .quad-editor,
   .helix-editor,
-  .discone-editor {
+  .discone-editor,
+  .lpda-editor {
     grid-template-columns: 1fr;
   }
 
