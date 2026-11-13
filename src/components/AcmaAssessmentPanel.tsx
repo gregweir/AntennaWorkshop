@@ -6,14 +6,17 @@
  */
 
 import { useMemo, useState } from 'react';
-import { ACMA_ASSESSMENT_MODEL, assessAcmaStation, type AcmaStationType } from '../calculators/acmaAssessment';
+import { ACMA_ASSESSMENT_MODEL, assessAcmaStation, type AcmaAssessmentHandoff, type AcmaAssessmentInput, type AcmaStationType } from '../calculators/acmaAssessment';
 import { feetToMetres, metresToFeet, type UnitSystem } from '../lib/units';
 import { AcmaGatewayDiagram } from './AcmaGatewayDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
-interface Props { unitSystem: UnitSystem; }
+interface Props {
+  unitSystem: UnitSystem;
+  onCreateRecord?: (handoff: AcmaAssessmentHandoff) => void;
+}
 
-export function AcmaAssessmentPanel({ unitSystem }: Props) {
+export function AcmaAssessmentPanel({ unitSystem, onCreateRecord }: Props) {
   const [stationType, setStationType] = useState<AcmaStationType>('fixed');
   const [averagePower, setAveragePower] = useState(100);
   const [antennasInaccessible, setAntennasInaccessible] = useState(true);
@@ -22,11 +25,20 @@ export function AcmaAssessmentPanel({ unitSystem }: Props) {
   const [simultaneousFrequencies, setSimultaneousFrequencies] = useState(false);
   const [multipleStations, setMultipleStations] = useState(false);
   const displayedHeight = unitSystem === 'metric' ? lowestBaseHeightMetres : metresToFeet(lowestBaseHeightMetres);
+  const input = useMemo<AcmaAssessmentInput>(() => ({
+    stationType,
+    averageTotalPowerWatts: averagePower,
+    everyAntennaInaccessibleToPublic: antennasInaccessible,
+    lowestAntennaBaseHeightMetres: lowestBaseHeightMetres,
+    averageTotalEirpWatts: averageEirp,
+    simultaneousMultipleFrequencies: simultaneousFrequencies,
+    multipleStationsAtSite: multipleStations
+  }), [antennasInaccessible, averageEirp, averagePower, lowestBaseHeightMetres, multipleStations, simultaneousFrequencies, stationType]);
   const result = useMemo(() => {
     try {
-      return assessAcmaStation({ stationType, averageTotalPowerWatts: averagePower, everyAntennaInaccessibleToPublic: antennasInaccessible, lowestAntennaBaseHeightMetres: lowestBaseHeightMetres, averageTotalEirpWatts: averageEirp, simultaneousMultipleFrequencies: simultaneousFrequencies, multipleStationsAtSite: multipleStations });
+      return assessAcmaStation(input);
     } catch { return null; }
-  }, [antennasInaccessible, averageEirp, averagePower, lowestBaseHeightMetres, multipleStations, simultaneousFrequencies, stationType]);
+  }, [input]);
 
   return <section className="acma-assessment-section exposure-screen-section" aria-labelledby="acma-assessment-heading">
     <div className="section-heading"><div><p className="eyebrow">Australia · class-licence gateway</p><h3 id="acma-assessment-heading">Amateur station EME assessment path</h3></div><span className="model-badge">Model {ACMA_ASSESSMENT_MODEL.version}</span></div>
@@ -59,6 +71,7 @@ export function AcmaAssessmentPanel({ unitSystem }: Props) {
       </div>
       {(result.simultaneousFrequencyAssessmentRequired || result.wholeSiteAssessmentRelevant) && <div className="screen-limitations"><p className="eyebrow">Additional applicable conditions</p>{result.simultaneousFrequencyAssessmentRequired && <p><strong>Simultaneous frequencies:</strong> operation must meet the multiple-frequency requirements in RPS S-1 section 3.</p>}{result.wholeSiteAssessmentRelevant && <p><strong>Shared site:</strong> the licence provides a documented whole-site measurement or calculation route, but this gateway does not perform or validate it.</p>}</div>}
       <div className="screen-limitations"><p className="eyebrow">Meaning and records</p><p><strong>The public exposure condition applies on both branches.</strong> A low-risk station may use a qualifying measurement or calculation document for the clause 3 rebuttable presumption; this gateway does not create that evidence. Higher-risk records include a current declaration, assessor name and qualification, assessment date, measurements or calculations, and station power, gain, size, tilt, manufacturer, model, emission mode, location, antenna type, and height. Changed declaration information requires a new declaration.</p></div>
+      {onCreateRecord && <div className="acma-record-handoff" role="note"><div><p className="eyebrow">Continue without re-entering facts</p><h4>{result.higherRiskMeasurementRequired ? 'Begin the assessment worksheet' : 'Document the gateway inputs'}</h4><p>This starts a new unsaved draft and copies only the entered station facts and gateway model provenance. It does not choose an assessment route or standard, supply evidence, or make a declaration.</p></div><button type="button" onClick={() => onCreateRecord({ input, result, transferredAt: new Date().toISOString() })}>{result.higherRiskMeasurementRequired ? 'Start assessment record' : 'Document these station inputs'}</button></div>}
       <div className="screen-sources"><p className="eyebrow">Official source</p><h4>{ACMA_ASSESSMENT_MODEL.sourceRevision}</h4><ul><li><a href={ACMA_ASSESSMENT_MODEL.source.url} target="_blank" rel="noreferrer">{ACMA_ASSESSMENT_MODEL.source.title}</a></li><li><a href="https://www.arpansa.gov.au/regulation-and-licensing/regulatory-publications/radiation-protection-series/codes-and-standards/rpss-1" target="_blank" rel="noreferrer">ARPANSA RPS S-1 (Rev. 1)</a></li></ul><small>Model ID: {ACMA_ASSESSMENT_MODEL.id} · Reviewed {ACMA_ASSESSMENT_MODEL.reviewedOn}</small></div>
     </>}
   </section>;

@@ -5,10 +5,10 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useRef, useState } from 'react';
-import { ACMA_ASSESSMENT_MODEL } from '../calculators/acmaAssessment';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ACMA_ASSESSMENT_MODEL, type AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
 import { ACMA_ASSESSMENT_ROUTES, ACMA_ASSESSMENT_STANDARDS, evaluateAcmaEvidence } from '../calculators/acmaEvidence';
-import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
+import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, createAcmaAssessmentRecordFromHandoff, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { AcmaAssessmentPrintReport } from './AcmaAssessmentPrintReport';
 import { AcmaStationChangePanel } from './AcmaStationChangePanel';
@@ -26,12 +26,22 @@ function fieldLabel(field: string) {
   return field.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-export function AcmaAssessmentRecordPanel() {
+interface Props {
+  incomingAssessment?: AcmaAssessmentHandoff | null;
+  onAssessmentConsumed?: () => void;
+}
+
+export function AcmaAssessmentRecordPanel({ incomingAssessment, onAssessmentConsumed }: Props) {
   const initialRecords = useMemo(() => loadAcmaAssessmentRecords(window.localStorage), []);
   const [records, setRecords] = useState(initialRecords);
-  const [record, setRecord] = useState<AcmaAssessmentRecord>(() => initialRecords[0] ?? newRecord());
-  const [message, setMessage] = useState('');
+  const [record, setRecord] = useState<AcmaAssessmentRecord>(() => incomingAssessment
+    ? createAcmaAssessmentRecordFromHandoff(crypto.randomUUID(), new Date().toISOString(), incomingAssessment)
+    : initialRecords[0] ?? newRecord());
+  const [message, setMessage] = useState(incomingAssessment ? 'Gateway inputs transferred into a new unsaved draft' : '');
   const importInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (incomingAssessment) onAssessmentConsumed?.();
+  }, [incomingAssessment, onAssessmentConsumed]);
   const gaps = acmaRecordRequiredGaps(record);
   const evidenceReadiness = evaluateAcmaEvidence(record);
   const selectedRoute = ACMA_ASSESSMENT_ROUTES.find((route) => route.id === record.assessmentRoute);

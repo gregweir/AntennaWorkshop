@@ -6,6 +6,7 @@
  */
 
 import { isAcmaStationChange, type AcmaStationChange } from './acmaStationChanges';
+import type { AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
 
 export const ACMA_RECORD_LIBRARY_KEY = 'radiobook:antenna-workshop:acma-records:v1';
 export const ACMA_RECORD_VERSION = 4 as const;
@@ -137,6 +138,45 @@ export function createAcmaAssessmentRecord(id: string, updatedAt: string): AcmaA
     emissionMode: '', assessorName: '', assessorQualification: '', assessmentDate: '', assessmentMethod: '',
     measurementsAndCalculations: '', agentUsed: false, agentAgreementReference: '', declarationMade: false,
     ...evidenceDefaults, additionalNotes: '', stationChanges: [], revisions: []
+  };
+}
+
+export function createAcmaAssessmentRecordFromHandoff(id: string, updatedAt: string, handoff: AcmaAssessmentHandoff): AcmaAssessmentRecord {
+  const { input, result } = handoff;
+  const stationType = input.stationType === 'fixed' ? 'Fixed / non-mobile station' : 'Mobile station';
+  const accessibility = input.everyAntennaInaccessibleToPublic
+    ? 'Gateway input: every antenna was marked inaccessible to the general public.'
+    : 'Gateway input: not every antenna was marked inaccessible to the general public.';
+  const simultaneousFrequencyMethod = input.simultaneousMultipleFrequencies
+    ? 'Gateway input indicates simultaneous multiple-frequency operation; RPS S-1 section 3 treatment remains to be documented.'
+    : 'Gateway input indicates simultaneous multiple-frequency operation was not selected; confirm this against the installed station.';
+  const sharedSite = input.multipleStationsAtSite
+    ? 'Gateway input indicates more than one station at the site; any whole-site treatment remains to be documented.'
+    : 'Gateway input indicates more than one station at the site was not selected; confirm the site inventory.';
+  const branch = result.higherRiskMeasurementRequired
+    ? 'The gateway found no clause 3 low-risk path. Clause 4 assessment work and the clause 6 record package remain to be completed and reviewed.'
+    : `The gateway identified the ${result.lowRiskPath ?? 'low-risk'} clause 3 path. The public-exposure condition still applies, and this transfer is not compliance evidence.`;
+
+  return {
+    ...createAcmaAssessmentRecord(id, updatedAt),
+    antennaHeight: `${input.lowestAntennaBaseHeightMetres} m base height of lowest antenna (gateway input)`,
+    powerLevel: `${input.averageTotalPowerWatts} W average total power supplied to all antennas (gateway input)`,
+    operatingConditions: [
+      'Transferred gateway inputs only — these are not assessed operating conditions.',
+      `Station type: ${stationType}`,
+      `Average total power supplied to all antennas: ${input.averageTotalPowerWatts} W`,
+      accessibility,
+      `Base height of lowest antenna: ${input.lowestAntennaBaseHeightMetres} m`,
+      `Average total EIRP in any direction: ${input.averageTotalEirpWatts} W EIRP`,
+      sharedSite
+    ].join('\n'),
+    simultaneousFrequencyMethod,
+    additionalNotes: [
+      `Gateway transfer time: ${handoff.transferredAt}`,
+      `Gateway model: ${result.modelId} version ${result.modelVersion}`,
+      branch,
+      'Only gateway inputs and model provenance were transferred. Assessment route, standard, scope, method, assessor details, measurements, calculations, conclusions, and declaration remain deliberately blank.'
+    ].join('\n')
   };
 }
 

@@ -25,6 +25,7 @@ import { ArpansaReferencePanel } from './ArpansaReferencePanel';
 import { AcmaAssessmentPanel } from './AcmaAssessmentPanel';
 import { AcmaAssessmentRecordPanel } from './AcmaAssessmentRecordPanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
+import type { AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -61,6 +62,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [environment, setEnvironment] = useState<ExposureEnvironment>('uncontrolled');
   const [view, setView] = useState<ExposureView>(incomingSource ? 'project' : 'reference');
+  const [acmaHandoff, setAcmaHandoff] = useState<AcmaAssessmentHandoff | null>(null);
   const frequencyMHz = Number(frequencyText);
   const exposureJurisdiction = jurisdiction as ExposureJurisdiction;
   const availableBands = getBandsForJurisdiction(jurisdiction);
@@ -149,7 +151,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     {isUk && view === 'ofcom-distance' && <OfcomComplianceDistancePanel frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {isUk && view === 'ofcom-multiple' && <OfcomMultipleDistancePanel unitSystem={unitSystem} />}
     {isAustralia && view === 'arpansa-reference' && <ArpansaReferencePanel frequencyMHz={frequencyMHz} environment={environment} />}
-    {isAustralia && view === 'acma-assessment' && <AcmaAssessmentPanel unitSystem={unitSystem} />}
-    {isAustralia && view === 'acma-record' && <AcmaAssessmentRecordPanel />}
+    {isAustralia && view === 'acma-assessment' && <AcmaAssessmentPanel unitSystem={unitSystem} onCreateRecord={(handoff) => { setAcmaHandoff(handoff); setView('acma-record'); }} />}
+    {isAustralia && view === 'acma-record' && <AcmaAssessmentRecordPanel incomingAssessment={acmaHandoff} onAssessmentConsumed={() => setAcmaHandoff(null)} />}
   </section>;
 }

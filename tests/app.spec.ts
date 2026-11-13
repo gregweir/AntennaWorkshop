@@ -503,6 +503,7 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
   await expect(page.getByRole('button', { name: /Single source/ })).toHaveCount(0);
   const gateway = page.getByRole('region', { name: 'Amateur station EME assessment path' });
   await expect(gateway.locator('.screen-outcome')).toContainText('low-risk category');
+  await expect(gateway.getByRole('button', { name: 'Document these station inputs' })).toBeVisible();
   await expect(gateway.getByRole('img', { name: /Australian amateur station EME assessment gateway/ })).toBeVisible();
 
   await gateway.getByRole('checkbox', { name: /Every antenna is inaccessible/ }).uncheck();
@@ -527,9 +528,18 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
   await page.getByRole('button', { name: 'Imperial' }).click();
   await expect(gateway.getByRole('spinbutton', { name: 'Base height of lowest antenna' })).toHaveValue('32.808');
 
-  await page.getByRole('button', { name: /Assessment record/ }).click();
+  await gateway.getByRole('button', { name: 'Start assessment record' }).click();
   const record = page.getByRole('region', { name: 'Assessment record worksheet' });
-  await expect(record.locator('.acma-record-readiness')).toContainText('18 required items not documented');
+  await expect(record.getByRole('status').filter({ hasText: 'Gateway inputs transferred into a new unsaved draft' })).toBeVisible();
+  await expect(record.getByLabel('Power level')).toHaveValue(/100\.1 W/);
+  await expect(record.getByLabel('Height above ground or accessible surface')).toHaveValue(/10 m/);
+  await expect(record.getByLabel('Highest normal operating conditions assessed')).toHaveValue(/Mobile station/);
+  await expect(record.getByLabel('Highest normal operating conditions assessed')).toHaveValue(/3200 W EIRP/);
+  await expect(record.getByLabel('Simultaneous-frequency treatment')).toHaveValue(/remains to be documented/);
+  await expect(record.getByLabel('Assessment or transitional route')).toHaveValue('');
+  await expect(record.getByLabel('Assessor name')).toHaveValue('');
+  await expect(record.getByRole('checkbox', { name: /A declaration containing/ })).not.toBeChecked();
+  await expect(record.locator('.acma-record-readiness')).toContainText('16 required items not documented');
   await record.getByLabel('Record title').fill('Home station assessment');
   await record.getByLabel('Operator or corporate name').fill('Test Operator');
   await record.getByLabel('Operator type').selectOption('body-corporate');

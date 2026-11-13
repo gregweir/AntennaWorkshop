@@ -6,7 +6,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { ACMA_RECORD_LIBRARY_KEY, acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type StorageLike } from './acmaAssessmentRecords';
+import { ACMA_RECORD_LIBRARY_KEY, acmaRecordRequiredGaps, createAcmaAssessmentRecord, createAcmaAssessmentRecordFromHandoff, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type StorageLike } from './acmaAssessmentRecords';
+import { assessAcmaStation, type AcmaAssessmentInput } from '../calculators/acmaAssessment';
 import { createAcmaStationChange } from './acmaStationChanges';
 
 function memoryStorage(initial?: string): StorageLike {
@@ -16,6 +17,22 @@ function memoryStorage(initial?: string): StorageLike {
 }
 
 describe('ACMA assessment record library', () => {
+  it('transfers gateway facts and provenance without supplying assessment judgments or evidence', () => {
+    const input: AcmaAssessmentInput = { stationType: 'mobile', averageTotalPowerWatts: 100.1, everyAntennaInaccessibleToPublic: false, lowestAntennaBaseHeightMetres: 10, averageTotalEirpWatts: 3200, simultaneousMultipleFrequencies: true, multipleStationsAtSite: true };
+    const record = createAcmaAssessmentRecordFromHandoff('record-1', '2026-11-13T12:00:00.000Z', { input, result: assessAcmaStation(input), transferredAt: '2026-11-13T11:59:00.000Z' });
+    expect(record).toMatchObject({
+      id: 'record-1', powerLevel: '100.1 W average total power supplied to all antennas (gateway input)',
+      antennaHeight: '10 m base height of lowest antenna (gateway input)', assessmentRoute: '', assessmentMethodType: '',
+      assessmentScope: '', assessmentStandard: '', assessorName: '', assessmentDate: '', measurementsAndCalculations: '', declarationMade: false
+    });
+    expect(record.operatingConditions).toContain('Mobile station');
+    expect(record.operatingConditions).toContain('not assessed operating conditions');
+    expect(record.operatingConditions).toContain('3200 W EIRP');
+    expect(record.simultaneousFrequencyMethod).toContain('remains to be documented');
+    expect(record.additionalNotes).toContain('acma-amateur-class-licence-schedule-1-gateway version 1.0.0');
+    expect(record.additionalNotes).toContain('Clause 4 assessment work and the clause 6 record package remain');
+  });
+
   it('saves, updates, and deletes versioned records', () => {
     const storage = memoryStorage();
     const record = createAcmaAssessmentRecord('record-1', '2026-11-13T10:00:00.000Z');

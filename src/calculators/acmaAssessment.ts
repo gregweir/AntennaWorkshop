@@ -32,6 +32,12 @@ export interface AcmaAssessmentResult {
   modelVersion: string;
 }
 
+export interface AcmaAssessmentHandoff {
+  input: AcmaAssessmentInput;
+  result: AcmaAssessmentResult;
+  transferredAt: string;
+}
+
 export const ACMA_ASSESSMENT_MODEL = {
   id: 'acma-amateur-class-licence-schedule-1-gateway',
   version: '1.0.0',

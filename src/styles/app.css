@@ -3452,6 +3452,39 @@ select {
   font-weight: 900;
 }
 
+.acma-record-handoff {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-technical) 8%, var(--bg-surface));
+}
+
+.acma-record-handoff h4,
+.acma-record-handoff p {
+  margin: 0;
+}
+
+.acma-record-handoff h4 {
+  margin: 0.2rem 0 0.35rem;
+}
+
+.acma-record-handoff button {
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 900;
+}
+
 .acma-record-privacy {
   display: flex;
   gap: 0.4rem 1rem;
@@ -5640,6 +5673,7 @@ select {
 
   .acma-input-grid,
   .acma-result-layout,
+  .acma-record-handoff,
   .acma-record-library,
   .acma-evidence-status {
     grid-template-columns: 1fr;
