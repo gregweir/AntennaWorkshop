@@ -7,6 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { ACMA_RECORD_LIBRARY_KEY, acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type StorageLike } from './acmaAssessmentRecords';
+import { createAcmaStationChange } from './acmaStationChanges';
 
 function memoryStorage(initial?: string): StorageLike {
   const values = new Map<string, string>();
@@ -24,17 +25,20 @@ describe('ACMA assessment record library', () => {
     expect(deleteAcmaAssessmentRecord('record-1', storage)).toEqual([]);
   });
 
-  it('migrates version 1 and 2 records without discarding them', () => {
+  it('migrates version 1, 2, and 3 records without discarding them', () => {
     const current = createAcmaAssessmentRecord('legacy', '2026-11-13T10:00:00.000Z');
     const evidenceFields = ['assessmentRoute', 'assessmentMethodType', 'assessmentScope', 'assessmentStandard', 'standardEdition', 'transitionRecordReference', 'operatingConditions', 'accessibleLocations', 'equipmentOrModel', 'calibrationOrValidation', 'uncertainty', 'simultaneousFrequencyMethod', 'resultsSummary', 'assessmentConclusion', 'evidenceReferences', 'changeReview'];
     const version1 = { ...current, schemaVersion: 1 } as Record<string, unknown>;
     const version2 = { ...current, schemaVersion: 2 } as Record<string, unknown>;
+    const version3 = { ...current, schemaVersion: 3 } as Record<string, unknown>;
     delete version1.revisions;
+    delete version3.stationChanges;
     for (const field of evidenceFields) { delete version1[field]; delete version2[field]; }
     version2.assessmentRoute = 'unsupported-value';
     version2.revisions = [{ replacedAt: '2026-11-13T11:00:00.000Z', previousUpdatedAt: '2026-11-13T10:00:00.000Z', changedFields: ['title'], snapshot: JSON.stringify({ ...version2, revisions: [] }) }];
-    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version1])))).toMatchObject([{ schemaVersion: 3, id: 'legacy', assessmentRoute: '', revisions: [] }]);
-    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version2])))).toMatchObject([{ schemaVersion: 3, id: 'legacy', assessmentRoute: '', revisions: [{ changedFields: ['title'] }] }]);
+    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version1])))).toMatchObject([{ schemaVersion: 4, id: 'legacy', assessmentRoute: '', stationChanges: [], revisions: [] }]);
+    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version2])))).toMatchObject([{ schemaVersion: 4, id: 'legacy', assessmentRoute: '', stationChanges: [], revisions: [{ changedFields: ['title'] }] }]);
+    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version3])))).toMatchObject([{ schemaVersion: 4, id: 'legacy', stationChanges: [], revisions: [] }]);
   });
 
   it('adds revisions only for substantive saved changes and restores them as drafts', () => {
@@ -54,6 +58,8 @@ describe('ACMA assessment record library', () => {
     expect(() => parseAcmaAssessmentRecord('{bad', 'import-id', '2026-11-13T11:00:00.000Z')).toThrow('not valid JSON');
     expect(() => parseAcmaAssessmentRecord(JSON.stringify({ schemaVersion: 99 }), 'import-id', '2026-11-13T11:00:00.000Z')).toThrow('not a supported');
     expect(() => parseAcmaAssessmentRecord(JSON.stringify({ ...source, revisions: [{ replacedAt: source.updatedAt, previousUpdatedAt: source.updatedAt, changedFields: ['title'], snapshot: '{}' }] }), 'import-id', '2026-11-13T11:00:00.000Z')).toThrow('not a supported');
+    const duplicateChange = createAcmaStationChange('duplicate');
+    expect(() => parseAcmaAssessmentRecord(JSON.stringify({ ...source, stationChanges: [duplicateChange, duplicateChange] }), 'import-id', '2026-11-13T11:00:00.000Z')).toThrow('not a supported');
   });
 
   it('ignores malformed local data without overwriting it', () => {
@@ -69,6 +75,6 @@ describe('ACMA assessment record library', () => {
 
   it('serializes a validated portable record', () => {
     const serialized = serializeAcmaAssessmentRecord(createAcmaAssessmentRecord('record-1', '2026-11-13T10:00:00.000Z'));
-    expect(JSON.parse(serialized)).toMatchObject({ schemaVersion: 3, id: 'record-1', assessmentRoute: '', revisions: [] });
+    expect(JSON.parse(serialized)).toMatchObject({ schemaVersion: 4, id: 'record-1', assessmentRoute: '', stationChanges: [], revisions: [] });
   });
 });

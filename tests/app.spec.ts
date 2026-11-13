@@ -542,6 +542,18 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
   await record.getByLabel('Standard title, edition, or publication date').fill('AS/NZS 2772.2:2016');
   await record.getByLabel('Method type').selectOption('calculation');
   await record.getByLabel('Assessment scope').selectOption('single-station');
+  await record.getByRole('checkbox', { name: /Station location/ }).check();
+  await record.getByLabel('Change effective date').fill('2026-11-13');
+  await record.getByLabel('What changed?').fill('Station moved to a new residential location');
+  await record.getByLabel('Post-change clause 3 review result').selectOption('clause-4-applies');
+  await record.getByLabel('Clause 4 assessment action').selectOption('new-assessment-completed');
+  await record.getByLabel('Assessment record reference').fill('Assessment report AU-2026-01');
+  await record.getByLabel('Clause 6 declaration action').selectOption('new-declaration-made');
+  await record.getByLabel('New declaration reference').fill('Declaration AU-2026-01');
+  await record.getByLabel('Reviewed by').fill('Responsible operator');
+  await expect(record.locator('.acma-change-review')).toContainText('No derived follow-up shown');
+  await record.getByRole('button', { name: 'Add change entry' }).click();
+  await expect(record.locator('.acma-change-log li')).toHaveCount(1);
   await record.getByRole('checkbox', { name: /An agent is used/ }).check();
   await expect(record.getByLabel('Written agent-agreement reference')).toBeVisible();
   await record.getByRole('button', { name: 'Save draft' }).click();

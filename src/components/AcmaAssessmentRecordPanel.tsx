@@ -10,6 +10,7 @@ import { ACMA_ASSESSMENT_MODEL } from '../calculators/acmaAssessment';
 import { ACMA_ASSESSMENT_ROUTES, ACMA_ASSESSMENT_STANDARDS, evaluateAcmaEvidence } from '../calculators/acmaEvidence';
 import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
+import { AcmaStationChangePanel } from './AcmaStationChangePanel';
 
 function newRecord() {
   return createAcmaAssessmentRecord(crypto.randomUUID(), new Date().toISOString());
@@ -97,7 +98,7 @@ export function AcmaAssessmentRecordPanel() {
   };
 
   return <section className="acma-record-section exposure-screen-section" aria-labelledby="acma-record-heading">
-    <div className="section-heading"><div><p className="eyebrow">Australia · clauses 4 and 6 documentation</p><h3 id="acma-record-heading">Assessment record worksheet</h3></div><span className="model-badge">Local record v3</span></div>
+    <div className="section-heading"><div><p className="eyebrow">Australia · clauses 4–6 documentation</p><h3 id="acma-record-heading">Assessment record worksheet</h3></div><span className="model-badge">Local record v4</span></div>
     <p className="screen-intro">Prepare and retain the declaration, assessment evidence, assessor details, and station configuration required for a higher-risk amateur station.</p>
     <div className="acma-record-privacy" role="note"><strong>Personal information stays in this browser unless you print or download it.</strong><span>Browser storage can be cleared or lost. Keep a separate protected copy of any operational record.</span></div>
     <StepByStepHelp title="Prepare the clauses 4 and 6 record package" intro="Complete the worksheet from the actual assessment and station documentation; do not estimate missing legal or technical facts." steps={[
@@ -107,6 +108,7 @@ export function AcmaAssessmentRecordPanel() {
       { title: 'Attach the assessment basis', detail: 'Identify the assessor, qualification, date, applicable standard and edition, and the actual measurements or calculations.' },
       { title: 'Document any agent arrangement', detail: 'Where an agent is used, keep the written agreement and enter a reference that connects this worksheet to it.' },
       { title: 'Make the declaration deliberately', detail: 'Only the responsible person can make the required compliance statement. The application never checks it automatically.' },
+      { title: 'Track later station changes', detail: 'Record the changed configuration, repeat the clause 3 review, and resolve assessment and declaration actions before relying on the record.' },
       { title: 'Save, export, and revisit', detail: 'Keep the record accessible in English, retain protected JSON copies, and create a new declaration when its information changes. Saved edits preserve earlier local revisions.' }
     ]} limit="This worksheet checks whether named fields contain text. It does not verify measurements, calculations, qualifications, signatures, station facts, standard applicability, or compliance." />
 
@@ -183,6 +185,8 @@ export function AcmaAssessmentRecordPanel() {
         <label className="field acma-record-wide"><span>Supporting file and document references</span><textarea value={record.evidenceReferences} onChange={(event) => update('evidenceReferences', event.target.value)} placeholder="Protected filenames, report identifiers, diagrams, photographs, raw data, calibration records, or hashes" /></label>
         <label className="field acma-record-wide"><span>Station-change review basis</span><textarea value={record.changeReview} onChange={(event) => update('changeReview', event.target.value)} placeholder="State the assessed configuration and what changes trigger reassessment or a new declaration" /></label>
       </div></fieldset>
+
+      <AcmaStationChangePanel key={`${record.id}:${record.updatedAt}`} changes={record.stationChanges} onChange={(stationChanges) => update('stationChanges', stationChanges)} />
 
       <fieldset className="acma-declaration"><legend>Responsible-person declaration</legend><p>The required declaration states that operation of the station complies with Schedule 1 clause 2(1). Select this only when the responsible person has actually made and retained that declaration.</p><label className="acma-record-check"><input type="checkbox" checked={record.declarationMade} onChange={(event) => update('declarationMade', event.target.checked)} /> A declaration containing the required compliance statement has been made and retained</label></fieldset>
     </div>

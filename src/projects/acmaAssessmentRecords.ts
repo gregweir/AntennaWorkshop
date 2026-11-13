@@ -5,8 +5,10 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
+import { isAcmaStationChange, type AcmaStationChange } from './acmaStationChanges';
+
 export const ACMA_RECORD_LIBRARY_KEY = 'radiobook:antenna-workshop:acma-records:v1';
-export const ACMA_RECORD_VERSION = 3 as const;
+export const ACMA_RECORD_VERSION = 4 as const;
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -73,6 +75,7 @@ export interface AcmaAssessmentRecord {
   agentAgreementReference: string;
   declarationMade: boolean;
   additionalNotes: string;
+  stationChanges: AcmaStationChange[];
   revisions: AcmaAssessmentRecordRevision[];
 }
 
@@ -107,18 +110,22 @@ const evidenceDefaults = {
 };
 
 function hasRecordFields(candidate: RecordObject) {
-  const hasBaseFields = (candidate.schemaVersion === 1 || candidate.schemaVersion === 2 || candidate.schemaVersion === ACMA_RECORD_VERSION)
+  const hasBaseFields = (candidate.schemaVersion === 1 || candidate.schemaVersion === 2 || candidate.schemaVersion === 3 || candidate.schemaVersion === ACMA_RECORD_VERSION)
     && typeof candidate.id === 'string' && Boolean(candidate.id.trim())
     && typeof candidate.updatedAt === 'string' && Number.isFinite(Date.parse(candidate.updatedAt))
     && legacyTextFields.every((field) => typeof candidate[field] === 'string')
     && (candidate.operatorType === 'individual' || candidate.operatorType === 'body-corporate')
     && booleanFields.every((field) => typeof candidate[field] === 'boolean');
-  if (!hasBaseFields || candidate.schemaVersion !== ACMA_RECORD_VERSION) return hasBaseFields;
-  return editableTextFields.every((field) => typeof candidate[field] === 'string')
+  if (!hasBaseFields || candidate.schemaVersion === 1 || candidate.schemaVersion === 2) return hasBaseFields;
+  const hasEvidenceFields = editableTextFields.every((field) => typeof candidate[field] === 'string')
     && assessmentRoutes.includes(candidate.assessmentRoute as AcmaAssessmentRoute)
     && assessmentMethodTypes.includes(candidate.assessmentMethodType as AcmaAssessmentMethodType)
     && assessmentScopes.includes(candidate.assessmentScope as AcmaAssessmentScope)
     && assessmentStandards.includes(candidate.assessmentStandard as AcmaAssessmentStandard);
+  if (!hasEvidenceFields || candidate.schemaVersion === 3) return hasEvidenceFields;
+  return Array.isArray(candidate.stationChanges)
+    && candidate.stationChanges.every(isAcmaStationChange)
+    && new Set(candidate.stationChanges.map((change) => (change as AcmaStationChange).id)).size === candidate.stationChanges.length;
 }
 
 export function createAcmaAssessmentRecord(id: string, updatedAt: string): AcmaAssessmentRecord {
@@ -129,7 +136,7 @@ export function createAcmaAssessmentRecord(id: string, updatedAt: string): AcmaA
     powerLevel: '', antennaGain: '', antennaSize: '', antennaTilt: '', manufacturer: '', modelNumber: '',
     emissionMode: '', assessorName: '', assessorQualification: '', assessmentDate: '', assessmentMethod: '',
     measurementsAndCalculations: '', agentUsed: false, agentAgreementReference: '', declarationMade: false,
-    ...evidenceDefaults, additionalNotes: '', revisions: []
+    ...evidenceDefaults, additionalNotes: '', stationChanges: [], revisions: []
   };
 }
 
@@ -157,7 +164,11 @@ function normaliseRecord(value: unknown): AcmaAssessmentRecord | null {
   if (!hasRecordFields(candidate)) return null;
   const revisions = candidate.schemaVersion === 1 ? [] : candidate.revisions;
   if (!Array.isArray(revisions) || !revisions.every(isRevision)) return null;
-  const migrated = candidate.schemaVersion === ACMA_RECORD_VERSION ? candidate : { ...candidate, ...evidenceDefaults };
+  const migrated = candidate.schemaVersion === ACMA_RECORD_VERSION
+    ? candidate
+    : candidate.schemaVersion === 3
+      ? { ...candidate, stationChanges: [] }
+      : { ...candidate, ...evidenceDefaults, stationChanges: [] };
   return { ...(migrated as unknown as AcmaAssessmentRecord), schemaVersion: ACMA_RECORD_VERSION, revisions };
 }
 
@@ -187,7 +198,9 @@ export function loadAcmaAssessmentRecords(storage?: StorageLike): AcmaAssessment
 
 function recordChanges(previous: AcmaAssessmentRecord, next: AcmaAssessmentRecord): string[] {
   const fields: Array<keyof AcmaAssessmentRecord> = [...editableTextFields, ...booleanFields, 'operatorType', 'assessmentRoute', 'assessmentMethodType', 'assessmentScope', 'assessmentStandard'];
-  return fields.filter((field) => previous[field] !== next[field]).map(String);
+  const changes = fields.filter((field) => previous[field] !== next[field]).map(String);
+  if (JSON.stringify(previous.stationChanges) !== JSON.stringify(next.stationChanges)) changes.push('stationChanges');
+  return changes;
 }
 
 export function saveAcmaAssessmentRecord(record: AcmaAssessmentRecord, storage?: StorageLike): AcmaAssessmentRecord[] {

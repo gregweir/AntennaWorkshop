@@ -24,6 +24,7 @@ Sources and links were rechecked on 2026-11-13. A reviewer should record the edi
 | Australian Amateur Class Licence assessment gateway | `src/calculators/acmaAssessment.ts` | `src/calculators/acmaAssessment.test.ts` |
 | Australian clause 4 route and evidence-readiness map | `src/calculators/acmaEvidence.ts` | `src/calculators/acmaEvidence.test.ts` |
 | Australian clause 6 record schema and documentation gaps | `src/projects/acmaAssessmentRecords.ts` | `src/projects/acmaAssessmentRecords.test.ts` |
+| Australian station-change and reassessment log | `src/projects/acmaStationChanges.ts` | `src/projects/acmaStationChanges.test.ts` |
 | FCC single-source exemption | `src/calculators/fccExemption.ts` | `src/calculators/fccExemption.test.ts` |
 | FCC multiple-source exemption | `src/calculators/fccMultipleExemption.ts` | `src/calculators/fccMultipleExemption.test.ts` |
 | Single-source estimate and applicability | `src/calculators/exposureScreen.ts` | `src/calculators/exposureScreen.test.ts` |
@@ -99,6 +100,7 @@ The reviewer should resolve each item explicitly:
 11. Does the Australian gateway distinguish clause 3 application from a compliance presumption, preserve the continuing clause 2 condition, and correctly describe clauses 4 and 6 without overlooking station changes or transitional provisions?
 12. Does the Australian record worksheet capture the required clause 6 information without turning field presence, local saving, printing, JSON import/export, or revision restoration into an approval or compliance claim, and are its validation, non-overwrite, privacy, and retention safeguards adequate?
 13. Does the Australian clause 4 evidence map accurately distinguish the current named-standard route from subclauses 4(4), 4(6), 4(7), and 4(8), keep record anchors separate from optional reproducibility prompts, and avoid deciding standard applicability, transition eligibility, continuous possession, or compliance?
+14. Does the Australian change log correctly distinguish clause 5's post-change clause 3 question, clause 4 assessment action, and clause 6(4) declaration replacement without implying that every change requires reassessment or that documented follow-up authorizes operation?
 
 ## Reproduction procedure
 
