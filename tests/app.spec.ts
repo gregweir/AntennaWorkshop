@@ -356,6 +356,37 @@ test('classifies conservative far-field screening limitations', async ({ page })
   await expect(stationScreen.locator('.screen-limitations')).toContainText('does not mean safe, compliant, certified, or exempt');
 });
 
+test('evaluates the three FCC single-source exemption paths without implying compliance', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /FCC exemption/ }).click();
+  const exemption = page.locator('.fcc-exemption-section');
+  await expect(exemption.getByRole('heading', { name: 'FCC single-source exemption' })).toBeVisible();
+  await expect(exemption.locator('.screen-outcome')).toContainText('FCC exemption is not evaluated');
+
+  await page.locator('.global-controls select').selectOption('US');
+  await expect(exemption.locator('.screen-outcome')).toContainText('Exempt from routine environmental evaluation');
+  await expect(exemption.getByRole('img', { name: /FCC single-source exemption criterion comparison/ })).toBeVisible();
+  await expect(exemption.locator('.fcc-criterion-card').filter({ hasText: 'Distance-based ERP criterion' })).toContainText('Qualifies');
+  await expect(exemption.locator('.screen-limitations')).toContainText('not an exemption from RF exposure limits');
+
+  await exemption.getByLabel('Help: Maximum time-averaged ERP').click();
+  await expect(exemption.getByRole('note').filter({ hasText: 'Maximum time-averaged ERP' })).toContainText('Do not enter EIRP');
+  await exemption.getByLabel('Help: Maximum time-averaged ERP').click();
+
+  await exemption.getByLabel('Minimum body separation', { exact: true }).fill('1');
+  await expect(exemption.locator('.screen-outcome')).toContainText('Routine environmental evaluation is required');
+
+  await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('1000');
+  await exemption.getByLabel('Available maximum time-averaged power', { exact: true }).fill('0.5');
+  await exemption.getByLabel('Maximum time-averaged ERP', { exact: true }).fill('0.7');
+  await exemption.getByLabel('Minimum body separation', { exact: true }).fill('0.1');
+  await expect(exemption.locator('.screen-outcome')).toContainText('0.5–40 cm close-proximity criterion is satisfied');
+
+  await exemption.getByLabel('Available maximum time-averaged power', { exact: true }).fill('0.001');
+  await exemption.getByLabel('Maximum time-averaged ERP', { exact: true }).fill('1000');
+  await expect(exemption.locator('.screen-outcome')).toContainText('One-milliwatt criterion is satisfied');
+});
+
 test('normalizes and sums multiple RF sources without inferring compliance', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Measured sources/ }).click();

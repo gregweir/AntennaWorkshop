@@ -26,6 +26,7 @@ The public repository currently includes:
 - Canada- and United States-aware amateur-band selection with metric and imperial presentation.
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
 - Official Canadian and United States RF power-density reference levels.
+- A United States single-source FCC routine-evaluation exemption workflow covering all three criteria in 47 CFR § 1.1307(b)(3)(i), with ERP/EIRP distinctions and explicit non-compliance vocabulary.
 - Conservative single-source far-field screening, frequency-normalized multiple-source aggregation, and printable multi-point station projects with independent source coordinates, accessible drag/touch/keyboard layout, illustrative azimuth envelopes, and descriptive source-to-point bearing analysis.
 - An on-device station-project library with validated, versioned JSON import/export, a searchable and filterable evidence log scoped to projects, sources, points, and individual inputs, reusable templates, self-declared quality prompts, documentation summaries, and optional author-set review reminders. A derived assessment checklist keeps blockers, category and field-level documentation gaps, and external review distinct, and a guided action prepares the evidence form for a selected missing critical value. An optional station-assessment guide and contextual help explain shared coordinates, duty cycle, gain, antenna dimensions, height references, and inventory confirmation without hiding the complete controls. The workspace also supports non-destructive baseline-versus-scenario comparison, a typed audit of changed inputs, and read-only sensitivity curves with custom ranges, screening-trigger annotations, accessible data tables, and CSV export.
 - A connected antenna-to-system-to-exposure workflow that preserves typed inputs and calculator-model provenance.
@@ -92,6 +93,8 @@ The result vocabulary must distinguish:
 The application must not turn an inconclusive simplified screen into a claim of non-compliance or certification.
 
 Exposure guidance must require the station jurisdiction, a defensible controlled or uncontrolled environment classification, the exact evaluation frequency, and the authority's averaging treatment. The single-source workflow must identify one accessible point, use supported power, duty-cycle, loss, gain, antenna-dimension, and three-dimensional separation inputs, stop at the conservative far-field boundary, and remain inconclusive until other relevant sources are assessed. Multi-source guidance must normalize each contribution against its own frequency-specific reference level at the same point before summing. A reference lookup or below-trigger result must never be described as safe, exempt, certified, or compliant.
+
+The FCC single-source exemption workflow must evaluate the 1 mW, 0.5–40 cm `Pth`, and distance-based ERP criteria independently. It must use the FCC definitions of available maximum time-averaged power, ERP, and minimum body separation; enforce each frequency and distance boundary; and state that exemption is solely from routine environmental evaluation. Multiple-source exemption, unknown-ERP substitution, SAR, mitigation, and compliance evaluation remain outside this model.
 
 ## Acceptance criteria for the first public beta
 

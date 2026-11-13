@@ -694,7 +694,7 @@ select {
 
 .exposure-mode-picker {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.7rem;
   margin-bottom: 1rem;
 }
@@ -772,6 +772,10 @@ select {
 
 .exposure-context-panel select {
   width: 100%;
+}
+
+.exposure-context-panel-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .exposure-view {
@@ -3136,6 +3140,136 @@ select {
   border-left-color: var(--text-secondary);
 }
 
+.fcc-exemption-diagram {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+}
+
+.fcc-exemption-figure {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.fcc-diagram-surface {
+  fill: var(--bg-surface);
+  stroke: var(--border);
+}
+
+.fcc-exemption-diagram .diagram-kicker,
+.fcc-exemption-diagram .diagram-title,
+.fcc-exemption-diagram .diagram-label,
+.fcc-exemption-diagram .diagram-annotation,
+.fcc-exemption-diagram .diagram-caption {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.fcc-exemption-diagram .diagram-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.fcc-exemption-diagram .diagram-title {
+  fill: var(--text-primary);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.fcc-exemption-diagram .diagram-label {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.fcc-exemption-diagram .diagram-annotation,
+.fcc-exemption-diagram .diagram-caption {
+  font-size: 9px;
+}
+
+.fcc-threshold-track {
+  stroke: var(--border);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.fcc-threshold-marker {
+  stroke: var(--text-primary);
+  stroke-width: 3;
+}
+
+.fcc-actual-marker {
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.fcc-actual-marker-pass {
+  fill: var(--success);
+}
+
+.fcc-actual-marker-review {
+  fill: var(--tl-coral);
+}
+
+.fcc-diagram-status {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.fcc-diagram-status-pass {
+  fill: var(--success);
+}
+
+.fcc-diagram-status-review {
+  fill: var(--tl-coral);
+}
+
+.fcc-criterion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.fcc-criterion-card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--text-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.fcc-criterion-card-pass {
+  border-left-color: var(--success);
+}
+
+.fcc-criterion-card h4 {
+  min-height: 2.5em;
+  margin: 0.3rem 0 0.8rem;
+  font-family: var(--font-mono);
+}
+
+.fcc-criterion-card dl {
+  margin: 0;
+}
+
+.fcc-criterion-card dl div {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  border-top: 1px dotted var(--border);
+}
+
+.fcc-criterion-card dd {
+  text-align: right;
+}
+
 .screen-results-layout {
   display: grid;
   grid-template-columns: minmax(230px, 0.62fr) minmax(0, 1.5fr);
@@ -4436,6 +4570,10 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .fcc-criterion-grid {
+    grid-template-columns: 1fr;
+  }
+
   .azimuth-source-editor {
     grid-template-columns: 1fr;
   }
@@ -4524,6 +4662,11 @@ select {
 }
 
 @media (max-width: 540px) {
+  .fcc-exemption-diagram {
+    height: auto;
+    min-height: 0;
+  }
+
   .shell {
     width: min(calc(100% - 1rem), var(--shell));
   }

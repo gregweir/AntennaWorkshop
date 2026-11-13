@@ -16,6 +16,7 @@ import { ExposureLimitDiagram } from './ExposureLimitDiagram';
 import { ExposureAggregationPanel } from './ExposureAggregationPanel';
 import { ExposureProjectPanel } from './ExposureProjectPanel';
 import { ExposureScreenPanel } from './ExposureScreenPanel';
+import { FccExemptionPanel } from './FccExemptionPanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
@@ -26,13 +27,14 @@ interface Props {
   onSourceConsumed: () => void;
 }
 
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate';
+type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
   { id: 'single', title: 'Single source', description: 'One transmitter and one accessible point' },
   { id: 'project', title: 'Station project', description: 'Several transmitters and locations' },
-  { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields' }
+  { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields' },
+  { id: 'fcc-exemption', title: 'FCC exemption', description: 'US routine-evaluation threshold' }
 ];
 
 export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed }: Props) {
@@ -45,7 +47,8 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const activeBand = findBandForFrequency(frequencyMHz, jurisdiction);
   const bandSource = getBandSource(jurisdiction);
   const profile = jurisdictionProfiles.find((item) => item.code === jurisdiction);
-  const needsFrequency = view === 'reference' || view === 'single';
+  const needsFrequency = view === 'reference' || view === 'single' || view === 'fcc-exemption';
+  const needsEnvironment = view !== 'fcc-exemption';
 
   const levels = useMemo(() => {
     if (exposureJurisdiction !== 'CA' && exposureJurisdiction !== 'US') return null;
@@ -69,9 +72,9 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
       {viewOptions.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}
     </div>
 
-    <form className="exposure-context-panel" onSubmit={(event) => event.preventDefault()}>
+    <form className={`exposure-context-panel ${needsEnvironment ? '' : 'exposure-context-panel-three'}`} onSubmit={(event) => event.preventDefault()}>
       <label className="field"><span>Active station jurisdiction</span><input value={profile?.name ?? jurisdiction} readOnly /><small>Change jurisdiction using the persistent selector at the top of the application.</small></label>
-      <div className="field"><span className="field-label-with-help"><label htmlFor="exposure-environment">Exposure environment</label><HelpTip label="Exposure environment">Use uncontrolled limits wherever the general public may be exposed or whenever the jurisdiction's controlled-environment conditions are not met. Controlled limits require characterized fields, RF awareness, appropriate training or information, and the ability to control or mitigate exposure.</HelpTip></span><select id="exposure-environment" value={environment} onChange={(event) => setEnvironment(event.target.value as ExposureEnvironment)}><option value="uncontrolled">General public / uncontrolled</option><option value="controlled">Occupational / controlled</option></select><small>Controlled limits require the jurisdiction’s awareness, training, characterization, and exposure-control conditions.</small></div>
+      {needsEnvironment && <div className="field"><span className="field-label-with-help"><label htmlFor="exposure-environment">Exposure environment</label><HelpTip label="Exposure environment">Use uncontrolled limits wherever the general public may be exposed or whenever the jurisdiction's controlled-environment conditions are not met. Controlled limits require characterized fields, RF awareness, appropriate training or information, and the ability to control or mitigate exposure.</HelpTip></span><select id="exposure-environment" value={environment} onChange={(event) => setEnvironment(event.target.value as ExposureEnvironment)}><option value="uncontrolled">General public / uncontrolled</option><option value="controlled">Occupational / controlled</option></select><small>Controlled limits require the jurisdiction’s awareness, training, characterization, and exposure-control conditions.</small></div>}
       {needsFrequency && <>
         <label className="field"><span>Amateur band</span><select className="band-select" value={activeBand?.id ?? 'custom'} onChange={(event) => { const band = availableBands.find((candidate) => candidate.id === event.target.value); if (band) setFrequencyText(band.designMHz.toFixed(band.designMHz < 30 ? 3 : 1)); }}><option value="custom">Custom frequency</option>{availableBands.map((band) => <option key={band.id} value={band.id}>{band.label} · {formatFrequencyRange(band)}</option>)}</select><small>Loads a representative frequency for the selected workflow.</small></label>
         <label className="field"><span>Evaluation frequency</span><span className="input-with-unit"><input aria-label="Evaluation frequency" type="number" min="0.001" step="0.001" value={frequencyText} onChange={(event) => setFrequencyText(event.target.value)} /><span>MHz</span></span><small>Canadian power-density reference levels begin at 10 MHz; lower frequencies require electric- and magnetic-field treatment.</small></label>
@@ -104,5 +107,6 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     {view === 'single' && <ExposureScreenPanel jurisdiction={exposureJurisdiction} environment={environment} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} onJurisdictionChange={setJurisdiction} onEnvironmentChange={setEnvironment} incomingSource={incomingSource} onSourceConsumed={onSourceConsumed} />}
     {view === 'aggregate' && <ExposureAggregationPanel jurisdiction={exposureJurisdiction} environment={environment} />}
+    {view === 'fcc-exemption' && <FccExemptionPanel jurisdiction={exposureJurisdiction} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
   </section>;
 }
