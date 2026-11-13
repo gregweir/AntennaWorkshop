@@ -165,6 +165,27 @@ test('designs two matched parallel-LC traps for a two-band dipole', async ({ pag
   await page.getByLabel('Help: Pair-matching threshold').click();
   await expect(page.getByRole('note').filter({ hasText: 'Pair-matching threshold' })).toContainText('workbench sorting threshold only');
   await expect(page.locator('.trap-commissioning-panel > .caution-card')).toContainText('Matched readings do not establish a safe trap');
+  await page.getByLabel('Build or pair label').fill('Portable 30 m / 20 m trap pair');
+  await page.getByLabel('Instrument and calibration').fill('VNA, fixture-plane calibration');
+  await page.getByLabel('Fixture and lead arrangement').fill('Final enclosures with equal 50 mm leads');
+  await page.getByRole('button', { name: 'Save record' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Measurement record saved on this device' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:trap-commissioning-records:v1'))).toContain('Portable 30 m / 20 m trap pair');
+  const trapRecordDownloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download JSON' }).click();
+  const trapRecordDownload = await trapRecordDownloadPromise;
+  expect(trapRecordDownload.suggestedFilename()).toBe('portable-30-m-20-m-trap-pair.trap-record.json');
+  const trapRecordPath = await trapRecordDownload.path();
+  expect(trapRecordPath).toBeTruthy();
+  await page.getByLabel('Import trap commissioning record JSON').setInputFiles(trapRecordPath!);
+  await expect(page.getByRole('status').filter({ hasText: 'JSON record imported as a new local copy' })).toBeVisible();
+  await expect(page.getByLabel('Saved trap commissioning records').locator('option')).toHaveCount(3);
+  await page.evaluate(() => {
+    (window as typeof window & { trapPrintCalls?: number }).trapPrintCalls = 0;
+    window.print = () => { (window as typeof window & { trapPrintCalls?: number }).trapPrintCalls = 1; };
+  });
+  await page.getByRole('button', { name: 'Print worksheet' }).click();
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { trapPrintCalls?: number }).trapPrintCalls)).toBe(1);
   await page.getByLabel('Help: Upper design frequency').click();
   await expect(page.getByRole('note').filter({ hasText: 'Upper design frequency' })).toContainText('resonance lies between the two design frequencies');
   await expect(page.getByText('Build and measure a matched pair')).toBeHidden();
@@ -1189,6 +1210,7 @@ test('has no horizontal overflow on a narrow screen', async ({ page }) => {
 });
 
 test('shows corporate branding, attribution, and public project links', async ({ page }) => {
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/antennas/favicon.ico');
   await expect(page.getByRole('heading', { name: 'Build antennas with the measurements—and the reasoning—to get them right.' })).toHaveCSS('font-size', '44px');
   await expect(page.getByAltText('Tartanleaf tartan maple-leaf logo').first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'RadioBook home' })).toHaveAttribute('href', 'https://www.radiobook.ca/');

@@ -5422,6 +5422,120 @@ path.loading-coil {
   margin-block: 1rem;
 }
 
+.trap-record-workspace {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.trap-record-heading,
+.trap-record-privacy {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.trap-record-heading h4 {
+  margin: 0.1rem 0 0;
+}
+
+.trap-record-privacy {
+  margin: 0.85rem 0;
+  padding: 0.75rem;
+  border-left: 4px solid var(--accent-technical);
+  background: var(--bg-surface);
+}
+
+.trap-record-privacy span {
+  max-width: 34rem;
+  color: var(--text-secondary);
+}
+
+.trap-record-library {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.trap-record-library .field {
+  margin: 0;
+}
+
+.trap-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.trap-record-actions button,
+.trap-record-import {
+  min-height: 2.75rem;
+}
+
+.trap-record-import {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.trap-record-import:focus-within {
+  outline: 3px solid color-mix(in srgb, var(--accent-technical) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.trap-record-import input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.trap-record-library > p {
+  min-height: 1.25rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.trap-record-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.trap-record-details legend {
+  padding-inline: 0.35rem;
+  font-weight: 800;
+}
+
+.trap-record-details .field {
+  margin: 0;
+}
+
+.trap-record-wide {
+  grid-column: 1 / -1;
+}
+
+.trap-record-print-details {
+  display: none;
+}
+
 .trap-measurement-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6238,10 +6352,21 @@ path.loading-coil {
 
   .coil-construction-layout,
   .coil-construction-inputs,
+  .trap-record-details,
   .trap-measurement-grid,
   .trap-thresholds,
   .trap-commissioning-results {
     grid-template-columns: 1fr;
+  }
+
+  .trap-record-heading,
+  .trap-record-privacy {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .trap-record-wide {
+    grid-column: auto;
   }
 
   .azimuth-route-overview {
@@ -6414,6 +6539,16 @@ path.loading-coil {
 }
 
 @media (max-width: 540px) {
+  .trap-record-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .trap-record-actions button,
+  .trap-record-import {
+    width: 100%;
+  }
+
   .trap-result-table-wrap table,
   .trap-result-table-wrap tbody,
   .trap-result-table-wrap tr,
@@ -6793,6 +6928,71 @@ path.loading-coil {
   .context-help,
   .evidence-overview {
     display: none !important;
+  }
+
+  body:has(.trap-commissioning-panel) .workspace > :not(.trap-commissioning-panel),
+  .visual-panel:has(.trap-commissioning-panel) > :not(.trap-commissioning-panel),
+  .trap-record-library,
+  .trap-record-privacy,
+  .trap-record-details {
+    display: none !important;
+  }
+
+  .trap-commissioning-panel {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .trap-record-workspace {
+    padding: 0;
+    border: 0;
+    background: white;
+  }
+
+  .trap-record-heading .model-badge {
+    color: black;
+    border-color: #667;
+  }
+
+  .trap-record-print-details {
+    display: block;
+    margin-top: 4mm;
+  }
+
+  .trap-record-print-details h4 {
+    margin: 0 0 2mm;
+    font-size: 14pt;
+  }
+
+  .trap-record-print-details dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid #bbb;
+    border-left: 1px solid #bbb;
+  }
+
+  .trap-record-print-details dl div {
+    padding: 2mm;
+    border-right: 1px solid #bbb;
+    border-bottom: 1px solid #bbb;
+    break-inside: avoid;
+  }
+
+  .trap-record-print-details dt {
+    margin-bottom: 1mm;
+    color: #4b5862;
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .trap-record-print-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 
   .project-section > .section-heading,
