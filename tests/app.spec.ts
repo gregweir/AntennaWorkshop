@@ -50,6 +50,29 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
   await expect(page.locator('.band-indicator')).toContainText('21.149 m');
 });
 
+test('builds a guided multiband fan dipole and exposes Australian bands', async ({ page }) => {
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
+  await page.locator('select.band-select').selectOption('80m');
+  await expect(page.getByRole('spinbutton', { name: /Design frequency/ })).toHaveValue('3.600');
+  await expect(page.locator('.allocation-note')).toContainText('Radiocommunications (Amateur Stations) Class Licence 2023');
+
+  await page.getByRole('button', { name: /Fan dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
+  await page.getByLabel('Fan dipole wire pair 2 frequency').fill('14.200');
+  await page.getByLabel('Fan dipole wire pair 3 frequency').fill('28.400');
+  await expect(page.getByRole('heading', { name: 'Multiband fan dipole' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned parallel fan dipole/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Cut 3 equal wire pairs');
+  await expect(page.locator('.result-summary')).toContainText('7.100 MHz · each leg');
+  await expect(page.locator('.result-summary')).toContainText('28.400 MHz · each leg');
+  await expect(page.locator('.caution-card')).toContainText('Every wire pair changes the shared feedpoint');
+  await expect(page.getByText('Tune from highest frequency downward')).toBeHidden();
+  await page.getByText('Build and tune a fan dipole').click();
+  await expect(page.getByText('Tune from highest frequency downward')).toBeVisible();
+  await page.getByRole('button', { name: 'Remove fan dipole wire pair 3' }).click();
+  await expect(page.locator('.result-summary')).toContainText('Cut 2 equal wire pairs');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

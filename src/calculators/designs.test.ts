@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { calculateBasicYagi, calculateEfhw, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim } from './designs';
+import { calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim } from './designs';
 
 describe('additional antenna calculators', () => {
   it('derives inverted-V construction geometry', () => {
@@ -101,6 +101,25 @@ describe('additional antenna calculators', () => {
 
   it('rejects an OCFD feedpoint beyond the supported range', () => {
     expect(() => calculateOcfd({ frequencyMHz: 7.1, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, feedpointPercentFromEnd: 5, transformerRatio: 4, estimatedFeedpointImpedanceOhms: 200 })).toThrow(RangeError);
+  });
+
+  it('calculates and sorts independently cut fan-dipole elements', () => {
+    const result = calculateFanDipole({
+      frequenciesMHz: [28.4, 7.1, 14.2],
+      lengthCorrectionFactor: 0.95,
+      trimAllowancePercent: 2.5
+    });
+    expect(result.elements.map((element) => element.frequencyMHz)).toEqual([7.1, 14.2, 28.4]);
+    expect(result.elements[0].cutTotalMetres).toBeCloseTo(20.557951, 6);
+    expect(result.elements[1].cutTotalMetres).toBeCloseTo(result.elements[0].cutTotalMetres / 2, 10);
+    expect(result.longestSpanMetres).toBe(result.elements[0].cutTotalMetres);
+    expect(result.totalWireMetres).toBeCloseTo(result.elements.reduce((total, element) => total + element.cutTotalMetres, 0), 12);
+  });
+
+  it('rejects duplicate or unsupported fan-dipole frequency sets', () => {
+    expect(() => calculateFanDipole({ frequenciesMHz: [7.1], lengthCorrectionFactor: 0.95, trimAllowancePercent: 2.5 })).toThrow(RangeError);
+    expect(() => calculateFanDipole({ frequenciesMHz: [7.1, 7.1], lengthCorrectionFactor: 0.95, trimAllowancePercent: 2.5 })).toThrow(RangeError);
+    expect(() => calculateFanDipole({ frequenciesMHz: [7.1, 14.2, 21.2, 28.4, 50.1, 144.2, 432.1], lengthCorrectionFactor: 0.95, trimAllowancePercent: 2.5 })).toThrow(RangeError);
   });
 
   it('calculates a twin-lead J-pole as 3/4 and 1/4 wavelength elements', () => {

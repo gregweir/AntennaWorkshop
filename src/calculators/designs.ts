@@ -38,6 +38,12 @@ export interface OcfdInput extends CommonDesignInput {
   estimatedFeedpointImpedanceOhms: number;
 }
 
+export interface FanDipoleInput {
+  frequenciesMHz: number[];
+  lengthCorrectionFactor: number;
+  trimAllowancePercent: number;
+}
+
 export interface JpoleInput extends CommonDesignInput {
   feedpointPercentOfStub: number;
 }
@@ -141,6 +147,21 @@ export const ANTENNA_MODELS = {
       }
     ]
   },
+  fanDipole: {
+    id: 'parallel-fan-dipole',
+    version: '1.0.0',
+    reviewedOn: '2026-11-13',
+    sources: [
+      {
+        title: 'ARRL — Wire Antennas for the Beginner',
+        url: 'https://www.arrl.org/files/file/Technology/tis/info/pdf/0683033.pdf'
+      },
+      {
+        title: 'ARRL — Lab Notes: Multiband Dipoles Compared',
+        url: 'https://www.arrl.org/files/file/Technology/tis/info/pdf/9611073.pdf'
+      }
+    ]
+  },
   jpole: {
     id: 'single-band-j-pole',
     version: '1.0.0',
@@ -221,6 +242,40 @@ function commonLengths(input: CommonDesignInput, wavelengthFraction: number) {
   const resonantLengthMetres = wavelengthMetres * wavelengthFraction * input.lengthCorrectionFactor;
   const cutLengthMetres = resonantLengthMetres * (1 + input.trimAllowancePercent / 100);
   return { wavelengthMetres, resonantLengthMetres, cutLengthMetres };
+}
+
+export function calculateFanDipole(input: FanDipoleInput) {
+  if (!Array.isArray(input.frequenciesMHz) || input.frequenciesMHz.length < 2 || input.frequenciesMHz.length > 6) {
+    throw new RangeError('A fan dipole requires between two and six design frequencies.');
+  }
+  if (new Set(input.frequenciesMHz.map((frequency) => frequency.toFixed(9))).size !== input.frequenciesMHz.length) {
+    throw new RangeError('Each fan-dipole element requires a distinct design frequency.');
+  }
+
+  const elements = input.frequenciesMHz.map((frequencyMHz) => {
+    const lengths = commonLengths({
+      frequencyMHz,
+      lengthCorrectionFactor: input.lengthCorrectionFactor,
+      trimAllowancePercent: input.trimAllowancePercent
+    }, 0.5);
+    return {
+      frequencyMHz,
+      wavelengthMetres: lengths.wavelengthMetres,
+      resonantTotalMetres: lengths.resonantLengthMetres,
+      cutTotalMetres: lengths.cutLengthMetres,
+      cutLegMetres: lengths.cutLengthMetres / 2
+    };
+  }).sort((a, b) => a.frequencyMHz - b.frequencyMHz);
+
+  return {
+    elements,
+    wavelengthMetres: elements[0].wavelengthMetres,
+    longestSpanMetres: elements[0].cutTotalMetres,
+    shortestSpanMetres: elements[elements.length - 1].cutTotalMetres,
+    totalWireMetres: elements.reduce((total, element) => total + element.cutTotalMetres, 0),
+    lowestFrequencyMHz: elements[0].frequencyMHz,
+    highestFrequencyMHz: elements[elements.length - 1].frequencyMHz
+  };
 }
 
 export function calculateInvertedV(input: InvertedVInput) {

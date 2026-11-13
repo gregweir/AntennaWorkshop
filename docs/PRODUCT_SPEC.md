@@ -22,8 +22,8 @@ The application will run in a desktop or mobile browser, install as an offline-c
 
 The public repository currently includes:
 
-- Eleven graphical antenna starting designs covering wire, vertical, loop, folded, and directional families.
-- Canada-, United States-, and United Kingdom-aware amateur-band selection with metric and imperial presentation.
+- Twelve graphical antenna starting designs covering single- and multiband wire, vertical, loop, folded, and directional families.
+- Canada-, United States-, United Kingdom-, and Australia-aware amateur-band selection with metric and imperial presentation.
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
 - Official Canadian and United States RF power-density reference levels.
 - A United States single-source FCC routine-evaluation exemption workflow covering all three criteria in 47 CFR § 1.1307(b)(3)(i), with ERP/EIRP distinctions and explicit non-compliance vocabulary.
@@ -35,7 +35,7 @@ The public repository currently includes:
 - A connected antenna-to-system-to-exposure workflow that preserves typed inputs and calculator-model provenance.
 - An installable PWA shell, persistent preferences, explicit update prompts, and automated unit and browser tests.
 
-Australian pattern-specific and near-field exposure methods, independent RF review, and production deployment remain release blockers.
+Australian beta scope deliberately stops when the official simple method is inapplicable. Pattern-specific attenuation, near-field calculation, terrain and building modelling, uncertainty analysis, and measurement interpretation are not beta features; the application directs those cases to an applicable standards-based assessment or measurement. Independent RF review and production deployment remain release blockers.
 
 ## Core experience
 
@@ -53,6 +53,8 @@ Contextual help must work with touch, keyboard, and pointer input. Complex secti
 The EFHW guide must distinguish impedance ratio from winding turns ratio, treat end impedance and multiband resonances as installation-dependent assumptions, and lead the builder through return-path planning, documented transformer selection, build-long construction, installed measurement, and per-band verification. It must not imply that the calculator designs or power-rates a transformer or prescribes one universal counterpoise.
 
 The OCFD guide must explain how the selected split changes both leg lengths and likely feedpoint impedance, distinguish a nominal current-balun ratio from a complete balun and choking design, and preserve the selected split while trimming. It must require installed measurement on each intended band and avoid promising a match, pattern, or tuner-correctable common-mode system.
+
+The fan-dipole guide must calculate each equal wire pair from its own design frequency, present total material and the longest span, and keep all pairs on one balanced feedpoint. It must require stable non-conductive spacing, symmetrical construction, highest-frequency-first tuning, and a complete band sweep after every adjustment. It must not combine ideal element impedances, predict mutual coupling, guarantee a tuner-free match, or claim a finished bandwidth or pattern.
 
 J-pole and Slim Jim guides must explain the construction-medium correction factor, parallel matching geometry, paired coax-tap adjustment, feedline choking, and installed vertical measurement. Slim Jim guidance must additionally preserve the interrupted folded side and gap. Neither guide may promise feedpoint impedance, bandwidth, pattern, or a universal tap or gap position from a low-SWR result.
 
@@ -81,7 +83,7 @@ Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon
 
 The first useful release includes wavelength, dipole, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
-Advanced families later include loaded and trap antennas, fan dipoles, doublets, multiband designs, magnetic loops, loaded verticals, collinears, cubical quads, helices, discones, log-periodics, receive antennas, coils, traps, and matching networks.
+Advanced families later include doublets, loaded and trap antennas, other multiband designs, magnetic loops, loaded verticals, collinears, cubical quads, helices, discones, log-periodics, receive antennas, coils, traps, and matching networks.
 
 ## RF exposure
 

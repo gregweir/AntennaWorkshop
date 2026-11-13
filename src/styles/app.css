@@ -5075,6 +5075,64 @@ select {
   border-top: 1px solid var(--border);
 }
 
+.fan-frequency-editor {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.2rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.fan-frequency-editor legend {
+  padding-inline: 0.35rem;
+  font-weight: 800;
+}
+
+.fan-frequency-editor > p,
+.fan-frequency-editor > small {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.fan-frequency-row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.fan-frequency-row label {
+  font-weight: 750;
+}
+
+.fan-frequency-editor button {
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-technical);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.fan-frequency-editor > .secondary-button {
+  justify-self: start;
+}
+
+.fan-dipole-diagram .antenna-wire line {
+  stroke-width: 4;
+}
+
+.fan-element-labels text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 .validation-message {
   color: var(--danger);
   font-weight: 700;
@@ -5876,6 +5934,14 @@ select {
 }
 
 @media (max-width: 540px) {
+  .fan-frequency-row {
+    grid-template-columns: 1fr;
+  }
+
+  .fan-frequency-row .quiet-button {
+    justify-self: start;
+  }
+
   .fcc-exemption-diagram {
     height: auto;
     min-height: 0;
