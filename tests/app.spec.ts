@@ -493,13 +493,40 @@ test('applies the Ofcom assessment and distance workflows for United Kingdom sta
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
-test('looks up Australian whole-body and local ARPANSA reference levels', async ({ page }) => {
+test('applies the Australian ACMA gateway and ARPANSA reference levels', async ({ page }) => {
   await page.locator('.global-controls select').selectOption('AU');
   await expect(page.getByText('Jurisdiction: Australia')).toBeVisible();
   await page.getByRole('button', { name: /RF exposure/ }).click();
 
+  await expect(page.getByRole('button', { name: /ACMA gateway/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /ARPANSA limits/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Single source/ })).toHaveCount(0);
+  const gateway = page.getByRole('region', { name: 'Amateur station EME assessment path' });
+  await expect(gateway.locator('.screen-outcome')).toContainText('low-risk category');
+  await expect(gateway.getByRole('img', { name: /Australian amateur station EME assessment gateway/ })).toBeVisible();
+
+  await gateway.getByRole('checkbox', { name: /Every antenna is inaccessible/ }).uncheck();
+  await gateway.getByRole('spinbutton', { name: 'Average total power to all antennas' }).fill('101');
+  await gateway.getByRole('spinbutton', { name: 'Base height of lowest antenna' }).fill('9.999');
+  await expect(gateway.locator('.screen-outcome')).toContainText('Higher-risk measurement, calculation, and records are required');
+
+  await gateway.getByRole('spinbutton', { name: 'Base height of lowest antenna' }).fill('10');
+  await gateway.getByRole('spinbutton', { name: 'Average total EIRP in any direction' }).fill('3200');
+  await expect(gateway.locator('.screen-outcome')).toContainText('low-risk category');
+  await gateway.getByRole('checkbox', { name: /simultaneously on multiple frequencies/ }).check();
+  await gateway.getByRole('checkbox', { name: /more than one station/ }).check();
+  await expect(gateway.locator('.screen-limitations').first()).toContainText('RPS S-1 section 3');
+  await expect(gateway.locator('.screen-limitations').first()).toContainText('whole-site');
+
+  await gateway.getByLabel('Station type').selectOption('mobile');
+  await gateway.getByRole('spinbutton', { name: 'Average total power to all antennas' }).fill('100');
+  await expect(gateway.locator('.screen-outcome')).toContainText('low-risk category');
+  await gateway.getByRole('spinbutton', { name: 'Average total power to all antennas' }).fill('100.1');
+  await expect(gateway.locator('.screen-outcome')).toContainText('Higher-risk');
+
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(gateway.getByRole('spinbutton', { name: 'Base height of lowest antenna' })).toHaveValue('32.808');
+  await page.getByRole('button', { name: /ARPANSA limits/ }).click();
   const panel = page.getByRole('region', { name: 'ARPANSA RPS S-1 reference levels' });
   await expect(panel).toContainText('30-minute average');
   await expect(panel).toContainText('6-minute average');

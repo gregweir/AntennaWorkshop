@@ -22,6 +22,7 @@ import { OfcomAssessmentPanel } from './OfcomAssessmentPanel';
 import { OfcomComplianceDistancePanel } from './OfcomComplianceDistancePanel';
 import { OfcomMultipleDistancePanel } from './OfcomMultipleDistancePanel';
 import { ArpansaReferencePanel } from './ArpansaReferencePanel';
+import { AcmaAssessmentPanel } from './AcmaAssessmentPanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
@@ -32,7 +33,7 @@ interface Props {
   onSourceConsumed: () => void;
 }
 
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference';
+type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
@@ -50,6 +51,7 @@ const ukViewOptions: Array<{ id: ExposureView; title: string; description: strin
 ];
 
 const australianViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
+  { id: 'acma-assessment', title: 'ACMA gateway', description: 'Low-risk and higher-risk station path' },
   { id: 'arpansa-reference', title: 'ARPANSA limits', description: 'Whole-body, local, peak, and limb-current levels' }
 ];
 
@@ -68,12 +70,12 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const availableViews = isUk ? ukViewOptions : isAustralia ? australianViewOptions : viewOptions;
   useEffect(() => {
     if (isUk && view !== 'ofcom-assessment' && view !== 'ofcom-distance' && view !== 'ofcom-multiple') setView('ofcom-assessment');
-    if (isAustralia && view !== 'arpansa-reference') setView('arpansa-reference');
-    if (!isUk && !isAustralia && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple' || view === 'arpansa-reference')) setView('reference');
+    if (isAustralia && view !== 'arpansa-reference' && view !== 'acma-assessment') setView('acma-assessment');
+    if (!isUk && !isAustralia && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple' || view === 'arpansa-reference' || view === 'acma-assessment')) setView('reference');
   }, [isAustralia, isUk, view]);
-  const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || isAustralia;
-  const needsEnvironment = (!isUk && !isAustralia && view !== 'fcc-exemption' && view !== 'fcc-multiple') || isAustralia;
-  const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
+  const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || (isAustralia && view === 'arpansa-reference');
+  const needsEnvironment = (!isUk && !isAustralia && view !== 'fcc-exemption' && view !== 'fcc-multiple') || (isAustralia && view === 'arpansa-reference');
+  const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' || view === 'acma-assessment' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
 
   const levels = useMemo(() => {
     if (exposureJurisdiction !== 'CA' && exposureJurisdiction !== 'US') return null;
@@ -145,5 +147,6 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     {isUk && view === 'ofcom-distance' && <OfcomComplianceDistancePanel frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {isUk && view === 'ofcom-multiple' && <OfcomMultipleDistancePanel unitSystem={unitSystem} />}
     {isAustralia && view === 'arpansa-reference' && <ArpansaReferencePanel frequencyMHz={frequencyMHz} environment={environment} />}
+    {isAustralia && view === 'acma-assessment' && <AcmaAssessmentPanel unitSystem={unitSystem} />}
   </section>;
 }

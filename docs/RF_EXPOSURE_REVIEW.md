@@ -21,6 +21,7 @@ Sources and links were rechecked on 2026-11-13. A reviewer should record the edi
 | --- | --- | --- |
 | Canadian and US reference levels | `src/regulations/exposureLimits.ts` | `src/regulations/exposureLimits.test.ts` |
 | Australian whole-body, local, peak, and limb-current reference levels | `src/calculators/arpansaReference.ts` | `src/calculators/arpansaReference.test.ts` |
+| Australian Amateur Class Licence assessment gateway | `src/calculators/acmaAssessment.ts` | `src/calculators/acmaAssessment.test.ts` |
 | FCC single-source exemption | `src/calculators/fccExemption.ts` | `src/calculators/fccExemption.test.ts` |
 | FCC multiple-source exemption | `src/calculators/fccMultipleExemption.ts` | `src/calculators/fccMultipleExemption.test.ts` |
 | Single-source estimate and applicability | `src/calculators/exposureScreen.ts` | `src/calculators/exposureScreen.test.ts` |
@@ -73,6 +74,7 @@ The automated suite should reproduce these values within the precision asserted 
 | FCC distance exemption: 146 MHz, 100 W ERP, 10 m | Table 1 threshold `3.83 × 10² = 383 W`; qualifies for exemption from routine evaluation |
 | FCC mixed collective exemption | close-proximity `0.20` + distance ERP `0.30` + existing evaluation `0.50` = `1.00`; qualifies at the inclusive fractional threshold |
 | ARPANSA general public, 146 MHz | whole body `27.7 V/m`, `0.073 A/m`, `2 W/m²` over 30 minutes; local `62 V/m`, `0.163 A/m`, `10 W/m²` over 6 minutes |
+| ACMA fixed low-risk height/EIRP path | lowest antenna base `10 m` and average total EIRP `3200 W` satisfies the inclusive clause 3 threshold; `9.999 m` or `3200.001 W` does not |
 
 Health Canada Technical Guide Example C-1 provides an official free-space cross-check: 50 W EIRP at 1200 MHz has a `3.33 W/m²` uncontrolled reference level and a minimum distance of approximately `1.09 m` using `EIRP/(4πr²)`. With the application’s explicit `2.56` reflected-field multiplier, the corresponding conservative distance is approximately `1.75 m`. This difference is intentional and must be approved or revised during review.
 
@@ -92,6 +94,7 @@ The reviewer should resolve each item explicitly:
 8. Is the status precedence correct when a project contains both an inapplicable path and another path that reaches an escalation threshold?
 9. Are the interface, printed record, and exported project vocabulary sufficiently clear that users cannot confuse screening, exemption, evaluation, mitigation, and demonstrated compliance?
 10. Does the Australian lookup preserve the correct spatial and temporal basis, field-region requirements, `ES` treatment, additional peak-field and limb-current checks, and distinction between RPS S-1 tables and the Amateur Class Licence conditions?
+11. Does the Australian gateway distinguish clause 3 application from a compliance presumption, preserve the continuing clause 2 condition, and correctly describe clauses 4 and 6 without overlooking station changes or transitional provisions?
 
 ## Reproduction procedure
 

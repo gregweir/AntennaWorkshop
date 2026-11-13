@@ -3317,7 +3317,139 @@ select {
 }
 
 .exposure-mode-picker-au {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.acma-input-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.acma-input-grid .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.acma-input-grid select {
+  width: 100%;
+}
+
+.acma-check {
+  display: flex;
+  grid-column: span 2;
+  gap: 0.55rem;
+  align-items: start;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-weight: 800;
+}
+
+.acma-check input {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.05rem;
+}
+
+.acma-result-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin: 1.25rem 0;
+}
+
+.acma-gateway-diagram,
+.acma-path-summary {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.acma-gateway-diagram {
+  min-height: 250px;
+}
+
+.acma-diagram-line {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 3;
+}
+
+.acma-diagram-box rect {
+  fill: var(--bg-elevated);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.acma-diagram-box text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-anchor: middle;
+}
+
+.acma-diagram-box text:first-of-type {
+  fill: var(--text-primary);
+  font-weight: 900;
+}
+
+.acma-diagram-active rect {
+  fill: var(--tl-navy);
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+}
+
+.acma-diagram-active text,
+.acma-diagram-active text:first-of-type {
+  fill: var(--tl-cream);
+}
+
+.acma-diagram-alert rect {
+  fill: color-mix(in srgb, var(--tl-coral) 14%, var(--bg-surface));
+  stroke: var(--tl-coral);
+}
+
+.acma-diagram-alert text,
+.acma-diagram-alert text:first-of-type {
+  fill: var(--text-primary);
+}
+
+.acma-diagram-note {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.acma-path-summary {
+  padding: 1rem;
+}
+
+.acma-path-summary dl {
+  margin: 0.6rem 0 0;
+}
+
+.acma-path-summary dl div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.acma-path-summary dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 900;
 }
 
 .arpansa-reference-grid {
@@ -5034,7 +5166,17 @@ select {
     grid-template-columns: 1fr;
   }
 
-  .exposure-mode-picker-uk {
+  .acma-input-grid,
+  .acma-result-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .acma-check {
+    grid-column: 1;
+  }
+
+  .exposure-mode-picker-uk,
+  .exposure-mode-picker-au {
     grid-template-columns: 1fr;
   }
 
