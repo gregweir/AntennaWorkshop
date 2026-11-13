@@ -359,6 +359,45 @@ test('plans an axial-mode helix and separates dimensions from classical estimate
   await expect(page.locator('.result-summary')).toContainText('0 ft 8.625 in diameter');
 });
 
+test('plans a radial discone without inventing an upper usable frequency', async ({ page }) => {
+  await page.getByRole('button', { name: /Discone/ }).click();
+  await page.locator('select.band-select').selectOption('2m');
+  await expect(page.getByRole('spinbutton', { name: 'Lowest design frequency' })).toHaveValue('144.0');
+
+  await expect(page.getByRole('heading', { name: 'Broadband discone antenna' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Cone half-angle' })).toHaveValue('30');
+  await expect(page.getByRole('spinbutton', { name: 'Cone radial elements' })).toHaveValue('8');
+  await expect(page.getByRole('spinbutton', { name: 'Disc radial elements' })).toHaveValue('8');
+  await expect(page.getByRole('img', { name: /Dimensioned radial-element discone antenna/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build 8 disc and 8 cone radials');
+  await expect(page.locator('.result-summary')).toContainText('52.2 cm cone slant');
+  await expect(page.locator('.result-summary')).toContainText('Cone vertical height45.2 cm');
+  await expect(page.locator('.result-summary')).toContainText('Disc diameter35.4 cm');
+  await expect(page.locator('.result-summary')).toContainText('Total radial wire5.731 m');
+  await expect(page.locator('.result-summary')).toContainText('Upper-frequency limitNot inferred · measure the finished antenna');
+  await expect(page.getByRole('complementary', { name: 'Discone design advisories' })).toHaveCount(0);
+
+  await expect(page.getByText('Keep the feed region compact')).toBeHidden();
+  await page.getByText('Build and commission a radial discone').click();
+  await expect(page.getByText('Keep the feed region compact')).toBeVisible();
+  await page.getByLabel('Help: Cone half-angle').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Cone half-angle' })).toContainText('60° included cone');
+
+  await page.getByRole('spinbutton', { name: 'Cone half-angle' }).fill('35');
+  await expect(page.locator('.result-summary')).toContainText('Cone included angle70°');
+  await page.getByRole('spinbutton', { name: 'Disc radial elements' }).fill('4');
+  await expect(page.getByRole('complementary', { name: 'Discone design advisories' })).toContainText('sparse radial approximation');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Extra radial length for connections' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Broadband geometry does not establish broadband performance' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('ntia-nasa-discone');
+
+  await page.getByRole('spinbutton', { name: 'Cone half-angle' }).fill('30');
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.locator('.result-summary')).toContainText('1 ft 8.5 in cone slant');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

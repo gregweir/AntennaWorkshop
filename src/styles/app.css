@@ -4868,14 +4868,16 @@ select {
 .small-loop-layout,
 .collinear-layout,
 .quad-layout,
-.helix-layout {
+.helix-layout,
+.discone-layout {
   grid-template-columns: 1fr;
 }
 
 .small-loop-layout .input-panel,
 .collinear-layout .input-panel,
 .quad-layout .input-panel,
-.helix-layout .input-panel {
+.helix-layout .input-panel,
+.discone-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4888,7 +4890,9 @@ select {
 .quad-layout .input-panel > .field,
 .quad-layout .quad-editor,
 .helix-layout .input-panel > .field,
-.helix-layout .helix-editor {
+.helix-layout .helix-editor,
+.discone-layout .input-panel > .field,
+.discone-layout .discone-editor {
   margin: 0;
 }
 
@@ -4906,14 +4910,20 @@ select {
 .helix-layout .advanced-fields,
 .helix-layout .result-summary,
 .helix-layout .helix-advisory,
-.helix-layout .validation-message {
+.helix-layout .validation-message,
+.discone-layout .discone-editor,
+.discone-layout .advanced-fields,
+.discone-layout .result-summary,
+.discone-layout .discone-advisory,
+.discone-layout .validation-message {
   grid-column: 1 / -1;
 }
 
 .small-loop-layout .small-loop-editor,
 .collinear-layout .collinear-editor,
 .quad-layout .quad-editor,
-.helix-layout .helix-editor {
+.helix-layout .helix-editor,
+.discone-layout .discone-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5134,7 +5144,8 @@ select {
 .small-loop-editor,
 .collinear-editor,
 .quad-editor,
-.helix-editor {
+.helix-editor,
+.discone-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5149,7 +5160,8 @@ select {
 .small-loop-editor legend,
 .collinear-editor legend,
 .quad-editor legend,
-.helix-editor legend {
+.helix-editor legend,
+.discone-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5170,6 +5182,10 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.discone-editor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .loaded-antenna-editor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -5183,7 +5199,8 @@ select {
 .small-loop-editor > .field,
 .collinear-editor > .field,
 .quad-editor > .field,
-.helix-editor > .field {
+.helix-editor > .field,
+.discone-editor > .field {
   margin: 0;
 }
 
@@ -5470,14 +5487,60 @@ path.loading-coil {
   font-weight: 800;
 }
 
-.helix-advisory ul {
+.helix-advisory ul,
+.discone-advisory ul {
   margin: 0.55rem 0 0;
   padding-left: 1.2rem;
   color: var(--text-secondary);
 }
 
-.helix-advisory li + li {
+.helix-advisory li + li,
+.discone-advisory li + li {
   margin-top: 0.35rem;
+}
+
+.discone-disc ellipse,
+.discone-cone ellipse {
+  fill: color-mix(in srgb, var(--accent-technical) 8%, transparent);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.discone-disc line {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.discone-cone line {
+  stroke: var(--accent-technical);
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.discone-disc circle,
+.discone-cone circle {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.discone-feed line {
+  stroke: var(--text-primary);
+  stroke-dasharray: 3 3;
+  stroke-width: 2;
+}
+
+.discone-feed rect {
+  fill: var(--bg-surface);
+  stroke: var(--tl-coral);
+}
+
+.discone-feed text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .coil-construction-panel {
@@ -6609,7 +6672,9 @@ path.loading-coil {
   .quad-layout .input-panel,
   .quad-layout .quad-editor,
   .helix-layout .input-panel,
-  .helix-layout .helix-editor {
+  .helix-layout .helix-editor,
+  .discone-layout .input-panel,
+  .discone-layout .discone-editor {
     grid-template-columns: 1fr;
   }
 
@@ -6891,7 +6956,8 @@ path.loading-coil {
   .small-loop-editor,
   .collinear-editor,
   .quad-editor,
-  .helix-editor {
+  .helix-editor,
+  .discone-editor {
     grid-template-columns: 1fr;
   }
 
