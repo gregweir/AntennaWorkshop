@@ -58,6 +58,8 @@ Centre-fed dipole and inverted-V guidance must preserve equal legs, balanced fee
 
 Directional-antenna guidance must preserve the Moxon rectangle's constant-diameter assumption, symmetrical A–E geometry, critical gaps, balanced feeding, and installed pattern verification. The basic Yagi guide must treat the element lengths, 0.0085λ diameter, centre-to-centre spacing, folded driven element, matching arrangement, and non-conductive boom as one NBS reference system. Material, boom, mounting, or feed substitutions require separate modelling and measurement; neither guide may promise SWR, gain, bandwidth, front-to-back ratio, or installed pattern.
 
+Feedline guidance must distinguish manufacturer matched-loss data from installed loss under mismatch, use the complete cable and accessory path, identify the measurement reference plane, and explain that SWR does not reveal complex impedance. Coaxial-stub guidance must distinguish electrical from physical length, use the actual cable velocity factor, include connectors and termination geometry, and require calibrated measurement and trimming at the design frequency. Neither guide may imply a transmission-line simulation, power rating, complete matching-network design, or guaranteed bandwidth.
+
 ## Visual language
 
 Visuals are functional rather than decorative:

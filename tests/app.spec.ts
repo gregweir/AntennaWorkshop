@@ -185,23 +185,37 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.getByRole('img', { name: 'Feedline power-flow diagram' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
   await expect(page.locator('.result-summary')).toContainText('1.80 dB');
+  await expect(page.getByText('Measure at the antenna reference plane', { exact: true })).toBeHidden();
+  await page.getByText('Plan and verify a feedline budget').click();
+  await expect(page.getByText('Measure at the antenna reference plane', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Published matched cable loss').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Published matched cable loss' })).toContainText('matched-line attenuation');
+  await page.getByLabel('Help: SWR at the antenna').click();
+  await expect(page.getByRole('note').filter({ hasText: 'SWR at the antenna' })).toContainText('transmitter-end SWR');
 
   await page.getByRole('button', { name: 'Imperial' }).click();
   await expect(page.getByLabel('Cable length')).toHaveValue('98.425');
-  await expect(page.getByLabel('Published matched cable loss')).toHaveValue('1.829');
+  await expect(page.getByLabel('Published matched cable loss', { exact: true })).toHaveValue('1.829');
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
 
   await page.getByRole('button', { name: /Coaxial stub/ }).click();
   await expect(page.getByRole('heading', { name: 'Coaxial stub length' })).toBeVisible();
   await page.getByRole('spinbutton', { name: 'Operating frequency' }).fill('14.100');
-  await expect(page.getByLabel('Velocity factor')).toHaveValue('0.66');
-  await expect(page.getByLabel('Electrical length')).toHaveValue('0.25');
-  await expect(page.getByLabel('Far-end termination')).toHaveValue('short');
+  await expect(page.getByLabel('Velocity factor', { exact: true })).toHaveValue('0.66');
+  await expect(page.getByLabel('Electrical length', { exact: true })).toHaveValue('0.25');
+  await expect(page.getByLabel('Far-end termination', { exact: true })).toHaveValue('short');
   await expect(page.getByRole('img', { name: /Dimensioned coaxial stub/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('12 ft 1 in');
   await expect(page.locator('.result-summary')).toContainText('High impedance');
+  await expect(page.getByText('Build the final termination', { exact: true })).toBeHidden();
+  await page.getByText('Build and verify a coaxial stub').click();
+  await expect(page.getByText('Build the final termination', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Velocity factor').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Velocity factor' })).toContainText('specific cable construction');
+  await page.getByLabel('Help: Electrical length').click();
+  await expect(page.getByLabel('Help: Electrical length').locator('..').getByRole('note')).toContainText('quarter-wave line');
 
-  await page.getByLabel('Far-end termination').selectOption('open');
+  await page.getByLabel('Far-end termination', { exact: true }).selectOption('open');
   await expect(page.locator('.result-summary')).toContainText('Low impedance');
 
   await page.getByRole('button', { name: /ERP \/ EIRP/ }).click();

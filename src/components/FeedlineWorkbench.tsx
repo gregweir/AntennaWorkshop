@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { calculateCoaxialStub, calculateFeedlineBudget, calculateRadiatedPower, COAXIAL_STUB_MODEL, FEEDLINE_MODEL, RADIATED_POWER_MODEL, type GainReference, type StubFraction, type StubTermination } from '../calculators/feedline';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
@@ -15,6 +15,7 @@ import { BandIndicator } from './BandIndicator';
 import { FeedlineDiagram } from './FeedlineDiagram';
 import { CoaxialStubDiagram } from './CoaxialStubDiagram';
 import { RadiatedPowerDiagram } from './RadiatedPowerDiagram';
+import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -91,6 +92,22 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
       <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
       <button type="button" aria-pressed={mode === 'radiated'} onClick={() => setMode('radiated')}><strong>ERP / EIRP</strong><small>Loss, gain, and reference power</small></button>
     </div>
+    {mode === 'power' && <StepByStepHelp title="Plan and verify a feedline budget" intro="Use this sequence to turn cable and accessory specifications into a traceable first-order power estimate. Experienced operators can leave the guide closed." steps={[
+      { title: 'Fix the operating frequency', detail: 'Choose the actual frequency because cable attenuation changes with frequency and the calculator does not interpolate a data sheet.' },
+      { title: 'Trace the complete cable path', detail: 'Measure every indoor, outdoor, mast, jumper, and service-loop section that contributes to the feedline length.' },
+      { title: 'Find matched cable loss', detail: 'Use current manufacturer attenuation data for the exact cable type at or near the operating frequency, noting the stated temperature and units.' },
+      { title: 'Account for every accessory', detail: 'Add documented insertion loss for switches, meters, filters, duplexers, connectors, adapters, and external tuners in the path.' },
+      { title: 'Measure at the antenna reference plane', detail: 'Use forward power and SWR referred to the antenna end when possible; a lossy cable can make transmitter-end SWR appear better.' },
+      { title: 'Verify the installed system', detail: 'Inspect connections and weatherproofing, measure the finished path, and check cable and accessory heating at the intended power and duty cycle.' }
+    ]} limit="This is a scalar first-order budget. It does not simulate impedance along a transmission line, additional loss under high SWR, re-reflections, voltage and current maxima, component heating, or power rating." />}
+    {mode === 'stub' && <StepByStepHelp title="Build and verify a coaxial stub" intro="Use this sequence to turn the ideal electrical length into a measured stub at one design frequency. Experienced builders can leave the guide closed." steps={[
+      { title: 'Choose the exact design frequency', detail: 'Set the frequency where the finished stub must provide its intended transformation; behaviour changes away from that frequency.' },
+      { title: 'Identify the actual cable', detail: 'Use the manufacturer velocity factor for the specific cable construction and, when precision matters, verify the sample being cut.' },
+      { title: 'Choose length and termination', detail: 'Select quarter-wave or half-wave behaviour and decide whether the far end will be a dependable short circuit or a protected open circuit.' },
+      { title: 'Cut long with connectors included', detail: 'Retain the trimming allowance and count connector bodies, adapters, and termination hardware as part of the electrical path.' },
+      { title: 'Build the final termination', detail: 'Make the short mechanically low-inductance or keep the open end insulated, dry, stable, and safely clear of high RF voltage.' },
+      { title: 'Calibrate, measure, and trim', detail: 'Move the analyser reference plane to the stub input, measure at the design frequency, and shorten in small steps with the final hardware attached.' }
+    ]} limit="The result is an ideal lossless-line length at one frequency. It does not design a complete matching network or predict characteristic impedance, loss, bandwidth, power handling, connector parasitics, or installed interaction." />}
     <div className="calculator-layout">
       <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
         <label className="field">
@@ -108,15 +125,15 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
         {mode === 'power' ? <>
           <PowerField label="Transmitter power" value={transmitterPowerWatts} unit="W" min={0.001} step={1} onChange={(value) => setTransmitterPowerWatts(Number(value))} help="Use the forward power entering the accessories and feedline." />
           <PowerField label="Cable length" value={Number(cableLengthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={0} step={0.1} onChange={(value) => setCableLengthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Include the complete cable path, including indoor and mast runs." />
-          <PowerField label="Published matched cable loss" value={Number(lossRateDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'dB/100 m' : 'dB/100 ft'} min={0} step={0.01} onChange={(value) => setLossDbPer100Metres(unitSystem === 'metric' ? Number(value) : Number(value) / 0.3048)} help="Copy the loss from the cable manufacturer's data at the selected frequency and temperature." />
+          <PowerField label="Published matched cable loss" tooltip="Enter the manufacturer's matched-line attenuation for the exact cable type, stated per 100 metres or 100 feet at or near the operating frequency. The calculator does not select or interpolate a specification, and real loss changes with frequency, temperature, ageing, moisture, and mismatch." value={Number(lossRateDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'dB/100 m' : 'dB/100 ft'} min={0} step={0.01} onChange={(value) => setLossDbPer100Metres(unitSystem === 'metric' ? Number(value) : Number(value) / 0.3048)} help="Copy the loss from the cable manufacturer's data at the selected frequency and temperature." />
           <PowerField label="Accessory insertion loss" value={accessoryLossDb} unit="dB" min={0} step={0.1} onChange={(value) => setAccessoryLossDb(Number(value))} help="Combine known losses from switches, meters, filters, connectors, and external tuners." />
-          <PowerField label="SWR at the antenna" value={swr} unit=": 1" min={1} step={0.01} onChange={(value) => setSwr(Number(value))} help="SWR alone does not reveal whether the impedance is high, low, inductive, or capacitive." />
+          <PowerField label="SWR at the antenna" tooltip="Use SWR referred to the antenna feedpoint when possible. Cable attenuation can make transmitter-end SWR look lower than the load-end value. SWR gives the magnitude of mismatch only; it does not identify resistance, reactance, or phase." value={swr} unit=": 1" min={1} step={0.01} onChange={(value) => setSwr(Number(value))} help="SWR alone does not reveal whether the impedance is high, low, inductive, or capacitive." />
         </> : mode === 'stub' ? <>
           <label className="field"><span>Common dielectric preset</span><select value={velocityFactor} onChange={(event) => setVelocityFactor(Number(event.target.value))}><option value={0.66}>Solid polyethylene · 0.66</option><option value={0.7}>PTFE · 0.70</option><option value={0.8}>Foam polyethylene · 0.80</option><option value={0.85}>Low-density foam · 0.85</option></select><small>Use the cable manufacturer's measured value when available; cable construction varies.</small></label>
-          <PowerField label="Velocity factor" value={velocityFactor} unit="ratio" min={0.01} max={1} step={0.01} onChange={(value) => setVelocityFactor(Number(value))} help="Propagation speed in the cable divided by the speed of light in vacuum." />
-          <label className="field"><span>Electrical length</span><select value={stubFraction} onChange={(event) => setStubFraction(Number(event.target.value) as StubFraction)}><option value={0.25}>Quarter wavelength · 90°</option><option value={0.5}>Half wavelength · 180°</option></select><small>Electrical length is specified at the selected design frequency.</small></label>
-          <label className="field"><span>Far-end termination</span><select value={stubTermination} onChange={(event) => setStubTermination(event.target.value as StubTermination)}><option value="short">Shorted</option><option value="open">Open</option></select><small>The ideal input behaviour reverses at a quarter wavelength and repeats at a half wavelength.</small></label>
-          <PowerField label="Extra length for trimming" value={stubTrimAllowancePercent} unit="%" min={0} max={25} step={0.5} onChange={(value) => setStubTrimAllowancePercent(Number(value))} help="Added to the ideal physical length; connectors are part of the electrical length." />
+          <PowerField label="Velocity factor" tooltip="Velocity factor is the propagation speed in this transmission line relative to free space. Use data for the specific cable construction rather than treating a dielectric preset as universal; manufacturing tolerance, ageing, and connectors can shift the measured electrical length." value={velocityFactor} unit="ratio" min={0.01} max={1} step={0.01} onChange={(value) => setVelocityFactor(Number(value))} help="Propagation speed in the cable divided by the speed of light in vacuum." />
+          <div className="field"><span className="field-label-with-help"><label htmlFor="stub-electrical-length">Electrical length</label><HelpTip label="Electrical length">A quarter-wave line is 90° and reverses ideal open- and short-circuit behaviour at its design frequency. A half-wave line is 180° and repeats the far-end termination. Neither choice describes useful bandwidth away from that frequency.</HelpTip></span><select id="stub-electrical-length" value={stubFraction} onChange={(event) => setStubFraction(Number(event.target.value) as StubFraction)}><option value={0.25}>Quarter wavelength · 90°</option><option value={0.5}>Half wavelength · 180°</option></select><small>Electrical length is specified at the selected design frequency.</small></div>
+          <div className="field"><span className="field-label-with-help"><label htmlFor="stub-termination">Far-end termination</label><HelpTip label="Far-end termination">The result assumes an ideal short or open. Real shorts have inductance, open ends have fringing capacitance, and connector or enclosure geometry shifts the response. Open stubs can develop high RF voltage.</HelpTip></span><select id="stub-termination" value={stubTermination} onChange={(event) => setStubTermination(event.target.value as StubTermination)}><option value="short">Shorted</option><option value="open">Open</option></select><small>The ideal input behaviour reverses at a quarter wavelength and repeats at a half wavelength.</small></div>
+          <PowerField label="Extra length for trimming" tooltip="This allowance is added beyond the ideal calculated cable length. Keep the final connector and termination hardware attached while measuring because the analyser reference plane and every conductor in the path contribute to electrical length." value={stubTrimAllowancePercent} unit="%" min={0} max={25} step={0.5} onChange={(value) => setStubTrimAllowancePercent(Number(value))} help="Added to the ideal physical length; connectors are part of the electrical length." />
         </> : <>
           <PowerField label="Transmitter power" value={transmitterPowerWatts} unit="W" min={0.001} step={1} onChange={(value) => setTransmitterPowerWatts(Number(value))} help="Use power before the feedline and accessories. For time-averaged exposure work, use the power definition required by the applicable method." />
           <PowerField label="Total feed-system loss" value={feedSystemLossDb} unit="dB" min={0} max={100} step={0.1} onChange={(value) => setFeedSystemLossDb(Number(value))} help="Combine feeder, connector, switch, filter, duplexer, and other insertion losses before the antenna." />
@@ -188,6 +205,7 @@ function formatWatts(watts: number) {
   return watts >= 1000 ? `${(watts / 1000).toFixed(3)} kW` : `${watts.toFixed(2)} W`;
 }
 
-function PowerField({ label, value, unit, min, max, step, help, readOnly = false, onChange }: { label: string; value: string | number; unit: string; min: number; max?: number; step: number; help: string; readOnly?: boolean; onChange: (value: string) => void }) {
-  return <label className="field"><span>{label}</span><span className="input-with-unit"><input aria-label={label} type="number" min={min} max={max} step={step} value={value} readOnly={readOnly} onChange={(event) => onChange(event.target.value)} /><span>{unit}</span></span><small>{help}</small></label>;
+function PowerField({ label, value, unit, min, max, step, help, tooltip, readOnly = false, onChange }: { label: string; value: string | number; unit: string; min: number; max?: number; step: number; help: string; tooltip?: ReactNode; readOnly?: boolean; onChange: (value: string) => void }) {
+  const inputId = useId();
+  return <div className="field"><span className={tooltip ? 'field-label-with-help' : undefined}><label htmlFor={inputId}>{label}</label>{tooltip && <HelpTip label={label}>{tooltip}</HelpTip>}</span><span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} readOnly={readOnly} onChange={(event) => onChange(event.target.value)} /><span>{unit}</span></span><small>{help}</small></div>;
 }
