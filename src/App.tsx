@@ -99,7 +99,7 @@ export function App() {
         <div className="roadmap-grid">
           <article><span>01</span><h3>Antenna designs</h3><p>Wire, vertical, beam, loop, portable, and receive antennas with live cut plans.</p></article>
           <article><span>02</span><h3>Feedline and matching</h3><p>Loss, velocity factor, stubs, SWR, impedance, coils, traps, baluns, and ununs.</p></article>
-          <article><span>03</span><h3>RF exposure</h3><p>Sourced Canadian and United States tools plus an Ofcom assessment gateway for United Kingdom stations.</p></article>
+          <article><span>03</span><h3>RF exposure</h3><p>Sourced Canadian and United States tools plus Ofcom assessment and distance workflows for United Kingdom stations.</p></article>
         </div>
       </section>
     </main>

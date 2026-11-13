@@ -427,7 +427,7 @@ test('combines FCC multiple-source exemption fractions and special low-power con
   await expect(multiple.locator('fieldset.fcc-multiple-source')).toHaveCount(2);
 });
 
-test('applies the Ofcom assessment and record gateway for United Kingdom stations', async ({ page }) => {
+test('applies the Ofcom assessment gateway and compliance distance for United Kingdom stations', async ({ page }) => {
   await page.locator('.global-controls select').selectOption('GB');
   await expect(page.getByText('Jurisdiction: United Kingdom')).toBeVisible();
   await page.getByRole('button', { name: /RF exposure/ }).click();
@@ -450,6 +450,24 @@ test('applies the Ofcom assessment and record gateway for United Kingdom station
 
   await panel.getByRole('checkbox', { name: /Equipment is currently used/ }).uncheck();
   await expect(panel.locator('.screen-outcome')).toContainText('No EMF assessment or record is required');
+
+  await page.getByRole('button', { name: /Compliance distance/ }).click();
+  await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('450');
+  const distance = page.locator('.ofcom-distance-section');
+  await expect(distance.getByRole('heading', { name: 'Ofcom compliance distance' })).toBeVisible();
+  await expect(distance.locator('.result-summary')).toContainText('2.46 m');
+  await expect(distance.getByRole('img', { name: /Ofcom compliance-distance geometry/ })).toBeVisible();
+  await expect(distance.locator('.screen-outcome')).toContainText('Maintain the calculated distance');
+
+  await distance.getByRole('spinbutton', { name: 'Largest antenna dimension' }).fill('1');
+  await expect(distance.locator('.screen-outcome')).toContainText('material limitation');
+  await expect(distance.locator('.screen-limitations').first()).toContainText('half a wavelength');
+  await distance.getByRole('checkbox', { name: /highly reflective surface/ }).check();
+  await expect(distance.locator('.screen-limitations').first()).toContainText('seawater or metal');
+
+  await distance.getByRole('spinbutton', { name: 'Maximum radiated power' }).fill('100');
+  await distance.getByRole('spinbutton', { name: 'Maximum transmission time in any six minutes' }).fill('36');
+  await expect(distance.locator('.screen-outcome')).toContainText('No further assessment is required');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);

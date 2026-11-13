@@ -3312,8 +3312,90 @@ select {
   background: var(--bg-elevated);
 }
 
-.exposure-mode-picker-one {
-  grid-template-columns: 1fr;
+.exposure-mode-picker-uk {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ofcom-distance-inputs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.ofcom-distance-inputs .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.ofcom-reflection-check {
+  grid-column: 1 / -1;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-weight: 800;
+}
+
+.ofcom-reflection-check input {
+  margin-right: 0.45rem;
+}
+
+.ofcom-distance-zone {
+  fill: color-mix(in srgb, var(--tl-coral) 12%, transparent);
+  stroke: var(--tl-coral);
+  stroke-dasharray: 8 7;
+  stroke-width: 3;
+}
+
+.ofcom-mast,
+.ofcom-antenna {
+  stroke: var(--text-primary);
+  stroke-linecap: round;
+  stroke-width: 8;
+}
+
+.ofcom-person {
+  fill: none;
+  stroke: var(--tl-blue);
+  stroke-width: 5;
+}
+
+.ofcom-person-line {
+  stroke: var(--tl-blue);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.ofcom-intermediates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ofcom-intermediates article {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.ofcom-intermediates span,
+.ofcom-intermediates strong {
+  display: block;
+}
+
+.ofcom-intermediates span {
+  color: var(--text-secondary);
+}
+
+.ofcom-intermediates strong {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
 }
 
 .ofcom-input-grid > label:not(.field) {
@@ -4786,7 +4868,13 @@ select {
   .fcc-multiple-conditions,
   .fcc-multiple-source,
   .fcc-contribution-grid,
-  .ofcom-input-grid {
+  .ofcom-input-grid,
+  .ofcom-distance-inputs,
+  .ofcom-intermediates {
+    grid-template-columns: 1fr;
+  }
+
+  .exposure-mode-picker-uk {
     grid-template-columns: 1fr;
   }
 
