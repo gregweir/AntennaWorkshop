@@ -241,6 +241,46 @@ test('plans a measured-inductance small transmitting loop without inferring perf
   await expect(page.locator('.provenance-card')).toContainText('small-transmitting-loop-measured-inductance');
 });
 
+test('plans an equal-section phased wire collinear without inventing gain or matching', async ({ page }) => {
+  await page.getByRole('button', { name: /Collinear/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Phased wire collinear array' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Radiating half-wave sections' })).toHaveValue('4');
+  await expect(page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' })).toHaveValue('0.95');
+  await expect(page.getByRole('img', { name: /Dimensioned half-wave phased wire collinear array/ })).toBeVisible();
+  await expect(page.locator('.collinear-radiators line')).toHaveCount(4);
+  await expect(page.locator('.collinear-stubs path')).toHaveCount(3);
+  await expect(page.locator('.result-summary')).toContainText('Build 4 equal half-wave radiator sections');
+  await expect(page.locator('.result-summary')).toContainText('10.279 m each');
+  await expect(page.locator('.result-summary')).toContainText('41.116 m');
+  await expect(page.locator('.visual-panel')).toContainText('QST reference · balanced voltage feed');
+  await expect(page.locator('.result-summary')).toContainText('QST reference: over 1000 Ω');
+
+  await expect(page.getByText('Establish the electrical half wave')).toBeHidden();
+  await page.getByText('Build and commission a phased wire collinear').click();
+  await expect(page.getByText('Establish the electrical half wave')).toBeVisible();
+  await page.getByLabel('Help: Phasing-line velocity factor').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Phasing-line velocity factor' })).toContainText('actual two-conductor phasing line');
+
+  await page.getByRole('spinbutton', { name: 'Radiating half-wave sections' }).fill('2');
+  await expect(page.locator('.collinear-stubs path')).toHaveCount(1);
+  await expect(page.locator('.result-summary')).toContainText('Build 2 equal half-wave radiator sections');
+  await page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' }).fill('0.8');
+  await expect(page.locator('.result-summary')).toContainText('4.328 m');
+  await page.getByRole('spinbutton', { name: 'Radiating half-wave sections' }).fill('3');
+  await expect(page.locator('.result-summary')).toContainText('Balanced current feed');
+  await expect(page.locator('.result-summary')).toContainText('QST reference: slightly over 300 Ω');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Length correction factor' })).toHaveValue('0.95');
+  await expect(page.getByRole('spinbutton', { name: 'Extra length for trimming' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Equal dimensions do not guarantee equal in-phase currents' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('half-wave-phased-wire-collinear');
+
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.locator('.result-summary')).toContainText('33 ft 8.625 in each');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

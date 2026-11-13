@@ -4865,28 +4865,36 @@ select {
   align-items: start;
 }
 
-.small-loop-layout {
+.small-loop-layout,
+.collinear-layout {
   grid-template-columns: 1fr;
 }
 
-.small-loop-layout .input-panel {
+.small-loop-layout .input-panel,
+.collinear-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .small-loop-layout .input-panel > .field,
-.small-loop-layout .small-loop-editor {
+.small-loop-layout .small-loop-editor,
+.collinear-layout .input-panel > .field,
+.collinear-layout .collinear-editor {
   margin: 0;
 }
 
 .small-loop-layout .small-loop-editor,
 .small-loop-layout .result-summary,
-.small-loop-layout .validation-message {
+.small-loop-layout .validation-message,
+.collinear-layout .collinear-editor,
+.collinear-layout .result-summary,
+.collinear-layout .validation-message {
   grid-column: 1 / -1;
 }
 
-.small-loop-layout .small-loop-editor {
+.small-loop-layout .small-loop-editor,
+.collinear-layout .collinear-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5104,7 +5112,8 @@ select {
 .fan-frequency-editor,
 .doublet-system-editor,
 .loaded-antenna-editor,
-.small-loop-editor {
+.small-loop-editor,
+.collinear-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5116,13 +5125,18 @@ select {
 .fan-frequency-editor legend,
 .doublet-system-editor legend,
 .loaded-antenna-editor legend,
-.small-loop-editor legend {
+.small-loop-editor legend,
+.collinear-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
 
 .doublet-system-editor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.collinear-editor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .loaded-antenna-editor {
@@ -5135,7 +5149,8 @@ select {
 
 .doublet-system-editor > .field,
 .loaded-antenna-editor > .field,
-.small-loop-editor > .field {
+.small-loop-editor > .field,
+.collinear-editor > .field {
   margin: 0;
 }
 
@@ -5283,6 +5298,39 @@ path.loading-coil {
 
 .small-loop-boundary.boundary-stop text {
   fill: var(--danger);
+}
+
+.collinear-radiators line {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 7;
+}
+
+.collinear-radiators circle,
+.collinear-junctions circle {
+  fill: var(--bg-surface);
+  stroke: var(--tl-coral);
+  stroke-width: 3;
+}
+
+.collinear-stubs path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.collinear-feed-note rect {
+  fill: color-mix(in srgb, var(--accent-technical) 9%, var(--bg-surface));
+  stroke: var(--accent-technical);
+  stroke-dasharray: 6 4;
+}
+
+.collinear-feed-note text {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .coil-construction-panel {
@@ -6408,7 +6456,9 @@ path.loading-coil {
   }
 
   .small-loop-layout .input-panel,
-  .small-loop-layout .small-loop-editor {
+  .small-loop-layout .small-loop-editor,
+  .collinear-layout .input-panel,
+  .collinear-layout .collinear-editor {
     grid-template-columns: 1fr;
   }
 
@@ -6687,7 +6737,8 @@ path.loading-coil {
 
   .doublet-system-editor,
   .loaded-antenna-editor,
-  .small-loop-editor {
+  .small-loop-editor,
+  .collinear-editor {
     grid-template-columns: 1fr;
   }
 
