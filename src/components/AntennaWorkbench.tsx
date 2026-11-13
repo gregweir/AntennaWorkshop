@@ -123,11 +123,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     ? 'This factor scales the free-space half-wave estimate for practical wire construction. It does not correct the transformer, feedline, return path, or effects of the installed surroundings.'
     : antennaType === 'ocfd'
       ? 'This factor scales the complete free-space half-wave estimate before it is divided at the selected feedpoint. It does not predict the installed feedpoint impedance or correct the balun and feedline.'
+      : antennaType === 'jpole' || antennaType === 'slim-jim'
+        ? 'This factor scales all calculated conductor sections for the selected construction medium. It is a starting estimate: insulation, conductor size, spacing, supports, and surroundings still shift the finished antenna.'
       : undefined;
   const trimAllowanceTooltip = antennaType === 'efhw'
     ? 'This percentage is added after the corrected resonant estimate. Install the antenna before trimming, remove wire in small increments, and remeasure because removed wire cannot be restored easily.'
     : antennaType === 'ocfd'
       ? 'This percentage adds adjustment room to both legs after the corrected total length is divided. Install and measure before trimming, and preserve the intended split while making small changes.'
+      : antennaType === 'jpole' || antennaType === 'slim-jim'
+        ? 'This percentage adds adjustment room to the calculated conductor sections. Build and measure before trimming, make small changes, and preserve the intended matching-section relationships and parallel spacing.'
       : undefined;
   const selectDesign = (type: AntennaType) => {
     setAntennaType(type);
@@ -175,6 +179,24 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Tune and verify each band', detail: 'Measure every intended band in the final geometry, trim conservatively, and check match, balun heating, common-mode current, and pattern suitability.' }
       ]} limit="This calculator does not design or power-rate a balun, predict installed impedance or radiation patterns, or guarantee an acceptable multiband match. A tuner does not correct balun heating or common-mode current." />}
 
+      {antennaType === 'jpole' && <StepByStepHelp title="Build and tune a J-pole" intro="Use this sequence to preserve the matching-stub geometry while finding the installed resonance and coax tap. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the construction medium', detail: 'Select twin-lead or metal to load its documented starting correction factor, then plan for the actual insulation, conductor size, and supports.' },
+        { title: 'Build the parallel section', detail: 'Keep the quarter-wave matching stub parallel to the lower long element with stable spacing and a reliable short at the bottom.' },
+        { title: 'Plan mounting and feed routing', detail: 'Keep the matching section clear of conductive supports, route coax deliberately, and include common-mode choking when needed.' },
+        { title: 'Start with adjustment room', detail: 'Retain the trim allowance and provide an adjustable, symmetrical coax-tap connection near the calculated starting height.' },
+        { title: 'Install before measuring', detail: 'Place the antenna in its intended vertical position and clearance before judging resonance, impedance, or the tap location.' },
+        { title: 'Tune in controlled steps', detail: 'Use low analyser power, adjust the two tap contacts together for the best match, then trim cautiously and recheck after every change.' }
+      ]} limit="This calculator does not predict feedpoint impedance, conductor-spacing effects, installed pattern, bandwidth, or a universal tap position. A low SWR alone does not establish an effective radiation pattern." />}
+
+      {antennaType === 'slim-jim' && <StepByStepHelp title="Build and tune a Slim Jim" intro="Use this sequence to preserve the folded geometry while adjusting resonance, gap, and coax tap. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the construction medium', detail: 'Select twin-lead or metal to load its documented starting correction factor, then account for actual insulation, conductor size, and supports.' },
+        { title: 'Preserve the folded geometry', detail: 'Keep both conductors parallel, maintain stable spacing, and make a dependable short across the bottom.' },
+        { title: 'Form the interruption gap', detail: 'Create the calculated opening without disturbing the upper folded section or allowing nearby hardware to bridge or load it.' },
+        { title: 'Plan the feed and choke', detail: 'Provide adjustable paired coax contacts near the starting tap and route the feedline with suitable common-mode control.' },
+        { title: 'Install before measuring', detail: 'Suspend the antenna vertically in its intended clear location before evaluating resonance, impedance, or tap position.' },
+        { title: 'Tune in controlled steps', detail: 'Use low analyser power, adjust the tap contacts together, and change the gap or element ends only in small measured steps before rechecking.' }
+      ]} limit="This calculator does not predict feedpoint impedance, conductor-spacing effects, installed pattern, bandwidth, or a universal gap and tap combination. A low SWR on another band does not establish a useful pattern." />}
+
       <div className="calculator-layout">
         <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
           <label className="field">
@@ -213,21 +235,21 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             <NumberField label="Current-balun impedance ratio" tooltip="This is the nominal impedance transformation ratio. A 4:1 current balun transforms an assumed 200 Ω resistance toward 50 Ω, but the installed impedance is complex and varies by band. Ratio alone does not specify a suitable balun design or choke." value={transformerRatio} min={1} max={25} step={1} unit=": 1" help="4:1 nominally transforms a 200 Ω feedpoint toward 50 Ω coax." onChange={setTransformerRatio} />
           </>}
           {antennaType === 'jpole' && <>
-            <label className="field"><span>Construction medium</span><select value={jpoleConstruction} onChange={(event) => {
+            <div className="field"><span className="field-label-with-help"><label htmlFor="jpole-construction-medium">Construction medium</label><HelpTip label="J-pole construction medium">This choice loads a documented starting correction factor: 0.83 for 300 Ω flat twin-lead or 0.93 for copper wire or pipe. Actual insulation, conductor size, spacing, and supports still require installed measurement.</HelpTip></span><select id="jpole-construction-medium" aria-label="Construction medium" value={jpoleConstruction} onChange={(event) => {
               const construction = event.target.value as 'twinlead' | 'metal';
               setJpoleConstruction(construction);
               setLengthCorrectionFactor(construction === 'twinlead' ? 0.83 : 0.93);
-            }}><option value="twinlead">300 Ω flat twin-lead</option><option value="metal">Copper wire or pipe</option></select><small>Sets the documented starting factor; actual material and insulation still require trimming.</small></label>
-            <NumberField label="Coax tap height on matching stub" value={jpoleTapPercent} min={1} max={25} step={0.5} unit="%" help="Measured upward from the shorted bottom as a percentage of the quarter-wave stub; adjust for minimum SWR." onChange={setJpoleTapPercent} />
+            }}><option value="twinlead">300 Ω flat twin-lead</option><option value="metal">Copper wire or pipe</option></select><small>Sets the documented starting factor; actual material and insulation still require trimming.</small></div>
+            <NumberField label="Coax tap height on matching stub" tooltip="Measure upward from the shorted bottom along the quarter-wave matching section. This is a starting location only; move the centre-conductor and shield contacts together while measuring the installed antenna." value={jpoleTapPercent} min={1} max={25} step={0.5} unit="%" help="Measured upward from the shorted bottom as a percentage of the quarter-wave stub; adjust for minimum SWR." onChange={setJpoleTapPercent} />
           </>}
           {antennaType === 'slim-jim' && <>
-            <label className="field"><span>Construction medium</span><select value={jpoleConstruction} onChange={(event) => {
+            <div className="field"><span className="field-label-with-help"><label htmlFor="slim-jim-construction-medium">Construction medium</label><HelpTip label="Slim Jim construction medium">This choice loads a documented starting correction factor: 0.83 for 300 Ω flat twin-lead or 0.93 for copper wire or pipe. Actual insulation, conductor size, spacing, and supports still require installed measurement.</HelpTip></span><select id="slim-jim-construction-medium" aria-label="Construction medium" value={jpoleConstruction} onChange={(event) => {
               const construction = event.target.value as 'twinlead' | 'metal';
               setJpoleConstruction(construction);
               setLengthCorrectionFactor(construction === 'twinlead' ? 0.83 : 0.93);
-            }}><option value="twinlead">300 Ω flat twin-lead</option><option value="metal">Copper wire or pipe</option></select><small>Sets the starting material factor; preserve parallel spacing throughout the antenna.</small></label>
-            <NumberField label="Coax tap height on matching stub" value={jpoleTapPercent} min={1} max={25} step={0.5} unit="%" help="Measured upward from the shorted bottom; adjust the two tap contacts together for minimum SWR." onChange={setJpoleTapPercent} />
-            <NumberField label="Interruption gap" value={slimJimGapPercent} min={1} max={15} step={0.5} unit="% of stub" help="Physical opening between the lower matching stub and upper folded section; construction details affect the final value." onChange={setSlimJimGapPercent} />
+            }}><option value="twinlead">300 Ω flat twin-lead</option><option value="metal">Copper wire or pipe</option></select><small>Sets the starting material factor; preserve parallel spacing throughout the antenna.</small></div>
+            <NumberField label="Coax tap height on matching stub" tooltip="Measure upward from the shorted bottom. This is a starting location only; move the centre-conductor and shield contacts together while measuring the installed antenna." value={jpoleTapPercent} min={1} max={25} step={0.5} unit="%" help="Measured upward from the shorted bottom; adjust the two tap contacts together for minimum SWR." onChange={setJpoleTapPercent} />
+            <NumberField label="Interruption gap" tooltip="This is the physical opening between the lower matching section and the upper folded section. Preserve parallel spacing around it; conductor width, insulation, nearby hardware, and the installed geometry affect the final tuned gap." value={slimJimGapPercent} min={1} max={15} step={0.5} unit="% of stub" help="Physical opening between the lower matching stub and upper folded section; construction details affect the final value." onChange={setSlimJimGapPercent} />
           </>}
           {antennaType === 'moxon' && <NumberField label="Conductor diameter" value={moxonConductorDiameterMillimetres} min={0.01} max={100} step={0.01} unit="mm" help="Use a constant outside diameter. Tapered elements require an equivalent diameter and separate modelling." onChange={setMoxonConductorDiameterMillimetres} />}
           {antennaType === 'yagi' && <div className="model-note"><strong>NBS reference geometry</strong><p>This scales the measured 0.4λ design as a complete system, including its 0.0085λ element diameter. Different tubing or a conductive boom requires correction or modelling.</p></div>}

@@ -50,6 +50,8 @@ The EFHW guide must distinguish impedance ratio from winding turns ratio, treat 
 
 The OCFD guide must explain how the selected split changes both leg lengths and likely feedpoint impedance, distinguish a nominal current-balun ratio from a complete balun and choking design, and preserve the selected split while trimming. It must require installed measurement on each intended band and avoid promising a match, pattern, or tuner-correctable common-mode system.
 
+J-pole and Slim Jim guides must explain the construction-medium correction factor, parallel matching geometry, paired coax-tap adjustment, feedline choking, and installed vertical measurement. Slim Jim guidance must additionally preserve the interrupted folded side and gap. Neither guide may promise feedpoint impedance, bandwidth, pattern, or a universal tap or gap position from a low-SWR result.
+
 ## Visual language
 
 Visuals are functional rather than decorative:
