@@ -24,6 +24,7 @@ import { OfcomMultipleDistancePanel } from './OfcomMultipleDistancePanel';
 import { ArpansaReferencePanel } from './ArpansaReferencePanel';
 import { AcmaAssessmentPanel } from './AcmaAssessmentPanel';
 import { AcmaAssessmentRecordPanel } from './AcmaAssessmentRecordPanel';
+import { AcmaExclusionDistancePanel } from './AcmaExclusionDistancePanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import type { AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
 
@@ -35,7 +36,7 @@ interface Props {
   onSourceConsumed: () => void;
 }
 
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment' | 'acma-record';
+type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment' | 'acma-distance' | 'acma-record';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
@@ -54,6 +55,7 @@ const ukViewOptions: Array<{ id: ExposureView; title: string; description: strin
 
 const australianViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'acma-assessment', title: 'ACMA gateway', description: 'Low-risk and higher-risk station path' },
+  { id: 'acma-distance', title: 'Exclusion distance', description: 'Official simple far-field method' },
   { id: 'arpansa-reference', title: 'ARPANSA limits', description: 'Whole-body, local, peak, and limb-current levels' },
   { id: 'acma-record', title: 'Assessment record', description: 'Clause 6 declaration and evidence worksheet' }
 ];
@@ -74,10 +76,10 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const availableViews = isUk ? ukViewOptions : isAustralia ? australianViewOptions : viewOptions;
   useEffect(() => {
     if (isUk && view !== 'ofcom-assessment' && view !== 'ofcom-distance' && view !== 'ofcom-multiple') setView('ofcom-assessment');
-    if (isAustralia && view !== 'arpansa-reference' && view !== 'acma-assessment' && view !== 'acma-record') setView('acma-assessment');
-    if (!isUk && !isAustralia && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple' || view === 'arpansa-reference' || view === 'acma-assessment' || view === 'acma-record')) setView('reference');
+    if (isAustralia && view !== 'arpansa-reference' && view !== 'acma-assessment' && view !== 'acma-distance' && view !== 'acma-record') setView('acma-assessment');
+    if (!isUk && !isAustralia && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple' || view === 'arpansa-reference' || view === 'acma-assessment' || view === 'acma-distance' || view === 'acma-record')) setView('reference');
   }, [isAustralia, isUk, view]);
-  const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || (isAustralia && view === 'arpansa-reference');
+  const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || (isAustralia && (view === 'arpansa-reference' || view === 'acma-distance'));
   const needsEnvironment = (!isUk && !isAustralia && view !== 'fcc-exemption' && view !== 'fcc-multiple') || (isAustralia && view === 'arpansa-reference');
   const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' || view === 'acma-assessment' || view === 'acma-record' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
 
@@ -151,6 +153,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     {isUk && view === 'ofcom-distance' && <OfcomComplianceDistancePanel frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {isUk && view === 'ofcom-multiple' && <OfcomMultipleDistancePanel unitSystem={unitSystem} />}
     {isAustralia && view === 'arpansa-reference' && <ArpansaReferencePanel frequencyMHz={frequencyMHz} environment={environment} />}
+    {isAustralia && view === 'acma-distance' && <AcmaExclusionDistancePanel frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {isAustralia && view === 'acma-assessment' && <AcmaAssessmentPanel unitSystem={unitSystem} onCreateRecord={(handoff) => { setAcmaHandoff(handoff); setView('acma-record'); }} />}
     {isAustralia && view === 'acma-record' && <AcmaAssessmentRecordPanel incomingAssessment={acmaHandoff} onAssessmentConsumed={() => setAcmaHandoff(null)} />}
   </section>;

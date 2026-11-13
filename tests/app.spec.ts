@@ -13,16 +13,33 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
-test('persists jurisdiction, units, and advanced controls', async ({ page }) => {
-  await page.locator('.global-controls select').selectOption('US');
+test('persists jurisdiction, units, theme, and advanced controls', async ({ page }) => {
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
+  await page.getByLabel('Theme').selectOption('dark');
   await page.getByRole('button', { name: 'Imperial' }).click();
   await page.getByRole('button', { name: 'Show advanced' }).click();
   await page.reload();
 
-  await expect(page.locator('.global-controls select')).toHaveValue('US');
+  await expect(page.getByLabel('Station jurisdiction', { exact: true })).toHaveValue('US');
+  await expect(page.getByLabel('Theme')).toHaveValue('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('button', { name: 'Imperial' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: 'Hide advanced' })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: /Length correction factor/ })).toBeVisible();
+});
+
+test('applies light, dark, and live system theme modes', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.getByLabel('Theme').selectOption('system');
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+  await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(page.locator('html')).toHaveCSS('color-scheme', 'light');
+  await page.getByLabel('Theme').selectOption('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByLabel('Theme').selectOption('light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
 test('maps a selected band to frequency and wavelength', async ({ page }) => {
@@ -321,7 +338,7 @@ test('shows official RF exposure reference limits without a compliance result', 
   await expect(page.getByRole('alert')).toContainText('not applicable');
   await expect(page.locator('.result-summary')).toHaveCount(0);
 
-  await page.locator('.global-controls select').selectOption('US');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
   await expect(page.locator('.result-summary')).toContainText('178.536 W/m²');
   await expect(page.locator('.result-summary')).toContainText('6.00 min');
 });
@@ -363,7 +380,7 @@ test('evaluates the three FCC single-source exemption paths without implying com
   await expect(exemption.getByRole('heading', { name: 'FCC single-source exemption' })).toBeVisible();
   await expect(exemption.locator('.screen-outcome')).toContainText('FCC exemption is not evaluated');
 
-  await page.locator('.global-controls select').selectOption('US');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
   await expect(exemption.locator('.screen-outcome')).toContainText('Exempt from routine environmental evaluation');
   await expect(exemption.getByRole('img', { name: /FCC single-source exemption criterion comparison/ })).toBeVisible();
   await expect(exemption.locator('.fcc-criterion-card').filter({ hasText: 'Distance-based ERP criterion' })).toContainText('Qualifies');
@@ -394,7 +411,7 @@ test('combines FCC multiple-source exemption fractions and special low-power con
   await expect(multiple.getByRole('heading', { name: 'FCC multiple-source exemption', exact: true })).toBeVisible();
   await expect(multiple.locator('.screen-outcome')).toContainText('FCC multiple-source exemption is not evaluated');
 
-  await page.locator('.global-controls select').selectOption('US');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
   await expect(multiple.locator('.screen-outcome')).toContainText('Collective-source conditions are not confirmed');
   await multiple.getByRole('checkbox', { name: /Collective source set complete/ }).check();
   await multiple.getByRole('checkbox', { name: /Fixed positional relationship/ }).check();
@@ -428,7 +445,7 @@ test('combines FCC multiple-source exemption fractions and special low-power con
 });
 
 test('applies the Ofcom assessment and distance workflows for United Kingdom stations', async ({ page }) => {
-  await page.locator('.global-controls select').selectOption('GB');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('GB');
   await expect(page.getByText('Jurisdiction: United Kingdom')).toBeVisible();
   await page.getByRole('button', { name: /RF exposure/ }).click();
 
@@ -494,11 +511,12 @@ test('applies the Ofcom assessment and distance workflows for United Kingdom sta
 });
 
 test('applies the Australian ACMA gateway and ARPANSA reference levels', async ({ page }) => {
-  await page.locator('.global-controls select').selectOption('AU');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
   await expect(page.getByText('Jurisdiction: Australia')).toBeVisible();
   await page.getByRole('button', { name: /RF exposure/ }).click();
 
   await expect(page.getByRole('button', { name: /ACMA gateway/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Exclusion distance/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /ARPANSA limits/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Single source/ })).toHaveCount(0);
   const gateway = page.getByRole('region', { name: 'Amateur station EME assessment path' });
@@ -629,6 +647,18 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
 
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('0.099');
   await expect(panel.getByRole('alert')).toContainText('0.1 to 300,000 MHz');
+
+  await page.getByRole('button', { name: /Exclusion distance/ }).click();
+  await page.getByRole('button', { name: 'Metric' }).click();
+  const exclusion = page.getByRole('region', { name: 'ACMA RF exclusion distance' });
+  await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('3000');
+  await expect(exclusion.locator('.result-summary')).toContainText('3.173 m');
+  await expect(exclusion.locator('.result-summary')).toContainText('10.000 W/m²');
+  await expect(exclusion.getByRole('img', { name: 'ACMA simple RF exclusion-distance geometry' })).toBeVisible();
+  await expect(exclusion.locator('.screen-outcome')).toContainText('Official simple far-field distance available');
+  await exclusion.getByRole('spinbutton', { name: 'ACMA largest antenna dimension' }).fill('100');
+  await expect(exclusion.locator('.screen-outcome')).toContainText('inside the far-field boundary');
+  await expect(exclusion.locator('.screen-limitations')).toContainText('not a declaration of compliance');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
@@ -972,7 +1002,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
   let project = page.locator('.project-section');
 
   await project.getByLabel('Project title').fill('Field day station');
-  await page.locator('.global-controls select').selectOption('US');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
   await page.getByLabel('Exposure environment', { exact: true }).selectOption('controlled');
   await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('42');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('Field day station');
@@ -982,7 +1012,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
   await page.getByRole('button', { name: /Station project/ }).click();
   project = page.locator('.project-section');
   await expect(project.getByLabel('Project title')).toHaveValue('Field day station');
-  await expect(page.locator('.global-controls select')).toHaveValue('US');
+  await expect(page.getByLabel('Station jurisdiction', { exact: true })).toHaveValue('US');
   await expect(page.getByLabel('Exposure environment', { exact: true })).toHaveValue('controlled');
   await expect(project.getByRole('spinbutton', { name: 'Project point 1 east position' })).toHaveValue('42');
 
@@ -1019,6 +1049,7 @@ test('has no horizontal overflow on a narrow screen', async ({ page }) => {
 });
 
 test('shows corporate branding, attribution, and public project links', async ({ page }) => {
+  await expect(page.getByRole('heading', { name: 'Build antennas with the measurements—and the reasoning—to get them right.' })).toHaveCSS('font-size', '44px');
   await expect(page.getByAltText('Tartanleaf tartan maple-leaf logo').first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'RadioBook home' })).toHaveAttribute('href', 'https://www.radiobook.ca/');
   await expect(page.getByRole('link', { name: 'Visit Tartanleaf.com Inc.' })).toHaveAttribute('href', 'https://www.tartanleaf.com/');

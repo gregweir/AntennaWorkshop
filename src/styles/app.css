@@ -269,10 +269,10 @@ select {
   max-width: 980px;
   margin: 0 auto 1.3rem;
   font-family: var(--font-mono);
-  font-size: clamp(2.15rem, 5vw, 4.8rem);
-  font-weight: 650;
-  letter-spacing: -0.055em;
-  line-height: 1.03;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
 }
 
 .hero > p:not(.eyebrow) {
@@ -3317,7 +3317,80 @@ select {
 }
 
 .exposure-mode-picker-au {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.acma-exclusion-inputs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.acma-exclusion-inputs .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.acma-exclusion-inputs select {
+  width: 100%;
+}
+
+.acma-exclusion-diagram {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.acma-exclusion-diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.acma-exclusion-diagram figcaption {
+  padding: 0.7rem 0.9rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.acma-near-field-zone {
+  fill: color-mix(in srgb, var(--tl-coral) 12%, var(--bg-elevated));
+}
+
+.acma-distance-axis,
+.acma-antenna-symbol line,
+.acma-person-symbol line,
+.acma-person-symbol circle,
+.acma-boundary line {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 3;
+}
+
+.acma-antenna-symbol text,
+.acma-boundary text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.acma-far-boundary line {
+  stroke: var(--accent-technical);
+  stroke-dasharray: 8 6;
+}
+
+.acma-exclusion-boundary line {
+  stroke: var(--tl-coral);
+  stroke-width: 5;
 }
 
 .acma-input-grid {
@@ -5672,6 +5745,7 @@ select {
   }
 
   .acma-input-grid,
+  .acma-exclusion-inputs,
   .acma-result-layout,
   .acma-record-handoff,
   .acma-record-library,

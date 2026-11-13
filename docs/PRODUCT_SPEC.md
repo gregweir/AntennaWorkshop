@@ -9,7 +9,7 @@ The application will run in a desktop or mobile browser, install as an offline-c
 ## Confirmed decisions
 
 - Canada is the default jurisdiction, with a prominent persistent selector.
-- Canada, United States, and United Kingdom assessment workflows are available. Australia includes an ACMA class-licence assessment gateway and ARPANSA reference-table workflow; station-field prediction and exclusion-distance methods require further scoping.
+- Canada, United States, and United Kingdom assessment workflows are available. Australia includes an ACMA class-licence assessment gateway, the official simple exclusion-distance method above 30 MHz, and the ARPANSA reference-table workflow; pattern-specific and near-field assessment methods require further scoping.
 - Station location, not browsing location, determines the applicable jurisdiction. Network-derived location may suggest a first-visit default but never overrides an explicit selection.
 - Metric is the default unit system. Imperial conversion is available everywhere through a single toggle.
 - Design frequency inputs include jurisdiction-aware amateur-band selectors. The interface distinguishes conventional band names from the actual wavelength at the selected frequency.
@@ -35,7 +35,7 @@ The public repository currently includes:
 - A connected antenna-to-system-to-exposure workflow that preserves typed inputs and calculator-model provenance.
 - An installable PWA shell, persistent preferences, explicit update prompts, and automated unit and browser tests.
 
-Australian station-field prediction, near-field exposure methods, independent RF review, and production deployment remain release blockers.
+Australian pattern-specific and near-field exposure methods, independent RF review, and production deployment remain release blockers.
 
 ## Core experience
 
@@ -110,6 +110,8 @@ The conservative Ofcom multiple-transmitter workflow must convert each source to
 The Australian reference workflow must reproduce RPS S-1 (Rev. 1) Tables 4, 5, 7, and 8 from 100 kHz to 300 GHz. It must keep general-public and occupational scenarios, whole-body and local spatial bases, 30- and 6-minute averaging periods, electric field, magnetic field, incident power density, peak fields, and limb current distinct. “ES” must be explained as an electrostimulation-limited case rather than no restriction. The workflow must not offer the existing Canadian/United States far-field screen under Australian jurisdiction until its method and regulatory applicability are separately reviewed.
 
 The Australian class-licence gateway must evaluate the three Schedule 1 clause 3 low-risk paths independently: fixed stations at no more than 100 W average total power with every antenna inaccessible to the general public; fixed stations with the lowest antenna base at least 10 m above ground and no more than 3200 W average total EIRP in any direction; and mobile stations at no more than 100 W average total power. When none applies, it must direct the user to the clause 4 measurement or calculation and clause 6 record package without implying non-compliance. Low-risk status must not be described as an exemption from the public-exposure condition. Simultaneous frequencies, shared sites, changed stations, transitional assessments, and agent agreements must remain visible as separate considerations.
+
+The Australian simple exclusion-distance workflow must reproduce ACMA's published ARPANSA 2021 workbook above 30 MHz through 300 GHz. It uses transmitter output power without loss or duty-cycle reduction, converts dBd to dBi by adding 2.15 dB, applies maximum linear gain in every direction, and uses the general-public whole-body power-density bands of 2 W/m², frequency/200, and 10 W/m². The workbook equation uses `3.14` explicitly and must be reproduced without silently substituting another model. A separate applicability check must compare the result with the Amateur Class Licence far-field boundary `max(2D²/λ, 0.5λ)`. A result inside that boundary must direct the user to an applicable near-field method or measurement. The interface must disclose omitted environmental effects, losses, antenna pattern, multiple and simultaneous sources, uncertainty, terrain, buildings, and access-control validation.
 
 The gateway may start a new unsaved record worksheet using the entered station type, canonical metric quantities, accessibility and shared-site selections, simultaneous-frequency selection, gateway branch, timestamp, and model identity. The transfer must not overwrite a saved record or infer an assessment route, standard, scope, method, assessor, measurement, calculation, conclusion, declaration, or compliance status. The receiving worksheet must identify which text is transferred input and which work remains to be documented.
 

@@ -5,11 +5,11 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { AntennaWorkbench } from './components/AntennaWorkbench';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
-import { loadPreferences, savePreferences } from './preferences';
+import { loadPreferences, savePreferences, type ThemePreference } from './preferences';
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 
@@ -22,13 +22,30 @@ export function App() {
   const [jurisdiction, setJurisdiction] = useState<JurisdictionCode>(savedPreferences.jurisdiction);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(savedPreferences.unitSystem);
   const [advancedOpen, setAdvancedOpen] = useState(savedPreferences.advancedOpen);
+  const [theme, setTheme] = useState<ThemePreference>(savedPreferences.theme);
   const [workshopTool, setWorkshopTool] = useState<'antennas' | 'feedline' | 'exposure'>('antennas');
   const [antennaHandoff, setAntennaHandoff] = useState<AntennaDesignHandoff | null>(null);
   const [stationSourceTransfer, setStationSourceTransfer] = useState<StationSourceTransfer | null>(null);
 
   useEffect(() => {
-    savePreferences({ jurisdiction, unitSystem, advancedOpen }, window.localStorage);
-  }, [jurisdiction, unitSystem, advancedOpen]);
+    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme }, window.localStorage);
+  }, [jurisdiction, unitSystem, advancedOpen, theme]);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const darkMode = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      if (theme === 'system') delete root.dataset.theme;
+      else root.dataset.theme = theme;
+      const resolved = theme === 'system' ? (darkMode.matches ? 'dark' : 'light') : theme;
+      root.style.colorScheme = resolved;
+      themeColor?.setAttribute('content', resolved === 'dark' ? '#102a35' : '#f4efe5');
+    };
+    apply();
+    darkMode.addEventListener('change', apply);
+    return () => darkMode.removeEventListener('change', apply);
+  }, [theme]);
 
   const jurisdictionName = jurisdictionProfiles.find((profile) => profile.code === jurisdiction)?.name ?? 'Unknown';
 
@@ -48,8 +65,16 @@ export function App() {
         <div className="global-controls" aria-label="Application preferences">
           <label>
             <span>Station jurisdiction</span>
-            <select value={jurisdiction} onChange={(event) => setJurisdiction(event.target.value as JurisdictionCode)}>
+            <select aria-label="Station jurisdiction" value={jurisdiction} onChange={(event) => setJurisdiction(event.target.value as JurisdictionCode)}>
               {initialJurisdictions.map((profile) => <option key={profile.code} value={profile.code}>{profile.name}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Theme</span>
+            <select aria-label="Theme" value={theme} onChange={(event) => setTheme(event.target.value as ThemePreference)}>
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
             </select>
           </label>
           <fieldset className="segmented-control">
@@ -69,6 +94,7 @@ export function App() {
         <div className="status-row" aria-label="Current application settings">
           <span className="status-chip">Jurisdiction: {jurisdictionName}</span>
           <span className="status-chip">Units: {unitSystem === 'metric' ? 'Metric' : 'Imperial'}</span>
+          <span className="status-chip">Theme: {theme === 'system' ? 'System' : theme === 'light' ? 'Light' : 'Dark'}</span>
           <span className="status-chip status-chip-muted">Works offline after installation</span>
         </div>
       </section>

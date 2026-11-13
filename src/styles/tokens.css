@@ -35,8 +35,19 @@
   --shell: 1180px;
 }
 
+:root[data-theme='dark'] {
+  --bg-base: #102a35;
+  --bg-surface: #173847;
+  --bg-elevated: #214957;
+  --text-primary: #f4efe5;
+  --text-secondary: #d5ddd0;
+  --border: #54716f;
+  --accent-technical: #9fcac5;
+  --shadow: 0 18px 60px rgb(0 0 0 / 0.25);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg-base: #102a35;
     --bg-surface: #173847;
     --bg-elevated: #214957;

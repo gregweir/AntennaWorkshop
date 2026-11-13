@@ -12,7 +12,10 @@ export interface AppPreferences {
   jurisdiction: JurisdictionCode;
   unitSystem: UnitSystem;
   advancedOpen: boolean;
+  theme: ThemePreference;
 }
+
+export type ThemePreference = 'system' | 'light' | 'dark';
 
 interface StorageLike {
   getItem(key: string): string | null;
@@ -24,15 +27,20 @@ export const PREFERENCES_STORAGE_KEY = 'radiobook:antenna-workshop:preferences:v
 export const defaultPreferences: AppPreferences = {
   jurisdiction: 'CA',
   unitSystem: 'metric',
-  advancedOpen: false
+  advancedOpen: false,
+  theme: 'system'
 };
 
 function isJurisdiction(value: unknown): value is JurisdictionCode {
-  return value === 'CA' || value === 'US' || value === 'GB';
+  return value === 'CA' || value === 'US' || value === 'GB' || value === 'AU';
 }
 
 function isUnitSystem(value: unknown): value is UnitSystem {
   return value === 'metric' || value === 'imperial';
+}
+
+function isThemePreference(value: unknown): value is ThemePreference {
+  return value === 'system' || value === 'light' || value === 'dark';
 }
 
 export function loadPreferences(storage?: StorageLike): AppPreferences {
@@ -51,7 +59,8 @@ export function loadPreferences(storage?: StorageLike): AppPreferences {
       jurisdiction: isJurisdiction(candidate.jurisdiction) ? candidate.jurisdiction : defaultPreferences.jurisdiction,
       unitSystem: isUnitSystem(candidate.unitSystem) ? candidate.unitSystem : defaultPreferences.unitSystem,
       advancedOpen:
-        typeof candidate.advancedOpen === 'boolean' ? candidate.advancedOpen : defaultPreferences.advancedOpen
+        typeof candidate.advancedOpen === 'boolean' ? candidate.advancedOpen : defaultPreferences.advancedOpen,
+      theme: isThemePreference(candidate.theme) ? candidate.theme : defaultPreferences.theme
     };
   } catch {
     return defaultPreferences;

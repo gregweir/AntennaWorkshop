@@ -4,7 +4,7 @@
 
 This package defines the RF-exposure implementation that requires independent technical review before public beta release. It is a reproducible map from governing sources to code, equations, test vectors, user-visible classifications, and unresolved decisions. It is not a compliance report or evidence that review has passed.
 
-Review scope includes the Canadian, United States, and Australian reference-limit lookups, FCC single- and multiple-source routine-evaluation exemptions, conservative far-field screen, normalized multiple-source total, and multi-point station project. Near-field analysis, measurements, uncertainty analysis, pattern attenuation, and compliance certification are not implemented.
+Review scope includes the Canadian, United States, and Australian reference-limit lookups, the ACMA simple RF exclusion distance, FCC single- and multiple-source routine-evaluation exemptions, conservative far-field screen, normalized multiple-source total, and multi-point station project. Near-field analysis, measurements, uncertainty analysis, pattern attenuation, and compliance certification are not implemented.
 
 ## Authoritative sources
 
@@ -22,6 +22,7 @@ Sources and links were rechecked on 2026-11-13. A reviewer should record the edi
 | Canadian and US reference levels | `src/regulations/exposureLimits.ts` | `src/regulations/exposureLimits.test.ts` |
 | Australian whole-body, local, peak, and limb-current reference levels | `src/calculators/arpansaReference.ts` | `src/calculators/arpansaReference.test.ts` |
 | Australian Amateur Class Licence assessment gateway | `src/calculators/acmaAssessment.ts` | `src/calculators/acmaAssessment.test.ts` |
+| Australian ACMA simple exclusion distance | `src/calculators/acmaExclusionDistance.ts` | `src/calculators/acmaExclusionDistance.test.ts` |
 | Australian clause 4 route and evidence-readiness map | `src/calculators/acmaEvidence.ts` | `src/calculators/acmaEvidence.test.ts` |
 | Australian clause 6 record schema and documentation gaps | `src/projects/acmaAssessmentRecords.ts` | `src/projects/acmaAssessmentRecords.test.ts` |
 | Australian station-change and reassessment log | `src/projects/acmaStationChanges.ts` | `src/projects/acmaStationChanges.test.ts` |
@@ -56,6 +57,14 @@ Multiple power-density contributions at one physical point are normalized before
 F = Σ(Si / Sreference,i)
 ```
 
+The Australian ACMA workbook reproduction above 30 MHz uses transmitter output `P`, maximum antenna gain `G` converted to a linear isotropic ratio, and its general-public power-density level `S`:
+
+```text
+d = √(P × G / (4 × 3.14 × S))
+```
+
+The workbook does not reduce power for duty cycle or loss and does not use a radiation pattern. The separate Class Licence applicability boundary is `max(2D²/λ, 0.5λ)`; the numerical workbook distance is not interpreted when it lies inside that boundary.
+
 Canadian uncontrolled scenarios escalate at `F ≥ 0.5`; other encoded scenarios escalate at `F ≥ 1`. An incomplete local-source inventory always produces `screening-inconclusive`. “Below screening trigger” is never presented as safe, exempt, certified, or compliant.
 
 The FCC single-source exemption model evaluates § 1.1307(b)(3)(i)(A)–(C) independently. Criterion A compares available maximum time-averaged power with `1 mW`. Criterion B evaluates the official `Pth` equation only from 0.5 to 40 cm and 0.3 to 6 GHz, using the greater of available power or ERP. Criterion C compares entered ERP with the piecewise Table 1 threshold only from 0.3 to 100,000 MHz and at `R ≥ λ/(2π)`. Satisfying any path means exemption only from routine environmental evaluation.
@@ -78,6 +87,7 @@ The automated suite should reproduce these values within the precision asserted 
 | FCC mixed collective exemption | close-proximity `0.20` + distance ERP `0.30` + existing evaluation `0.50` = `1.00`; qualifies at the inclusive fractional threshold |
 | ARPANSA general public, 146 MHz | whole body `27.7 V/m`, `0.073 A/m`, `2 W/m²` over 30 minutes; local `62 V/m`, `0.163 A/m`, `10 W/m²` over 6 minutes |
 | ACMA fixed low-risk height/EIRP path | lowest antenna base `10 m` and average total EIRP `3200 W` satisfies the inclusive clause 3 threshold; `9.999 m` or `3200.001 W` does not |
+| ACMA simple distance: 3000 MHz, 400 W, 5 dBi | `S = 10 W/m²`; `G = 3.1622776602`; `d = 3.1734756911 m`, displayed as `3.2 m` by the workbook |
 
 Health Canada Technical Guide Example C-1 provides an official free-space cross-check: 50 W EIRP at 1200 MHz has a `3.33 W/m²` uncontrolled reference level and a minimum distance of approximately `1.09 m` using `EIRP/(4πr²)`. With the application’s explicit `2.56` reflected-field multiplier, the corresponding conservative distance is approximately `1.75 m`. This difference is intentional and must be approved or revised during review.
 
@@ -103,6 +113,7 @@ The reviewer should resolve each item explicitly:
 14. Does the Australian change log correctly distinguish clause 5's post-change clause 3 question, clause 4 assessment action, and clause 6(4) declaration replacement without implying that every change requires reassessment or that documented follow-up authorizes operation?
 15. Does the Australian archival print report reproduce every current record field and change entry without clipping, preserve draft/saved and missing-information states, identify its source, and remain unmistakably a record copy rather than a compliance certificate?
 16. Does the Australian gateway-to-record handoff preserve the exact canonical inputs and model provenance in a new unsaved draft while leaving route, standard, scope, method, assessor, evidence, conclusion, and declaration decisions blank?
+17. Does the Australian simple exclusion-distance workflow exactly reproduce the official workbook, keep its continuous-power and maximum-gain assumptions visible, apply the Class Licence far-field boundary separately, and stop users from interpreting unsupported near-field or pattern-specific cases?
 
 ## Reproduction procedure
 

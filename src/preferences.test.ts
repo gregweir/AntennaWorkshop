@@ -25,20 +25,25 @@ describe('application preferences', () => {
 
   it('round-trips supported preferences', () => {
     const storage = memoryStorage();
-    const preferences = { jurisdiction: 'US', unitSystem: 'imperial', advancedOpen: true } as const;
+    const preferences = { jurisdiction: 'US', unitSystem: 'imperial', advancedOpen: true, theme: 'dark' } as const;
     savePreferences(preferences, storage);
     expect(loadPreferences(storage)).toEqual(preferences);
   });
 
   it('persists United Kingdom jurisdiction selection', () => {
-    const storage = memoryStorage(JSON.stringify({ jurisdiction: 'GB', unitSystem: 'metric', advancedOpen: false }));
+    const storage = memoryStorage(JSON.stringify({ jurisdiction: 'GB', unitSystem: 'metric', advancedOpen: false, theme: 'system' }));
     expect(loadPreferences(storage).jurisdiction).toBe('GB');
+  });
+
+  it('migrates older preferences to system theme and preserves Australia', () => {
+    const storage = memoryStorage(JSON.stringify({ jurisdiction: 'AU', unitSystem: 'metric', advancedOpen: false }));
+    expect(loadPreferences(storage)).toMatchObject({ jurisdiction: 'AU', theme: 'system' });
   });
 
   it('fails closed to valid defaults for malformed or unsupported values', () => {
     expect(loadPreferences(memoryStorage('{bad json'))).toEqual(defaultPreferences);
     expect(
-      loadPreferences(memoryStorage(JSON.stringify({ jurisdiction: 'XX', unitSystem: 'yards', advancedOpen: 'yes' })))
+      loadPreferences(memoryStorage(JSON.stringify({ jurisdiction: 'XX', unitSystem: 'yards', advancedOpen: 'yes', theme: 'neon' })))
     ).toEqual(defaultPreferences);
   });
 });
