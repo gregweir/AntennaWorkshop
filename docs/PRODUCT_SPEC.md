@@ -22,7 +22,7 @@ The application will run in a desktop or mobile browser, install as an offline-c
 
 The public repository currently includes:
 
-- Twelve graphical antenna starting designs covering single- and multiband wire, vertical, loop, folded, and directional families.
+- Thirteen graphical antenna starting designs covering single- and multiband wire, vertical, loop, folded, and directional families.
 - Canada-, United States-, United Kingdom-, and Australia-aware amateur-band selection with metric and imperial presentation.
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
 - Official Canadian and United States RF power-density reference levels.
@@ -56,6 +56,8 @@ The OCFD guide must explain how the selected split changes both leg lengths and 
 
 The fan-dipole guide must calculate each equal wire pair from its own design frequency, present total material and the longest span, and keep all pairs on one balanced feedpoint. It must require stable non-conductive spacing, symmetrical construction, highest-frequency-first tuning, and a complete band sweep after every adjustment. It must not combine ideal element impedances, predict mutual coupling, guarantee a tuner-free match, or claim a finished bandwidth or pattern.
 
+The multiband-doublet guide must size two equal radiator legs from the lowest intended frequency and treat the radiator, balanced feedline, tuner interface, and short coax transition as one system. It may calculate physical and electrical line length and the documented eighth-wavelength adjustment increment, but must not infer complex load impedance, line SWR, mismatch loss, tuner range, balun stress, efficiency, bandwidth, or pattern. Guidance must require line clearance and balance, low-power commissioning on every band, and verification of tuner and balun heating at the intended power.
+
 J-pole and Slim Jim guides must explain the construction-medium correction factor, parallel matching geometry, paired coax-tap adjustment, feedline choking, and installed vertical measurement. Slim Jim guidance must additionally preserve the interrupted folded side and gap. Neither guide may promise feedpoint impedance, bandwidth, pattern, or a universal tap or gap position from a low-SWR result.
 
 Quarter-wave vertical guidance must distinguish a ground-mounted RF radial field from equal elevated counterpoise radials. The ground-mounted workflow must cover radial count and length, the radiator-only trim allowance, base and feed connections, and separate lightning and electrical-safety grounding. The elevated ground-plane workflow must cover equal radial count, symmetrical slope, shared cut allowance, coax routing, and common-mode control. Neither may promise impedance, efficiency, matching, or installed pattern.
@@ -81,9 +83,9 @@ Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon
 
 ## Initial calculator roadmap
 
-The first useful release includes wavelength, dipole, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
+The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
-Advanced families later include doublets, loaded and trap antennas, other multiband designs, magnetic loops, loaded verticals, collinears, cubical quads, helices, discones, log-periodics, receive antennas, coils, traps, and matching networks.
+Advanced families later include loaded and trap antennas, other multiband designs, magnetic loops, loaded verticals, collinears, cubical quads, helices, discones, log-periodics, receive antennas, coils, traps, and matching networks.
 
 ## RF exposure
 

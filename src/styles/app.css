@@ -5075,7 +5075,8 @@ select {
   border-top: 1px solid var(--border);
 }
 
-.fan-frequency-editor {
+.fan-frequency-editor,
+.doublet-system-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5084,9 +5085,18 @@ select {
   border-radius: var(--radius-md);
 }
 
-.fan-frequency-editor legend {
+.fan-frequency-editor legend,
+.doublet-system-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
+}
+
+.doublet-system-editor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.doublet-system-editor > .field {
+  margin: 0;
 }
 
 .fan-frequency-editor > p,
@@ -5131,6 +5141,31 @@ select {
   fill: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: 11px;
+}
+
+.doublet-diagram .balanced-line line,
+.doublet-diagram .doublet-coax {
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.doublet-diagram .balanced-line line:not(:first-child):not(:nth-child(2)) {
+  stroke-width: 1.5;
+}
+
+.doublet-tuner rect,
+.doublet-radio rect {
+  fill: var(--bg-elevated);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.doublet-tuner text,
+.doublet-radio text,
+.doublet-diagram .diagram-caption {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 
 .validation-message {
@@ -5934,6 +5969,10 @@ select {
 }
 
 @media (max-width: 540px) {
+  .doublet-system-editor {
+    grid-template-columns: 1fr;
+  }
+
   .fan-frequency-row {
     grid-template-columns: 1fr;
   }

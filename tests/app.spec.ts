@@ -73,6 +73,29 @@ test('builds a guided multiband fan dipole and exposes Australian bands', async 
   await expect(page.locator('.result-summary')).toContainText('Cut 2 equal wire pairs');
 });
 
+test('plans a balanced-line doublet without inventing a tuner-side impedance', async ({ page }) => {
+  await page.getByRole('button', { name: /Doublet/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('3.600');
+  await page.getByLabel('Balanced-line physical length').fill('12');
+  await page.getByLabel('Doublet feedline check frequency').fill('14.200');
+  await expect(page.getByRole('heading', { name: 'Balanced-line multiband doublet' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned balanced-line multiband doublet/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('20.272 m each');
+  await expect(page.locator('.result-summary')).toContainText('0.598 λ · 215.4°');
+  await expect(page.locator('.result-summary')).toContainText('Eighth-wave line adjustment');
+  await expect(page.locator('.caution-card')).toContainText('A tuner match does not reveal system loss');
+  await page.getByLabel('Tuner interface', { exact: true }).selectOption('external-balun');
+  await expect(page.getByText(/Keep the coax between balun and tuner short/)).toBeVisible();
+  await page.getByLabel('Help: Doublet tuner interface').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Doublet tuner interface' })).toContainText('correct transformation ratio and location depend on the actual impedances');
+  await expect(page.getByText('Commission every intended band')).toBeHidden();
+  await page.getByText('Plan and commission a multiband doublet').click();
+  await expect(page.getByText('Commission every intended band')).toBeVisible();
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.getByLabel('Balanced-line physical length')).toHaveValue('39.37');
+  await expect(page.locator('.result-summary')).toContainText('66 ft 6.125 in');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

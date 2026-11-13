@@ -10,7 +10,8 @@ import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJ
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
 import { calculateHalfWaveDipole, HALF_WAVE_DIPOLE_MODEL } from '../calculators/dipole';
-import { formatLength, type UnitSystem } from '../lib/units';
+import { calculateDoublet, DOUBLET_MODEL } from '../calculators/doublet';
+import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
@@ -26,13 +27,15 @@ import { MoxonDiagram } from './MoxonDiagram';
 import { YagiDiagram } from './YagiDiagram';
 import { GroundMountedVerticalDiagram } from './GroundMountedVerticalDiagram';
 import { FanDipoleDiagram } from './FanDipoleDiagram';
+import { DoubletDiagram } from './DoubletDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
-type AntennaType = 'dipole' | 'fan-dipole' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
+type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
 
 const designs: Record<AntennaType, { name: string; short: string; description: string }> = {
   dipole: { name: 'Centre-fed half-wave dipole', short: 'Dipole', description: 'Two straight legs' },
   'fan-dipole': { name: 'Multiband fan dipole', short: 'Fan dipole', description: 'Parallel resonant wire pairs' },
+  doublet: { name: 'Balanced-line multiband doublet', short: 'Doublet', description: 'Equal legs · balanced line · tuner' },
   'inverted-v': { name: 'Inverted-V dipole', short: 'Inverted-V', description: 'Single high support' },
   efhw: { name: 'End-fed half-wave (EFHW)', short: 'EFHW', description: 'End transformer · multiband potential' },
   ocfd: { name: 'Off-centre-fed dipole (OCFD)', short: 'OCFD', description: 'Unequal legs · multiband potential' },
@@ -57,6 +60,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   const [antennaType, setAntennaType] = useState<AntennaType>('dipole');
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [fanAdditionalFrequencyTexts, setFanAdditionalFrequencyTexts] = useState(['21.200', '28.400']);
+  const [doubletLineLengthMetres, setDoubletLineLengthMetres] = useState(12);
+  const [doubletLineVelocityFactor, setDoubletLineVelocityFactor] = useState(0.95);
+  const [doubletLineImpedanceOhms, setDoubletLineImpedanceOhms] = useState(450);
+  const [doubletCheckFrequencyText, setDoubletCheckFrequencyText] = useState('14.200');
+  const [doubletTunerInterface, setDoubletTunerInterface] = useState<'balanced' | 'external-balun'>('balanced');
   const [lengthCorrectionFactor, setLengthCorrectionFactor] = useState(0.95);
   const [trimAllowancePercent, setTrimAllowancePercent] = useState(2.5);
   const [includedAngleDegrees, setIncludedAngleDegrees] = useState(120);
@@ -75,6 +83,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   const [groundRadialLengthMultiplier, setGroundRadialLengthMultiplier] = useState(1);
 
   const frequencyMHz = Number(frequencyText);
+  const shownDoubletLineLength = unitSystem === 'metric' ? doubletLineLengthMetres : metresToFeet(doubletLineLengthMetres);
   const availableBands = getBandsForJurisdiction(jurisdiction);
   const activeBand = findBandForFrequency(frequencyMHz, jurisdiction);
   const bandSource = getBandSource(jurisdiction);
@@ -85,6 +94,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       const common = { frequencyMHz, lengthCorrectionFactor, trimAllowancePercent };
       if (antennaType === 'dipole') return { type: antennaType, value: calculateHalfWaveDipole(common) } as const;
       if (antennaType === 'fan-dipole') return { type: antennaType, value: calculateFanDipole({ frequenciesMHz: [frequencyMHz, ...fanAdditionalFrequencyTexts.map(Number)], lengthCorrectionFactor, trimAllowancePercent }) } as const;
+      if (antennaType === 'doublet') return { type: antennaType, value: calculateDoublet({ lowestFrequencyMHz: frequencyMHz, lengthCorrectionFactor, trimAllowancePercent, balancedLineLengthMetres: doubletLineLengthMetres, balancedLineVelocityFactor: doubletLineVelocityFactor, balancedLineImpedanceOhms: doubletLineImpedanceOhms, lineCheckFrequencyMHz: Number(doubletCheckFrequencyText) }) } as const;
       if (antennaType === 'inverted-v') return { type: antennaType, value: calculateInvertedV({ ...common, includedAngleDegrees }) } as const;
       if (antennaType === 'efhw') return { type: antennaType, value: calculateEfhw({ ...common, transformerRatio, estimatedEndImpedanceOhms }) } as const;
       if (antennaType === 'ocfd') return { type: antennaType, value: calculateOcfd({ ...common, transformerRatio, feedpointPercentFromEnd, estimatedFeedpointImpedanceOhms: estimatedOcfdImpedanceOhms }) } as const;
@@ -98,13 +108,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     } catch {
       return null;
     }
-  }, [antennaType, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, frequencyMHz, groundRadialCount, groundRadialLengthMultiplier, includedAngleDegrees, jpoleTapPercent, lengthCorrectionFactor, loopShape, moxonConductorDiameterMillimetres, radialCount, radialSlopeDegrees, slimJimGapPercent, transformerRatio, trimAllowancePercent]);
+  }, [antennaType, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, frequencyMHz, groundRadialCount, groundRadialLengthMultiplier, includedAngleDegrees, jpoleTapPercent, lengthCorrectionFactor, loopShape, moxonConductorDiameterMillimetres, radialCount, radialSlopeDegrees, slimJimGapPercent, transformerRatio, trimAllowancePercent]);
 
   const model = antennaType === 'dipole'
     ? HALF_WAVE_DIPOLE_MODEL
     : antennaType === 'fan-dipole'
       ? ANTENNA_MODELS.fanDipole
-      : antennaType === 'inverted-v'
+      : antennaType === 'doublet'
+        ? DOUBLET_MODEL
+        : antennaType === 'inverted-v'
       ? ANTENNA_MODELS.invertedV
       : antennaType === 'efhw'
         ? ANTENNA_MODELS.efhw
@@ -135,7 +147,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           ? 'This factor scales both the radiator and corrected quarter-wave radial baseline. Soil, conductor insulation, base hardware, radial layout, and nearby objects still affect the installed resonance and impedance.'
           : antennaType === 'ground-plane'
             ? 'This factor scales the elevated radiator and radial lengths together. Conductor size, radial slope, support hardware, feed arrangement, height, and surroundings still affect the installed antenna.'
-            : antennaType === 'dipole' || antennaType === 'fan-dipole' || antennaType === 'inverted-v'
+            : antennaType === 'dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v'
               ? 'This factor scales the free-space half-wave estimate before it is divided into equal legs. Conductor insulation, diameter, support geometry, height, and surroundings still shift the installed resonance.'
               : antennaType === 'full-wave-loop'
                 ? 'This factor scales the complete free-space wavelength into a practical starting perimeter. The selected shape changes the displayed side or diameter, not the total perimeter.'
@@ -150,7 +162,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           ? 'This allowance is added to the vertical radiator only; the ground-radial length uses the corrected quarter-wave baseline and selected multiplier. Install before trimming the radiator in small steps.'
           : antennaType === 'ground-plane'
             ? 'This allowance is added to both the radiator and elevated radials. Keep the radials equal and symmetrical while tuning the installed antenna.'
-            : antennaType === 'dipole' || antennaType === 'fan-dipole' || antennaType === 'inverted-v'
+            : antennaType === 'dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v'
               ? 'This percentage is added to the total corrected length before it is divided into equal legs. Install first, then trim both legs equally in small steps.'
               : antennaType === 'full-wave-loop'
                 ? 'This percentage is added to the complete loop perimeter. Install the closed loop before trimming and preserve the intended shape and symmetry while making small changes.'
@@ -200,6 +212,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Install the complete fan', detail: 'Raise all wire pairs, feedline, spacers, and supports in their final geometry before measuring any band.' },
         { title: 'Tune from highest frequency downward', detail: 'Adjust only the equal pair for the highest band first, then work toward the lowest band and repeat the sweep because every change can move another resonance.' }
       ]} limit="This calculator does not solve mutual coupling, predict the combined feedpoint impedance, guarantee a tuner-free match, or model the installed bandwidth or pattern. Closely related bands may interact strongly." />}
+
+      {antennaType === 'doublet' && <StepByStepHelp title="Plan and commission a multiband doublet" intro="Use this sequence to treat the radiator, balanced line, tuner interface, and station grounding as one system. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the lowest intended frequency', detail: 'Size the equal-leg radiator at about a half wavelength on the lowest band you expect to use; the exact length is not a promise of resonance on higher bands.' },
+        { title: 'Plan the complete balanced-line route', detail: 'Measure the physical route to the tuner, keep both conductors equally exposed, avoid sharp bends, and hold the line away from metal, wet surfaces, and lossy building materials.' },
+        { title: 'Choose a suitable tuner interface', detail: 'Prefer a tuner designed for balanced loads or use a documented current balun and the shortest practical low-loss coax connection. No fixed balun ratio is universally correct.' },
+        { title: 'Build equal radiator legs', detail: 'Cut both legs equally, retain the selected allowance, and use a strong balanced centre connection without inserting a balun between the balanced radiator and balanced line.' },
+        { title: 'Install before evaluating the match', detail: 'Raise the radiator and route the complete feed system in its final position before testing tuner range, line balance, heating, or common-mode current.' },
+        { title: 'Commission every intended band', detail: 'Tune at low power, verify that the tuner and balun remain within their voltage, current, loss, and heating limits, and change line length if a particular band presents an impractical load.' }
+      ]} limit="This calculator does not predict the complex antenna impedance, tuner-side load, line SWR, loss under mismatch, balun stress, tuner range, efficiency, bandwidth, or radiation pattern. The displayed line phase is descriptive only." />}
 
       {antennaType === 'inverted-v' && <StepByStepHelp title="Build and tune an inverted-V" intro="Use this sequence to preserve equal sloping legs and the selected apex geometry while tuning the installed antenna. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the apex and endpoints', detail: 'Plan the apex height, endpoint locations, included angle, safe clearances, and access without treating the drawing as a support-height prescription.' },
@@ -331,6 +352,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             <small>Two to six pairs are supported. Installed interaction means every band must be rechecked after each adjustment.</small>
           </fieldset>}
 
+          {antennaType === 'doublet' && <fieldset className="doublet-system-editor">
+            <legend>Balanced feed system</legend>
+            <label className="field"><span>Balanced-line physical length</span><span className="input-with-unit"><input aria-label="Balanced-line physical length" type="number" min="0.01" step="0.1" value={Number(shownDoubletLineLength.toFixed(3))} onChange={(event) => setDoubletLineLengthMetres(unitSystem === 'metric' ? Number(event.target.value) : feetToMetres(Number(event.target.value)))} /><span>{unitSystem === 'metric' ? 'm' : 'ft'}</span></span><small>Measure the complete two-conductor route from the antenna centre to the tuner interface.</small></label>
+            <label className="field"><span>Feedline check frequency</span><span className="input-with-unit"><input aria-label="Doublet feedline check frequency" type="number" min="0.001" step="0.001" value={doubletCheckFrequencyText} onChange={(event) => setDoubletCheckFrequencyText(event.target.value)} /><span>MHz</span></span><small>Shows electrical line length and an eighth-wave adjustment at one troublesome or planned operating frequency.</small></label>
+            <div className="field"><span className="field-label-with-help"><label htmlFor="doublet-tuner-interface">Tuner interface</label><HelpTip label="Doublet tuner interface">A truly balanced tuner can connect directly to balanced line. An unbalanced tuner needs an appropriate current balun and a short low-loss coax path. The correct transformation ratio and location depend on the actual impedances and power.</HelpTip></span><select id="doublet-tuner-interface" value={doubletTunerInterface} onChange={(event) => setDoubletTunerInterface(event.target.value as typeof doubletTunerInterface)}><option value="balanced">Balanced-output tuner</option><option value="external-balun">External current balun + unbalanced tuner</option></select><small>{doubletTunerInterface === 'balanced' ? 'Connect the balanced line to the tuner’s documented balanced terminals.' : 'Keep the coax between balun and tuner short and verify balun voltage, current, loss, and heating.'}</small></div>
+            <label className="field"><span>Balanced-line characteristic impedance</span><select aria-label="Balanced-line characteristic impedance" value={doubletLineImpedanceOhms} onChange={(event) => setDoubletLineImpedanceOhms(Number(event.target.value))}><option value="300">300 Ω ribbon or window line</option><option value="450">450 Ω window line</option><option value="600">600 Ω open-wire line</option></select><small>This identifies the line; it is not the impedance the tuner will necessarily see.</small></label>
+            <NumberField label="Balanced-line velocity factor" tooltip="Velocity factor converts the free-space wavelength to wavelength along the selected line. Use manufacturer data or a measurement for the actual construction; line spacing, insulation, and moisture can change it." value={doubletLineVelocityFactor} min={0.5} max={1} step={0.01} unit="ratio" help="Used only for electrical line length and the eighth-wave adjustment amount." onChange={setDoubletLineVelocityFactor} />
+          </fieldset>}
+
           {antennaType === 'inverted-v' && <NumberField label="Included apex angle" tooltip="This is the angle between the two wire legs at the centre support. Narrower angles reduce endpoint span and increase drop while also changing feedpoint impedance and pattern; the installed result must be measured." value={includedAngleDegrees} min={60} max={180} step={1} unit="degrees" help="ARRL guidance recommends 90°–120°; wider values are supported for comparison." onChange={setIncludedAngleDegrees} />}
           {antennaType === 'ground-plane' && <>
             <NumberField label="Number of radials" tooltip="These are elevated counterpoise wires connected to the coax-shield side of the feedpoint, not ground-mounted wires. Use at least three, keep them equal, and distribute them symmetrically around the radiator." value={radialCount} min={3} max={64} step={1} unit="wires" help="The drawing shows four directions; the wire total uses the count entered." onChange={setRadialCount} />
@@ -386,6 +416,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         <div className="visual-panel">
           {calculation?.type === 'dipole' && <DipoleDiagram totalMetres={calculation.value.cutTotalMetres} legMetres={calculation.value.cutLegMetres} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
           {calculation?.type === 'fan-dipole' && <FanDipoleDiagram elements={calculation.value.elements} unitSystem={unitSystem} />}
+          {calculation?.type === 'doublet' && <DoubletDiagram legMetres={calculation.value.cutLegMetres} totalMetres={calculation.value.cutTotalMetres} feedlineMetres={calculation.value.balancedLineLengthMetres} feedlineImpedanceOhms={calculation.value.balancedLineImpedanceOhms} unitSystem={unitSystem} />}
           {calculation?.type === 'inverted-v' && <InvertedVDiagram legMetres={calculation.value.legMetres} spanMetres={calculation.value.endpointSpanMetres} dropMetres={calculation.value.apexDropMetres} angleDegrees={includedAngleDegrees} unitSystem={unitSystem} />}
           {calculation?.type === 'efhw' && <EfhwDiagram radiatorMetres={calculation.value.radiatorMetres} transformerRatio={transformerRatio} unitSystem={unitSystem} />}
           {calculation?.type === 'ocfd' && <OcfdDiagram shortLegMetres={calculation.value.shortLegMetres} longLegMetres={calculation.value.longLegMetres} totalMetres={calculation.value.cutLengthMetres} feedpointPercent={feedpointPercentFromEnd} transformerRatio={transformerRatio} unitSystem={unitSystem} />}
@@ -426,7 +457,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         <article>
           <p className="eyebrow">Calculation</p>
           <h3>Traceable working</h3>
-          <p className="formula">{calculation.type === 'moxon' ? 'A–D = Cebik regression(log₁₀(d ÷ λ)) × λ' : calculation.type === 'yagi' ? 'Element lengths and spacings = NBS ratios × λ' : calculation.type === 'fan-dipole' ? 'Each pair: L = (c ÷ f) × ½ × correction factor' : 'L = (c ÷ f) × design fraction × correction factor'}</p>
+          <p className="formula">{calculation.type === 'moxon' ? 'A–D = Cebik regression(log₁₀(d ÷ λ)) × λ' : calculation.type === 'yagi' ? 'Element lengths and spacings = NBS ratios × λ' : calculation.type === 'fan-dipole' ? 'Each pair: L = (c ÷ f) × ½ × correction factor' : calculation.type === 'doublet' ? 'Radiator L ≈ (c ÷ flow) × ½ · line phase = 360° × length ÷ (λ × VF)' : 'L = (c ÷ f) × design fraction × correction factor'}</p>
           {calculation.type === 'moxon'
             ? <p>The constant-diameter regression is valid only from 0.00001 to 0.01 wavelengths. Dimensions are model starting points and do not include a trim allowance.</p>
             : calculation.type === 'yagi'
@@ -449,6 +480,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           <p className="eyebrow">Fan-dipole interaction</p>
           <h3>Every wire pair changes the shared feedpoint</h3>
           <p>The elements are connected in parallel, so their installed impedances combine and nearby wires couple to one another. Keep each pair symmetrical, use stable non-conductive spacing, tune from the highest frequency downward, and sweep every band again after each adjustment. ARRL guidance specifically cautions that some related-band combinations can interact strongly.</p>
+        </article>}
+        {calculation.type === 'doublet' && <article className="caution-card">
+          <p className="eyebrow">Doublet matching and feedline</p>
+          <h3>A tuner match does not reveal system loss</h3>
+          <p>High SWR remains on the balanced line after the transmitter sees a match. Use line with documented low loss, preserve physical balance, keep it clear of conductive and lossy materials, and verify tuner and balun heating at the intended power. The displayed eighth-wave amount is an adjustment increment from ARRL guidance, not a prescribed final line length.</p>
         </article>}
         {calculation.type === 'jpole' && <article className="caution-card">
           <p className="eyebrow">J-pole tuning and installation</p>
@@ -478,7 +514,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         <article className="provenance-card">
           <p className="eyebrow">Method and sources</p>
           <h3>Model {model.version}</h3>
-          <p>{calculation.type === 'moxon' ? 'The wavelength uses the exact SI speed of light in vacuum. Cebik’s regression converts frequency and constant conductor diameter into the A–E construction geometry.' : calculation.type === 'yagi' ? 'The wavelength uses the exact SI speed of light in vacuum. Dimensions reproduce the National Bureau of Standards three-element, 0.4-wavelength reference design at its documented diameter ratio.' : calculation.type === 'fan-dipole' ? 'Each wire pair is calculated as an independent corrected half-wave starting length. The model intentionally does not estimate mutual coupling or the parallel combination of installed impedances.' : 'The wavelength uses the exact SI speed of light in vacuum. Empirical factors provide practical wire-cutting estimates and remain adjustable for conductor and installation differences.'}</p>
+          <p>{calculation.type === 'moxon' ? 'The wavelength uses the exact SI speed of light in vacuum. Cebik’s regression converts frequency and constant conductor diameter into the A–E construction geometry.' : calculation.type === 'yagi' ? 'The wavelength uses the exact SI speed of light in vacuum. Dimensions reproduce the National Bureau of Standards three-element, 0.4-wavelength reference design at its documented diameter ratio.' : calculation.type === 'fan-dipole' ? 'Each wire pair is calculated as an independent corrected half-wave starting length. The model intentionally does not estimate mutual coupling or the parallel combination of installed impedances.' : calculation.type === 'doublet' ? 'The radiator uses a corrected half-wave starting length at the lowest selected frequency. Feedline phase uses physical length, selected velocity factor, and check frequency without inferring the unknown complex load.' : 'The wavelength uses the exact SI speed of light in vacuum. Empirical factors provide practical wire-cutting estimates and remain adjustable for conductor and installation differences.'}</p>
           <ul>{model.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul>
           <small>Model ID: {model.id} · Reviewed {model.reviewedOn}</small>
         </article>
@@ -499,6 +535,7 @@ function NumberField({ label, value, min, max, step, unit, help, tooltip, onChan
 type Calculation = NonNullable<
   | { type: 'dipole'; value: ReturnType<typeof calculateHalfWaveDipole> }
   | { type: 'fan-dipole'; value: ReturnType<typeof calculateFanDipole> }
+  | { type: 'doublet'; value: ReturnType<typeof calculateDoublet> }
   | { type: 'inverted-v'; value: ReturnType<typeof calculateInvertedV> }
   | { type: 'efhw'; value: ReturnType<typeof calculateEfhw> }
   | { type: 'ocfd'; value: ReturnType<typeof calculateOcfd> }
@@ -515,6 +552,7 @@ type Calculation = NonNullable<
 function largestAntennaDimension(calculation: Calculation, loopShape: LoopShape): number {
   if (calculation.type === 'dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutTotalMetres });
   if (calculation.type === 'fan-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.longestSpanMetres });
+  if (calculation.type === 'doublet') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutTotalMetres });
   if (calculation.type === 'inverted-v') return calculateLargestAntennaDimension({ shape: 'inverted-v', endpointSpanMetres: calculation.value.endpointSpanMetres, legMetres: calculation.value.legMetres });
   if (calculation.type === 'efhw') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.radiatorMetres });
   if (calculation.type === 'ocfd') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutLengthMetres });
@@ -538,6 +576,9 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { ca
     headline = `Cut ${calculation.value.elements.length} equal wire pairs`; primary = formatLength(calculation.value.totalWireMetres, unitSystem);
     details = calculation.value.elements.map((element) => [`${element.frequencyMHz.toFixed(3)} MHz · each leg`, formatLength(element.cutLegMetres, unitSystem)]);
     details.push(['Longest installed span', formatLength(calculation.value.longestSpanMetres, unitSystem)]);
+  } else if (calculation.type === 'doublet') {
+    headline = 'Cut two equal legs and route balanced line'; primary = `${formatLength(calculation.value.cutLegMetres, unitSystem)} each`;
+    details = [['Total radiator', formatLength(calculation.value.cutTotalMetres, unitSystem)], ['Balanced-line route', formatLength(calculation.value.balancedLineLengthMetres, unitSystem)], [`Electrical length at ${calculation.value.lineCheckFrequencyMHz.toFixed(3)} MHz`, `${calculation.value.feedlineElectricalWavelengths.toFixed(3)} λ · ${calculation.value.feedlineElectricalDegrees.toFixed(1)}°`], ['Eighth-wave line adjustment', formatLength(calculation.value.eighthWaveAdjustmentMetres, unitSystem)], ['Total conductor', formatLength(calculation.value.totalConductorMetres, unitSystem)]];
   } else if (calculation.type === 'inverted-v') {
     headline = 'Cut two equal sloping legs'; primary = `${formatLength(calculation.value.legMetres, unitSystem)} each`;
     details = [['Endpoint span', formatLength(calculation.value.endpointSpanMetres, unitSystem)], ['Vertical drop', formatLength(calculation.value.apexDropMetres, unitSystem)]];
@@ -569,7 +610,7 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { ca
     headline = 'Cut one continuous loop'; primary = formatLength(calculation.value.perimeterMetres, unitSystem);
     details = [[loopShape === 'circle' ? 'Diameter' : 'Each side', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Resonant perimeter', formatLength(calculation.value.resonantLengthMetres, unitSystem)]];
   }
-  details.push([calculation.type === 'fan-dipole' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
+  details.push([calculation.type === 'fan-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
   return <div className="result-summary" aria-live="polite"><p>{headline}</p><strong>{primary}</strong><dl>{details.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}</dl></div>;
 }
 
