@@ -442,6 +442,55 @@ test('plans a log-periodic element schedule without predicting finished performa
   await expect(page.locator('.result-summary')).toContainText('3 ft 5.875 in element-centre span');
 });
 
+test('plans a receive-only Beverage route with explicit direction and impedance assumptions', async ({ page }) => {
+  await page.getByRole('button', { name: /Beverage/ }).click();
+  await page.locator('select.band-select').selectOption('160m');
+  await expect(page.getByRole('spinbutton', { name: 'Receive reference frequency' })).toHaveValue('1.900');
+
+  await expect(page.getByRole('heading', { name: 'Beverage receiving antenna' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Horizontal wire length' })).toHaveValue('1');
+  await expect(page.getByRole('spinbutton', { name: 'Wire height above ground' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Target bearing from feed' })).toHaveValue('45');
+  await expect(page.getByLabel('Beverage far-end configuration', { exact: true })).toHaveValue('terminated');
+  await expect(page.getByRole('img', { name: /Beverage receiving-antenna route and elevation/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Survey a terminated one-way receive route');
+  await expect(page.locator('.result-summary')).toContainText('157.786 m horizontal endpoint distance');
+  await expect(page.locator('.result-summary')).toContainText('Horizontal wire to cut161.730 m');
+  await expect(page.locator('.result-summary')).toContainText('Target axis from feed45° NE');
+  await expect(page.locator('.result-summary')).toContainText('111.571 m east');
+  await expect(page.locator('.result-summary')).toContainText('111.571 m north');
+  await expect(page.locator('.result-summary')).toContainText('Nominal transformer turns ratio3.00 : 1');
+  await expect(page.locator('.result-summary')).toContainText('Predicted gain, pattern, and front-to-back ratioNot inferred · measure the installed antenna');
+  await expect(page.getByRole('complementary', { name: 'Beverage design advisories' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
+
+  await expect(page.getByText('Build stable ground returns')).toBeHidden();
+  await page.getByText('Plan and commission a Beverage receiving antenna').click();
+  await expect(page.getByText('Build stable ground returns')).toBeVisible();
+  await page.getByLabel('Help: Target bearing from feed').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Target bearing from feed' })).toContainText('clockwise from geographic north');
+
+  await page.getByRole('spinbutton', { name: 'Target bearing from feed' }).fill('225');
+  await expect(page.locator('.result-summary')).toContainText('225° SW');
+  await expect(page.locator('.result-summary')).toContainText('111.571 m west');
+  await expect(page.locator('.result-summary')).toContainText('111.571 m south');
+  await page.getByLabel('Beverage far-end configuration', { exact: true }).selectOption('unterminated');
+  await expect(page.getByRole('spinbutton', { name: 'Far-end termination resistance' })).toHaveCount(0);
+  await expect(page.locator('.result-summary')).toContainText('225° SW and 45° NE');
+  await expect(page.getByRole('complementary', { name: 'Beverage design advisories' })).toContainText('bidirectional tendency');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Assumed antenna-side impedance' })).toHaveValue('450');
+  await expect(page.getByRole('spinbutton', { name: 'Receiver feedline impedance' })).toHaveValue('50');
+  await expect(page.getByRole('spinbutton', { name: 'Extra horizontal wire for routing' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'A low, long wire is both an RF circuit and a site hazard' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('beverage-wave-antenna-planner');
+
+  await page.getByRole('spinbutton', { name: 'Target bearing from feed' }).fill('45');
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.locator('.result-summary')).toContainText('517 ft 8 in horizontal endpoint distance');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

@@ -4870,7 +4870,8 @@ select {
 .quad-layout,
 .helix-layout,
 .discone-layout,
-.lpda-layout {
+.lpda-layout,
+.beverage-layout {
   grid-template-columns: 1fr;
 }
 
@@ -4879,7 +4880,8 @@ select {
 .quad-layout .input-panel,
 .helix-layout .input-panel,
 .discone-layout .input-panel,
-.lpda-layout .input-panel {
+.lpda-layout .input-panel,
+.beverage-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4896,7 +4898,9 @@ select {
 .discone-layout .input-panel > .field,
 .discone-layout .discone-editor,
 .lpda-layout .input-panel > .field,
-.lpda-layout .lpda-editor {
+.lpda-layout .lpda-editor,
+.beverage-layout .input-panel > .field,
+.beverage-layout .beverage-editor {
   margin: 0;
 }
 
@@ -4924,7 +4928,12 @@ select {
 .lpda-layout .advanced-fields,
 .lpda-layout .result-summary,
 .lpda-layout .lpda-advisory,
-.lpda-layout .validation-message {
+.lpda-layout .validation-message,
+.beverage-layout .beverage-editor,
+.beverage-layout .advanced-fields,
+.beverage-layout .result-summary,
+.beverage-layout .beverage-advisory,
+.beverage-layout .validation-message {
   grid-column: 1 / -1;
 }
 
@@ -4933,7 +4942,8 @@ select {
 .quad-layout .quad-editor,
 .helix-layout .helix-editor,
 .discone-layout .discone-editor,
-.lpda-layout .lpda-editor {
+.lpda-layout .lpda-editor,
+.beverage-layout .beverage-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5156,7 +5166,8 @@ select {
 .quad-editor,
 .helix-editor,
 .discone-editor,
-.lpda-editor {
+.lpda-editor,
+.beverage-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5173,7 +5184,8 @@ select {
 .quad-editor legend,
 .helix-editor legend,
 .discone-editor legend,
-.lpda-editor legend {
+.lpda-editor legend,
+.beverage-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5202,6 +5214,10 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.beverage-editor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .loaded-antenna-editor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -5217,7 +5233,8 @@ select {
 .quad-editor > .field,
 .helix-editor > .field,
 .discone-editor > .field,
-.lpda-editor > .field {
+.lpda-editor > .field,
+.beverage-editor > .field {
   margin: 0;
 }
 
@@ -5506,7 +5523,8 @@ path.loading-coil {
 
 .helix-advisory ul,
 .discone-advisory ul,
-.lpda-advisory ul {
+.lpda-advisory ul,
+.beverage-advisory ul {
   margin: 0.55rem 0 0;
   padding-left: 1.2rem;
   color: var(--text-secondary);
@@ -5514,7 +5532,8 @@ path.loading-coil {
 
 .helix-advisory li + li,
 .discone-advisory li + li,
-.lpda-advisory li + li {
+.lpda-advisory li + li,
+.beverage-advisory li + li {
   margin-top: 0.35rem;
 }
 
@@ -5656,6 +5675,88 @@ path.loading-coil {
 
 .lpda-schedule tbody tr:last-child > * {
   border-bottom: 0;
+}
+
+.beverage-plan > circle {
+  fill: color-mix(in srgb, var(--accent-technical) 5%, transparent);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.beverage-plan > line:not(.beverage-route, .beverage-reverse-axis) {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.beverage-plan text,
+.beverage-elevation text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.beverage-route {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 7;
+}
+
+.beverage-reverse-axis {
+  stroke: var(--tl-coral);
+  stroke-dasharray: 7 5;
+  stroke-width: 3;
+}
+
+.beverage-feed-point {
+  fill: var(--accent-technical);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.beverage-far-point {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.beverage-response-arrow {
+  fill: none;
+  marker-end: url('#beverage-arrow-end');
+  stroke: var(--tl-gold);
+  stroke-width: 5;
+}
+
+.beverage-bearing-label {
+  font-size: 12px !important;
+}
+
+.beverage-ground {
+  stroke: var(--text-secondary);
+  stroke-width: 4;
+}
+
+.beverage-wire {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.beverage-drop {
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.beverage-component {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.beverage-ground-symbol {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 2;
 }
 
 .coil-construction-panel {
@@ -6791,7 +6892,9 @@ path.loading-coil {
   .discone-layout .input-panel,
   .discone-layout .discone-editor,
   .lpda-layout .input-panel,
-  .lpda-layout .lpda-editor {
+  .lpda-layout .lpda-editor,
+  .beverage-layout .input-panel,
+  .beverage-layout .beverage-editor {
     grid-template-columns: 1fr;
   }
 
@@ -7075,7 +7178,8 @@ path.loading-coil {
   .quad-editor,
   .helix-editor,
   .discone-editor,
-  .lpda-editor {
+  .lpda-editor,
+  .beverage-editor {
     grid-template-columns: 1fr;
   }
 
