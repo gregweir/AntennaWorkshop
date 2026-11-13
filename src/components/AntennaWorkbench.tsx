@@ -125,6 +125,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       ? 'This factor scales the complete free-space half-wave estimate before it is divided at the selected feedpoint. It does not predict the installed feedpoint impedance or correct the balun and feedline.'
       : antennaType === 'jpole' || antennaType === 'slim-jim'
         ? 'This factor scales all calculated conductor sections for the selected construction medium. It is a starting estimate: insulation, conductor size, spacing, supports, and surroundings still shift the finished antenna.'
+        : antennaType === 'ground-mounted-vertical'
+          ? 'This factor scales both the radiator and corrected quarter-wave radial baseline. Soil, conductor insulation, base hardware, radial layout, and nearby objects still affect the installed resonance and impedance.'
+          : antennaType === 'ground-plane'
+            ? 'This factor scales the elevated radiator and radial lengths together. Conductor size, radial slope, support hardware, feed arrangement, height, and surroundings still affect the installed antenna.'
       : undefined;
   const trimAllowanceTooltip = antennaType === 'efhw'
     ? 'This percentage is added after the corrected resonant estimate. Install the antenna before trimming, remove wire in small increments, and remeasure because removed wire cannot be restored easily.'
@@ -132,6 +136,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       ? 'This percentage adds adjustment room to both legs after the corrected total length is divided. Install and measure before trimming, and preserve the intended split while making small changes.'
       : antennaType === 'jpole' || antennaType === 'slim-jim'
         ? 'This percentage adds adjustment room to the calculated conductor sections. Build and measure before trimming, make small changes, and preserve the intended matching-section relationships and parallel spacing.'
+        : antennaType === 'ground-mounted-vertical'
+          ? 'This allowance is added to the vertical radiator only; the ground-radial length uses the corrected quarter-wave baseline and selected multiplier. Install before trimming the radiator in small steps.'
+          : antennaType === 'ground-plane'
+            ? 'This allowance is added to both the radiator and elevated radials. Keep the radials equal and symmetrical while tuning the installed antenna.'
       : undefined;
   const selectDesign = (type: AntennaType) => {
     setAntennaType(type);
@@ -197,6 +205,24 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Tune in controlled steps', detail: 'Use low analyser power, adjust the tap contacts together, and change the gap or element ends only in small measured steps before rechecking.' }
       ]} limit="This calculator does not predict feedpoint impedance, conductor-spacing effects, installed pattern, bandwidth, or a universal gap and tap combination. A low SWR on another band does not establish a useful pattern." />}
 
+      {antennaType === 'ground-mounted-vertical' && <StepByStepHelp title="Build a ground-mounted vertical" intro="Use this sequence to plan the radiator, RF radial field, feed connection, and installed tuning as one antenna system. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the site', detail: 'Select a clear location with room for the planned radial field, safe radiator clearances, feedline routing, and access for maintenance.' },
+        { title: 'Build the insulated radiator', detail: 'Provide a mechanically secure, weather-resistant base that keeps the vertical radiator insulated from the radial and coax-shield junction.' },
+        { title: 'Lay out the RF radial field', detail: 'Choose a practical count and length, distribute wires around the base, and connect every radial with low-resistance, corrosion-resistant hardware.' },
+        { title: 'Connect and weatherproof the feed', detail: 'Connect the coax centre to the radiator and shield to the radial junction, add suitable feedline control, and seal outdoor connections.' },
+        { title: 'Address electrical safety separately', detail: 'Follow applicable bonding, lightning-protection, and electrical grounding rules; a safety ground rod does not replace the RF radial field.' },
+        { title: 'Measure and tune after installation', detail: 'Use low analyser power, trim the radiator in small steps, and evaluate the installed match and efficiency rather than assuming an ideal feedpoint value.' }
+      ]} limit="This calculator does not model soil loss, radial-current distribution, efficiency, feedpoint impedance, matching hardware, lightning protection, or installed radiation pattern." />}
+
+      {antennaType === 'ground-plane' && <StepByStepHelp title="Build an elevated ground plane" intro="Use this sequence to preserve equal elevated radials, their slope, and the feedpoint geometry while tuning the complete installation. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the mounting location', detail: 'Plan a clear elevated position with safe radiator and radial clearances, a non-disruptive support, and deliberate coax routing.' },
+        { title: 'Build the vertical radiator', detail: 'Mount the radiator securely above an insulated feedpoint and retain the selected adjustment allowance.' },
+        { title: 'Make equal elevated radials', detail: 'Cut the selected number of equal radials, distribute them symmetrically, and connect them to the coax-shield side of the feedpoint.' },
+        { title: 'Set the radial slope', detail: 'Support every radial at the same downward angle; changing slope alters the footprint and can change the feedpoint impedance.' },
+        { title: 'Route, choke, and weatherproof', detail: 'Route coax away from the antenna as consistently as practical, add common-mode control when needed, and seal exposed connections.' },
+        { title: 'Measure and tune after mounting', detail: 'Use low analyser power, preserve radial equality and symmetry, and make small radiator or equal-radial adjustments before rechecking.' }
+      ]} limit="This calculator does not predict feedpoint impedance, support and mast coupling, matching, bandwidth, common-mode current, or the installed radiation pattern." />}
+
       <div className="calculator-layout">
         <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
           <label className="field">
@@ -222,12 +248,12 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
           {antennaType === 'inverted-v' && <NumberField label="Included apex angle" value={includedAngleDegrees} min={60} max={180} step={1} unit="degrees" help="ARRL guidance recommends 90°–120°; wider values are supported for comparison." onChange={setIncludedAngleDegrees} />}
           {antennaType === 'ground-plane' && <>
-            <NumberField label="Number of radials" value={radialCount} min={3} max={64} step={1} unit="wires" help="The drawing shows four directions; the wire total uses the count entered." onChange={setRadialCount} />
-            <NumberField label="Radial slope below horizontal" value={radialSlopeDegrees} min={0} max={60} step={1} unit="degrees" help="Drooping elevated radials can raise feedpoint impedance; verify the installed match." onChange={setRadialSlopeDegrees} />
+            <NumberField label="Number of radials" tooltip="These are elevated counterpoise wires connected to the coax-shield side of the feedpoint, not ground-mounted wires. Use at least three, keep them equal, and distribute them symmetrically around the radiator." value={radialCount} min={3} max={64} step={1} unit="wires" help="The drawing shows four directions; the wire total uses the count entered." onChange={setRadialCount} />
+            <NumberField label="Radial slope below horizontal" tooltip="This is the downward angle of every elevated radial. Equal droop often raises the feedpoint resistance toward 50 Ω, but the actual result depends on the complete installation and must be measured." value={radialSlopeDegrees} min={0} max={60} step={1} unit="degrees" help="Drooping elevated radials can raise feedpoint impedance; verify the installed match." onChange={setRadialSlopeDegrees} />
           </>}
           {antennaType === 'ground-mounted-vertical' && <>
-            <NumberField label="Number of ground radials" value={groundRadialCount} min={4} max={240} step={1} unit="wires" help="More radials usually reduce ground-system loss. ARRL construction guidance describes 40 or more for strong performance and 120 quarter-wave radials as a well-developed system." onChange={setGroundRadialCount} />
-            <NumberField label="Radial length multiplier" value={groundRadialLengthMultiplier} min={0.25} max={2} step={0.05} unit="× ¼λ" help="1.00 makes each radial the corrected quarter-wave baseline. Soil, space, and radial count affect the best practical layout." onChange={setGroundRadialLengthMultiplier} />
+            <NumberField label="Number of ground radials" tooltip="These wires form the antenna's RF return system on or below the ground. Increasing the number and distributing them around the base generally lowers ground-system loss; a ground rod is not a substitute." value={groundRadialCount} min={4} max={240} step={1} unit="wires" help="More radials usually reduce ground-system loss. ARRL construction guidance describes 40 or more for strong performance and 120 quarter-wave radials as a well-developed system." onChange={setGroundRadialCount} />
+            <NumberField label="Radial length multiplier" tooltip="This multiplies the corrected quarter-wave baseline for each ground radial. Shorter or longer wires may fit a site, but count, soil, layout, and total wire all influence loss; the calculator does not optimize that tradeoff." value={groundRadialLengthMultiplier} min={0.25} max={2} step={0.05} unit="× ¼λ" help="1.00 makes each radial the corrected quarter-wave baseline. Soil, space, and radial count affect the best practical layout." onChange={setGroundRadialLengthMultiplier} />
           </>}
           {antennaType === 'efhw' && <NumberField label="Transformer impedance ratio" tooltip="This is the impedance transformation ratio, not the winding turns ratio. A 49:1 impedance ratio corresponds to a 7:1 ideal turns ratio and nominally transforms 2,450 Ω toward 50 Ω." value={transformerRatio} min={4} max={100} step={1} unit=": 1" help="49:1 is the documented ARRL starting point for an approximately 2,500 Ω end impedance." onChange={setTransformerRatio} />}
           {antennaType === 'ocfd' && <>

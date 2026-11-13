@@ -128,16 +128,26 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByRole('button', { name: /Ground vertical/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
   await expect(page.getByRole('heading', { name: 'Ground-mounted quarter-wave vertical' })).toBeVisible();
-  await expect(page.getByLabel('Number of ground radials')).toHaveValue('32');
-  await expect(page.getByLabel('Radial length multiplier')).toHaveValue('1');
+  await expect(page.getByLabel('Number of ground radials', { exact: true })).toHaveValue('32');
+  await expect(page.getByLabel('Radial length multiplier', { exact: true })).toHaveValue('1');
   await expect(page.getByRole('img', { name: /Dimensioned ground-mounted quarter-wave vertical/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('32 radial wires');
   await expect(page.locator('.caution-card')).toContainText('ground rod is not an RF radial field');
+  await expect(page.getByText('Lay out the RF radial field')).toBeHidden();
+  await page.getByText('Build a ground-mounted vertical').click();
+  await expect(page.getByText('Lay out the RF radial field')).toBeVisible();
+  await page.getByLabel('Help: Number of ground radials').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Number of ground radials' })).toContainText('ground rod is not a substitute');
 
   await page.getByRole('button', { name: /Ground plane/ }).click();
-  await expect(page.getByLabel('Number of radials')).toHaveValue('4');
+  await expect(page.getByLabel('Number of radials', { exact: true })).toHaveValue('4');
   await expect(page.getByRole('img', { name: /Dimensioned quarter-wave ground-plane/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('4 radial wires');
+  await expect(page.getByText('Set the radial slope')).toBeHidden();
+  await page.getByText('Build an elevated ground plane').click();
+  await expect(page.getByText('Set the radial slope')).toBeVisible();
+  await page.getByLabel('Help: Radial slope below horizontal').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Radial slope below horizontal' })).toContainText('actual result depends on the complete installation');
 
   await page.getByRole('button', { name: /Full-wave loop/ }).click();
   await page.getByLabel('Loop shape').selectOption('circle');
