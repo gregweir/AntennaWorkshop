@@ -24,10 +24,17 @@ describe('ACMA assessment record library', () => {
     expect(deleteAcmaAssessmentRecord('record-1', storage)).toEqual([]);
   });
 
-  it('migrates version 1 records without discarding them', () => {
-    const legacy = { ...createAcmaAssessmentRecord('legacy', '2026-11-13T10:00:00.000Z'), schemaVersion: 1 } as Record<string, unknown>;
-    delete legacy.revisions;
-    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([legacy])))).toMatchObject([{ schemaVersion: 2, id: 'legacy', revisions: [] }]);
+  it('migrates version 1 and 2 records without discarding them', () => {
+    const current = createAcmaAssessmentRecord('legacy', '2026-11-13T10:00:00.000Z');
+    const evidenceFields = ['assessmentRoute', 'assessmentMethodType', 'assessmentScope', 'assessmentStandard', 'standardEdition', 'transitionRecordReference', 'operatingConditions', 'accessibleLocations', 'equipmentOrModel', 'calibrationOrValidation', 'uncertainty', 'simultaneousFrequencyMethod', 'resultsSummary', 'assessmentConclusion', 'evidenceReferences', 'changeReview'];
+    const version1 = { ...current, schemaVersion: 1 } as Record<string, unknown>;
+    const version2 = { ...current, schemaVersion: 2 } as Record<string, unknown>;
+    delete version1.revisions;
+    for (const field of evidenceFields) { delete version1[field]; delete version2[field]; }
+    version2.assessmentRoute = 'unsupported-value';
+    version2.revisions = [{ replacedAt: '2026-11-13T11:00:00.000Z', previousUpdatedAt: '2026-11-13T10:00:00.000Z', changedFields: ['title'], snapshot: JSON.stringify({ ...version2, revisions: [] }) }];
+    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version1])))).toMatchObject([{ schemaVersion: 3, id: 'legacy', assessmentRoute: '', revisions: [] }]);
+    expect(loadAcmaAssessmentRecords(memoryStorage(JSON.stringify([version2])))).toMatchObject([{ schemaVersion: 3, id: 'legacy', assessmentRoute: '', revisions: [{ changedFields: ['title'] }] }]);
   });
 
   it('adds revisions only for substantive saved changes and restores them as drafts', () => {
@@ -62,6 +69,6 @@ describe('ACMA assessment record library', () => {
 
   it('serializes a validated portable record', () => {
     const serialized = serializeAcmaAssessmentRecord(createAcmaAssessmentRecord('record-1', '2026-11-13T10:00:00.000Z'));
-    expect(JSON.parse(serialized)).toMatchObject({ schemaVersion: 2, id: 'record-1', revisions: [] });
+    expect(JSON.parse(serialized)).toMatchObject({ schemaVersion: 3, id: 'record-1', assessmentRoute: '', revisions: [] });
   });
 });

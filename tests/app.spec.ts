@@ -534,6 +534,14 @@ test('applies the Australian ACMA gateway and ARPANSA reference levels', async (
   await record.getByLabel('Operator or corporate name').fill('Test Operator');
   await record.getByLabel('Operator type').selectOption('body-corporate');
   await expect(record.getByLabel('ACN, ARBN, or registration number')).toBeVisible();
+  await expect(record.locator('.acma-evidence-status')).toContainText('5 record anchors not documented');
+  await record.getByLabel('Assessment or transitional route').selectOption('current');
+  await expect(record.locator('.acma-route-note')).toContainText('actually applies');
+  await record.getByLabel('Named assessment standard').selectOption('as-nzs-2772-2');
+  await expect(record.locator('.acma-evidence-status')).toContainText('4 record anchors not documented');
+  await record.getByLabel('Standard title, edition, or publication date').fill('AS/NZS 2772.2:2016');
+  await record.getByLabel('Method type').selectOption('calculation');
+  await record.getByLabel('Assessment scope').selectOption('single-station');
   await record.getByRole('checkbox', { name: /An agent is used/ }).check();
   await expect(record.getByLabel('Written agent-agreement reference')).toBeVisible();
   await record.getByRole('button', { name: 'Save draft' }).click();

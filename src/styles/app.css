@@ -3559,6 +3559,37 @@ select {
   box-shadow: inset 4px 0 0 var(--tl-coral);
 }
 
+.acma-evidence-status {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.acma-evidence-status > div {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.acma-evidence-status > div:first-child {
+  box-shadow: inset 4px 0 0 var(--accent-technical);
+}
+
+.acma-evidence-status h4,
+.acma-evidence-status p {
+  margin: 0;
+}
+
+.acma-evidence-status span,
+.acma-evidence-status > div > p:last-child {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
 .acma-record-history {
   margin: 1rem 0;
   padding: 1rem;
@@ -3661,6 +3692,35 @@ select {
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 800;
+}
+
+.acma-fieldset-intro {
+  max-width: 70rem;
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.acma-evidence-route {
+  box-shadow: inset 4px 0 0 var(--accent-technical);
+}
+
+.acma-route-note {
+  display: flex;
+  gap: 0.4rem 0.8rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  font-size: 0.78rem;
+}
+
+.acma-route-note span {
+  flex: 1 1 28rem;
+  color: var(--text-secondary);
 }
 
 .acma-record-grid {
@@ -5443,7 +5503,8 @@ select {
 
   .acma-input-grid,
   .acma-result-layout,
-  .acma-record-library {
+  .acma-record-library,
+  .acma-evidence-status {
     grid-template-columns: 1fr;
   }
 
@@ -5850,6 +5911,7 @@ select {
   .acma-record-library,
   .acma-record-privacy,
   .acma-record-readiness,
+  .acma-evidence-status,
   .acma-record-history {
     display: none;
   }

@@ -22,6 +22,7 @@ Sources and links were rechecked on 2026-11-13. A reviewer should record the edi
 | Canadian and US reference levels | `src/regulations/exposureLimits.ts` | `src/regulations/exposureLimits.test.ts` |
 | Australian whole-body, local, peak, and limb-current reference levels | `src/calculators/arpansaReference.ts` | `src/calculators/arpansaReference.test.ts` |
 | Australian Amateur Class Licence assessment gateway | `src/calculators/acmaAssessment.ts` | `src/calculators/acmaAssessment.test.ts` |
+| Australian clause 4 route and evidence-readiness map | `src/calculators/acmaEvidence.ts` | `src/calculators/acmaEvidence.test.ts` |
 | Australian clause 6 record schema and documentation gaps | `src/projects/acmaAssessmentRecords.ts` | `src/projects/acmaAssessmentRecords.test.ts` |
 | FCC single-source exemption | `src/calculators/fccExemption.ts` | `src/calculators/fccExemption.test.ts` |
 | FCC multiple-source exemption | `src/calculators/fccMultipleExemption.ts` | `src/calculators/fccMultipleExemption.test.ts` |
@@ -97,6 +98,7 @@ The reviewer should resolve each item explicitly:
 10. Does the Australian lookup preserve the correct spatial and temporal basis, field-region requirements, `ES` treatment, additional peak-field and limb-current checks, and distinction between RPS S-1 tables and the Amateur Class Licence conditions?
 11. Does the Australian gateway distinguish clause 3 application from a compliance presumption, preserve the continuing clause 2 condition, and correctly describe clauses 4 and 6 without overlooking station changes or transitional provisions?
 12. Does the Australian record worksheet capture the required clause 6 information without turning field presence, local saving, printing, JSON import/export, or revision restoration into an approval or compliance claim, and are its validation, non-overwrite, privacy, and retention safeguards adequate?
+13. Does the Australian clause 4 evidence map accurately distinguish the current named-standard route from subclauses 4(4), 4(6), 4(7), and 4(8), keep record anchors separate from optional reproducibility prompts, and avoid deciding standard applicability, transition eligibility, continuous possession, or compliance?
 
 ## Reproduction procedure
 

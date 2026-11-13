@@ -6,7 +6,7 @@
  */
 
 export const ACMA_RECORD_LIBRARY_KEY = 'radiobook:antenna-workshop:acma-records:v1';
-export const ACMA_RECORD_VERSION = 2 as const;
+export const ACMA_RECORD_VERSION = 3 as const;
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -14,6 +14,10 @@ export interface StorageLike {
   removeItem(key: string): void;
 }
 export type AcmaOperatorType = 'individual' | 'body-corporate';
+export type AcmaAssessmentRoute = '' | 'current' | 'pre-2003' | 'pre-class-licence' | 'pre-amendment' | 'post-amendment-grace';
+export type AcmaAssessmentMethodType = '' | 'measurement' | 'calculation' | 'measurement-and-calculation';
+export type AcmaAssessmentScope = '' | 'single-station' | 'whole-site';
+export type AcmaAssessmentStandard = '' | 'as-nzs-2772-2' | 'ieee-c95-3' | 'iec-62232' | 'legacy-or-transitional';
 
 export interface AcmaAssessmentRecordRevision {
   replacedAt: string;
@@ -49,6 +53,22 @@ export interface AcmaAssessmentRecord {
   assessmentDate: string;
   assessmentMethod: string;
   measurementsAndCalculations: string;
+  assessmentRoute: AcmaAssessmentRoute;
+  assessmentMethodType: AcmaAssessmentMethodType;
+  assessmentScope: AcmaAssessmentScope;
+  assessmentStandard: AcmaAssessmentStandard;
+  standardEdition: string;
+  transitionRecordReference: string;
+  operatingConditions: string;
+  accessibleLocations: string;
+  equipmentOrModel: string;
+  calibrationOrValidation: string;
+  uncertainty: string;
+  simultaneousFrequencyMethod: string;
+  resultsSummary: string;
+  assessmentConclusion: string;
+  evidenceReferences: string;
+  changeReview: string;
   agentUsed: boolean;
   agentAgreementReference: string;
   declarationMade: boolean;
@@ -57,22 +77,48 @@ export interface AcmaAssessmentRecord {
 }
 
 type RecordObject = Record<string, unknown>;
-const editableTextFields: Array<keyof AcmaAssessmentRecord> = [
+const legacyTextFields: Array<keyof AcmaAssessmentRecord> = [
   'title', 'operatorName', 'operatorAddress', 'abn', 'corporateRegistration', 'declarantName',
   'declarantPosition', 'stationLocation', 'antennaType', 'antennaHeight', 'powerLevel', 'antennaGain',
   'antennaSize', 'antennaTilt', 'manufacturer', 'modelNumber', 'emissionMode', 'assessorName',
   'assessorQualification', 'assessmentDate', 'assessmentMethod', 'measurementsAndCalculations',
   'agentAgreementReference', 'additionalNotes'
 ];
+const evidenceTextFields: Array<keyof AcmaAssessmentRecord> = [
+  'standardEdition', 'transitionRecordReference', 'operatingConditions', 'accessibleLocations',
+  'equipmentOrModel', 'calibrationOrValidation', 'uncertainty', 'simultaneousFrequencyMethod',
+  'resultsSummary', 'assessmentConclusion', 'evidenceReferences', 'changeReview'
+];
+const editableTextFields = [...legacyTextFields, ...evidenceTextFields];
 const booleanFields: Array<keyof AcmaAssessmentRecord> = ['agentUsed', 'declarationMade'];
+const assessmentRoutes: AcmaAssessmentRoute[] = ['', 'current', 'pre-2003', 'pre-class-licence', 'pre-amendment', 'post-amendment-grace'];
+const assessmentMethodTypes: AcmaAssessmentMethodType[] = ['', 'measurement', 'calculation', 'measurement-and-calculation'];
+const assessmentScopes: AcmaAssessmentScope[] = ['', 'single-station', 'whole-site'];
+const assessmentStandards: AcmaAssessmentStandard[] = ['', 'as-nzs-2772-2', 'ieee-c95-3', 'iec-62232', 'legacy-or-transitional'];
+
+const evidenceDefaults = {
+  assessmentRoute: '' as AcmaAssessmentRoute,
+  assessmentMethodType: '' as AcmaAssessmentMethodType,
+  assessmentScope: '' as AcmaAssessmentScope,
+  assessmentStandard: '' as AcmaAssessmentStandard,
+  standardEdition: '', transitionRecordReference: '', operatingConditions: '', accessibleLocations: '',
+  equipmentOrModel: '', calibrationOrValidation: '', uncertainty: '', simultaneousFrequencyMethod: '',
+  resultsSummary: '', assessmentConclusion: '', evidenceReferences: '', changeReview: ''
+};
 
 function hasRecordFields(candidate: RecordObject) {
-  return (candidate.schemaVersion === 1 || candidate.schemaVersion === ACMA_RECORD_VERSION)
+  const hasBaseFields = (candidate.schemaVersion === 1 || candidate.schemaVersion === 2 || candidate.schemaVersion === ACMA_RECORD_VERSION)
     && typeof candidate.id === 'string' && Boolean(candidate.id.trim())
     && typeof candidate.updatedAt === 'string' && Number.isFinite(Date.parse(candidate.updatedAt))
-    && editableTextFields.every((field) => typeof candidate[field] === 'string')
+    && legacyTextFields.every((field) => typeof candidate[field] === 'string')
     && (candidate.operatorType === 'individual' || candidate.operatorType === 'body-corporate')
     && booleanFields.every((field) => typeof candidate[field] === 'boolean');
+  if (!hasBaseFields || candidate.schemaVersion !== ACMA_RECORD_VERSION) return hasBaseFields;
+  return editableTextFields.every((field) => typeof candidate[field] === 'string')
+    && assessmentRoutes.includes(candidate.assessmentRoute as AcmaAssessmentRoute)
+    && assessmentMethodTypes.includes(candidate.assessmentMethodType as AcmaAssessmentMethodType)
+    && assessmentScopes.includes(candidate.assessmentScope as AcmaAssessmentScope)
+    && assessmentStandards.includes(candidate.assessmentStandard as AcmaAssessmentStandard);
 }
 
 export function createAcmaAssessmentRecord(id: string, updatedAt: string): AcmaAssessmentRecord {
@@ -83,7 +129,7 @@ export function createAcmaAssessmentRecord(id: string, updatedAt: string): AcmaA
     powerLevel: '', antennaGain: '', antennaSize: '', antennaTilt: '', manufacturer: '', modelNumber: '',
     emissionMode: '', assessorName: '', assessorQualification: '', assessmentDate: '', assessmentMethod: '',
     measurementsAndCalculations: '', agentUsed: false, agentAgreementReference: '', declarationMade: false,
-    additionalNotes: '', revisions: []
+    ...evidenceDefaults, additionalNotes: '', revisions: []
   };
 }
 
@@ -109,9 +155,10 @@ function normaliseRecord(value: unknown): AcmaAssessmentRecord | null {
   if (!value || typeof value !== 'object') return null;
   const candidate = value as RecordObject;
   if (!hasRecordFields(candidate)) return null;
-  const revisions = candidate.schemaVersion === ACMA_RECORD_VERSION ? candidate.revisions : [];
+  const revisions = candidate.schemaVersion === 1 ? [] : candidate.revisions;
   if (!Array.isArray(revisions) || !revisions.every(isRevision)) return null;
-  return { ...(candidate as unknown as AcmaAssessmentRecord), schemaVersion: ACMA_RECORD_VERSION, revisions };
+  const migrated = candidate.schemaVersion === ACMA_RECORD_VERSION ? candidate : { ...candidate, ...evidenceDefaults };
+  return { ...(migrated as unknown as AcmaAssessmentRecord), schemaVersion: ACMA_RECORD_VERSION, revisions };
 }
 
 export function validateAcmaAssessmentRecord(record: AcmaAssessmentRecord): AcmaAssessmentRecord {
@@ -139,7 +186,7 @@ export function loadAcmaAssessmentRecords(storage?: StorageLike): AcmaAssessment
 }
 
 function recordChanges(previous: AcmaAssessmentRecord, next: AcmaAssessmentRecord): string[] {
-  const fields: Array<keyof AcmaAssessmentRecord> = [...editableTextFields, ...booleanFields, 'operatorType'];
+  const fields: Array<keyof AcmaAssessmentRecord> = [...editableTextFields, ...booleanFields, 'operatorType', 'assessmentRoute', 'assessmentMethodType', 'assessmentScope', 'assessmentStandard'];
   return fields.filter((field) => previous[field] !== next[field]).map(String);
 }
 
