@@ -13,6 +13,8 @@ The RF exposure workspace provides boundary-tested official power-density refere
 From the review checklist, a user can select a missing critical value and open an evidence draft already scoped to the matching project, source, evaluation point, and input. Reusable source-reference, measurement, conservative-assumption, and technical-review templates suggest record structure without supplying evidence values. Category-specific quality prompts record which reproducibility elements the author says are addressed and identify documentation follow-up without verifying the evidence. Evidence can be searched, filtered, sorted, summarized, and assigned an optional author-selected review reminder. Optional step-by-step guidance and touch-, keyboard-, and pointer-accessible contextual help explain unfamiliar workflow terms without hiding advanced controls. The station-project guide covers assessment context, a shared site origin, source inventory, accessible locations, evidence, applicability, and interpretation; field help clarifies duty cycle, maximum gain, antenna dimensions, and height references.
 Reference-limit, single-source, and normalized multi-source guides now cover environment classification, regulatory averaging, accessible-point geometry, far-field applicability, source inventory, frequency-specific normalization, and escalation without turning a preliminary screen into a compliance result.
 
+The [RF exposure independent review package](docs/RF_EXPOSURE_REVIEW.md) identifies the exact implementation, governing sources, reproducible vectors, open technical decisions, and sign-off record required before public beta release.
+
 ## Local development
 
 Requirements: a current Node.js release and npm.

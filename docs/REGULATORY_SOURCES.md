@@ -2,6 +2,8 @@
 
 RF exposure methods must be implemented from primary sources, retain their revision identity, and be reviewed whenever a source changes. The FCC Table 1 MPE power-density limits and Safety Code 6 Tables 5–6 power-density reference levels are encoded and boundary-tested. A conservative single-source far-field estimate is available for education and preliminary screening. It uses average EIRP, a 2.56 reflected-field multiplier, and an explicit far-field applicability check. A separate tool sums multiple sources after normalizing every power density against the limit at its own frequency. Neither tool demonstrates compliance. Exemption analysis, antenna-pattern modelling, near-field evaluation, measurement uncertainty, and compliance classification remain disabled pending implementation and independent review.
 
+The [RF exposure independent review package](RF_EXPOSURE_REVIEW.md) maps these methods to their code, equations, reproducible vectors, unresolved technical decisions, and review record.
+
 ## Canada
 
 - ISED RBR-4, *Standards for the Operation of Radio Stations in the Amateur Radio Service* — connects amateur operation to antenna-system requirements.
