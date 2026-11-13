@@ -91,6 +91,8 @@ The result vocabulary must distinguish:
 
 The application must not turn an inconclusive simplified screen into a claim of non-compliance or certification.
 
+Exposure guidance must require the station jurisdiction, a defensible controlled or uncontrolled environment classification, the exact evaluation frequency, and the authority's averaging treatment. The single-source workflow must identify one accessible point, use supported power, duty-cycle, loss, gain, antenna-dimension, and three-dimensional separation inputs, stop at the conservative far-field boundary, and remain inconclusive until other relevant sources are assessed. Multi-source guidance must normalize each contribution against its own frequency-specific reference level at the same point before summing. A reference lookup or below-trigger result must never be described as safe, exempt, certified, or compliant.
+
 ## Acceptance criteria for the first public beta
 
 - Responsive operation on current Android, iOS, and desktop browsers.

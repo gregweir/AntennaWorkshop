@@ -308,8 +308,13 @@ test('shows official RF exposure reference limits without a compliance result', 
   await expect(page.locator('.result-summary')).toContainText('1.291 W/m²');
   await expect(page.locator('.result-summary')).toContainText('6.00 min');
   await expect(page.getByRole('img', { name: /RF exposure power-density reference levels/ })).toBeVisible();
+  await expect(page.getByText('Separate the limit from the assessment', { exact: true })).toBeHidden();
+  await page.getByText('Choose an exposure reference level').click();
+  await expect(page.getByText('Separate the limit from the assessment', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Exposure environment').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Exposure environment' })).toContainText('controlled-environment conditions are not met');
 
-  await page.getByLabel('Exposure environment').selectOption('controlled');
+  await page.getByLabel('Exposure environment', { exact: true }).selectOption('controlled');
   await expect(page.locator('.result-summary')).toContainText('7.800 W/m²');
 
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('7.100');
@@ -328,11 +333,20 @@ test('classifies conservative far-field screening limitations', async ({ page })
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('146.000');
   await expect(page.getByRole('heading', { name: 'Single-source far-field estimate' })).toBeVisible();
   await expect(stationScreen.locator('.screen-outcome')).toContainText('Far-field method is inapplicable here');
+  await expect(stationScreen.getByText('Check far-field applicability', { exact: true })).toBeHidden();
+  await stationScreen.getByText('Run a conservative single-source screen').click();
+  await expect(stationScreen.getByText('Check far-field applicability', { exact: true })).toBeVisible();
+  await stationScreen.getByLabel('Help: Transmit duty cycle').click();
+  await expect(stationScreen.getByRole('note').filter({ hasText: 'Transmit duty cycle' })).toContainText('regulatory averaging period');
+  await stationScreen.getByLabel('Help: Transmit duty cycle').click();
+  await stationScreen.getByLabel('Help: Largest antenna dimension').click();
+  await expect(stationScreen.getByRole('note').filter({ hasText: 'Largest antenna dimension' })).toContainText('2D²/λ');
+  await stationScreen.getByLabel('Help: Largest antenna dimension').click();
 
-  await page.getByRole('spinbutton', { name: 'Largest antenna dimension' }).fill('1');
+  await page.getByRole('spinbutton', { name: 'Largest antenna dimension', exact: true }).fill('1');
   await expect(stationScreen.locator('.screen-outcome')).toContainText('Screening is inconclusive');
 
-  await page.getByLabel('Other RF sources').selectOption('assessed');
+  await page.getByLabel('Other RF sources', { exact: true }).selectOption('assessed');
   await expect(stationScreen.locator('.screen-outcome')).toContainText('Below the preliminary screening trigger');
   await expect(stationScreen.locator('.screen-result-card')).toContainText('50.0 W');
   await expect(page.getByRole('img', { name: /Far-field exposure screening geometry/ })).toBeVisible();
@@ -350,6 +364,9 @@ test('normalizes and sums multiple RF sources without inferring compliance', asy
   await expect(aggregation.locator('.screen-outcome')).toContainText('Source inventory is incomplete');
   await expect(aggregation.getByRole('img', { name: /Multiple-source normalized exposure sum/ })).toBeVisible();
   await expect(aggregation.locator('.aggregation-summary')).toContainText('10.70%');
+  await expect(aggregation.getByText('Normalize before adding', { exact: true })).toBeHidden();
+  await aggregation.getByText('Combine multiple RF sources').click();
+  await expect(aggregation.getByText('Normalize before adding', { exact: true })).toBeVisible();
 
   await aggregation.getByRole('checkbox', { name: /Local source inventory assessed/ }).check();
   await expect(aggregation.locator('.screen-outcome')).toContainText('Below the aggregate screening trigger');
@@ -359,7 +376,7 @@ test('normalizes and sums multiple RF sources without inferring compliance', asy
   await expect(aggregation.locator('.screen-limitations')).toContainText('does not mean safe, compliant, certified, or exempt');
 
   await aggregation.getByRole('button', { name: /Add RF source/ }).click();
-  await expect(aggregation.getByRole('group')).toHaveCount(3);
+  await expect(aggregation.locator('fieldset.aggregation-source')).toHaveCount(3);
   await expect(aggregation.locator('.screen-outcome')).toContainText('Source inventory is incomplete');
 });
 
@@ -678,7 +695,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
 
   await project.getByLabel('Project title').fill('Field day station');
   await page.locator('.global-controls select').selectOption('US');
-  await page.getByLabel('Exposure environment').selectOption('controlled');
+  await page.getByLabel('Exposure environment', { exact: true }).selectOption('controlled');
   await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('42');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:exposure-projects:v1'))).toContain('Field day station');
 
@@ -688,7 +705,7 @@ test('persists and transfers validated station projects', async ({ page }) => {
   project = page.locator('.project-section');
   await expect(project.getByLabel('Project title')).toHaveValue('Field day station');
   await expect(page.locator('.global-controls select')).toHaveValue('US');
-  await expect(page.getByLabel('Exposure environment')).toHaveValue('controlled');
+  await expect(page.getByLabel('Exposure environment', { exact: true })).toHaveValue('controlled');
   await expect(project.getByRole('spinbutton', { name: 'Project point 1 east position' })).toHaveValue('42');
 
   const downloadPromise = page.waitForEvent('download');

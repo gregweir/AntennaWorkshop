@@ -16,6 +16,7 @@ import { ExposureLimitDiagram } from './ExposureLimitDiagram';
 import { ExposureAggregationPanel } from './ExposureAggregationPanel';
 import { ExposureProjectPanel } from './ExposureProjectPanel';
 import { ExposureScreenPanel } from './ExposureScreenPanel';
+import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -70,7 +71,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
 
     <form className="exposure-context-panel" onSubmit={(event) => event.preventDefault()}>
       <label className="field"><span>Active station jurisdiction</span><input value={profile?.name ?? jurisdiction} readOnly /><small>Change jurisdiction using the persistent selector at the top of the application.</small></label>
-      <label className="field"><span>Exposure environment</span><select value={environment} onChange={(event) => setEnvironment(event.target.value as ExposureEnvironment)}><option value="uncontrolled">General public / uncontrolled</option><option value="controlled">Occupational / controlled</option></select><small>Controlled limits require the jurisdiction’s awareness, training, characterization, and exposure-control conditions.</small></label>
+      <div className="field"><span className="field-label-with-help"><label htmlFor="exposure-environment">Exposure environment</label><HelpTip label="Exposure environment">Use uncontrolled limits wherever the general public may be exposed or whenever the jurisdiction's controlled-environment conditions are not met. Controlled limits require characterized fields, RF awareness, appropriate training or information, and the ability to control or mitigate exposure.</HelpTip></span><select id="exposure-environment" value={environment} onChange={(event) => setEnvironment(event.target.value as ExposureEnvironment)}><option value="uncontrolled">General public / uncontrolled</option><option value="controlled">Occupational / controlled</option></select><small>Controlled limits require the jurisdiction’s awareness, training, characterization, and exposure-control conditions.</small></div>
       {needsFrequency && <>
         <label className="field"><span>Amateur band</span><select className="band-select" value={activeBand?.id ?? 'custom'} onChange={(event) => { const band = availableBands.find((candidate) => candidate.id === event.target.value); if (band) setFrequencyText(band.designMHz.toFixed(band.designMHz < 30 ? 3 : 1)); }}><option value="custom">Custom frequency</option>{availableBands.map((band) => <option key={band.id} value={band.id}>{band.label} · {formatFrequencyRange(band)}</option>)}</select><small>Loads a representative frequency for the selected workflow.</small></label>
         <label className="field"><span>Evaluation frequency</span><span className="input-with-unit"><input aria-label="Evaluation frequency" type="number" min="0.001" step="0.001" value={frequencyText} onChange={(event) => setFrequencyText(event.target.value)} /><span>MHz</span></span><small>Canadian power-density reference levels begin at 10 MHz; lower frequencies require electric- and magnetic-field treatment.</small></label>
@@ -79,6 +80,14 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
 
     {view === 'reference' && <section className="exposure-view" aria-labelledby="reference-view-heading">
       <div className="section-heading"><div><p className="eyebrow">Official lookup</p><h3 id="reference-view-heading">Official reference limits</h3></div><span className="model-badge">Model {model.version}</span></div>
+      <StepByStepHelp title="Choose an exposure reference level" intro="Use this sequence to identify the applicable official number before attempting a calculation or measurement comparison." steps={[
+        { title: 'Confirm the station jurisdiction', detail: 'Use the rules that govern the station location; browser location, citizenship, or a preferred unit system does not choose the authority.' },
+        { title: 'Classify the exposure environment', detail: 'Use uncontrolled limits for public access or whenever every controlled-environment awareness, characterization, and exposure-control condition is not satisfied.' },
+        { title: 'Enter the exact frequency', detail: 'Reference levels and averaging periods can change by frequency, including at piecewise table boundaries.' },
+        { title: 'Read the level and averaging period', detail: 'Keep the exposure quantity, units, environment, jurisdiction, frequency, and averaging period together in the assessment record.' },
+        { title: 'Separate the limit from the assessment', detail: 'A reference number is not a field prediction, measurement, site evaluation, exemption, or compliance result.' },
+        { title: 'Record the source and revision', detail: 'Retain the displayed authority, source revision, model identifier, assumptions, and date used for later review.' }
+      ]} limit="This lookup returns a power-density reference level only. Other quantities, localized exposure, near-field conditions, induced or contact currents, multiple sources, spatial averaging, and applicable regulatory procedures may still need assessment." />
       <div className="reference-results-layout">
         <div>{!selected && <p className="validation-message" role="alert">This power-density reference model is not applicable at the selected frequency or jurisdiction. No result is produced.</p>}{selected && <div className="result-summary" aria-live="polite"><p>{environment} power-density reference level</p><strong>{selected.powerDensityWattsPerSquareMetre.toFixed(3)} W/m²</strong><dl><div><dt>Equivalent units</dt><dd>{(selected.powerDensityWattsPerSquareMetre / 10).toFixed(4)} mW/cm²</dd></div><div><dt>Averaging period</dt><dd>{selected.averagingMinutes.toFixed(selected.averagingMinutes < 10 ? 2 : 0)} min</dd></div><div><dt>Jurisdiction</dt><dd>{profile?.name}</dd></div><div><dt>Quantity</dt><dd>Reference level</dd></div></dl></div>}</div>
         <div className="visual-panel">{levels ? <ExposureLimitDiagram levels={levels} selected={environment} /> : <div className="diagram-placeholder">No power-density comparison is available for this frequency.</div>}</div>

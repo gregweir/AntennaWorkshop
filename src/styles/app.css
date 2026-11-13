@@ -3738,6 +3738,11 @@ select {
   display: flex;
 }
 
+.exposure-context-panel .field > .field-label-with-help,
+.screen-input-grid .field > .field-label-with-help {
+  display: flex;
+}
+
 .field small {
   display: block;
   margin-top: 0.4rem;

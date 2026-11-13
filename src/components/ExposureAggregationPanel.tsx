@@ -13,6 +13,7 @@ import {
 } from '../calculators/exposureAggregation';
 import type { ExposureEnvironment, ExposureJurisdiction } from '../regulations/exposureLimits';
 import { ExposureAggregationDiagram } from './ExposureAggregationDiagram';
+import { StepByStepHelp } from './ContextHelp';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -59,6 +60,14 @@ export function ExposureAggregationPanel({ jurisdiction, environment }: Props) {
   return <section className="aggregation-section" aria-labelledby="aggregation-heading">
     <div className="section-heading"><div><p className="eyebrow">Multiple sources · normalized sum</p><h3 id="aggregation-heading">Local RF environment</h3></div><span className="model-badge">Model {EXPOSURE_AGGREGATION_MODEL.version}</span></div>
     <p className="screen-intro">Enter the predicted or measured time-averaged power density from every relevant source at the same evaluation point. Each value is divided by its own frequency-specific reference level before summing.</p>
+    <StepByStepHelp title="Combine multiple RF sources" intro="Use this sequence to combine unlike frequencies without adding incompatible raw limits or measurements." steps={[
+      { title: 'Fix one physical evaluation point', detail: 'Every entered power density must describe the same accessible location and the same exposure environment.' },
+      { title: 'List every relevant source', detail: 'Include co-located and nearby transmitters that contribute at the point, including sources outside the amateur station when applicable.' },
+      { title: 'Use supported time-averaged values', detail: 'Enter measured or predicted power density with an averaging treatment appropriate to each frequency and operating scenario.' },
+      { title: 'Normalize before adding', detail: 'The tool divides each power density by its own frequency-specific reference level, then sums the dimensionless fractions.' },
+      { title: 'Confirm inventory only after review', detail: 'Leave the result inconclusive until the relevant source inventory and simultaneous or worst-case operating assumptions have been assessed.' },
+      { title: 'Escalate thresholds and invalid methods', detail: 'Use detailed analysis, suitable measurement, or mitigation when the sum reaches its trigger or an underlying prediction is not applicable.' }
+    ]} limit="Normalization cannot validate the source predictions, reconcile incompatible locations or averaging assumptions, account for uncertainty, discover missing emitters, or establish compliance." />
     <div className="aggregation-editor">
       {sources.map((source, index) => <fieldset className="aggregation-source" key={source.id}>
         <legend>Source {index + 1}</legend>
