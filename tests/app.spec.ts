@@ -121,17 +121,27 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByRole('button', { name: /Moxon/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('435.000');
   await expect(page.getByRole('heading', { name: 'Moxon rectangle' })).toBeVisible();
-  await expect(page.getByLabel('Conductor diameter')).toHaveValue('2.05');
+  await expect(page.getByLabel('Conductor diameter', { exact: true })).toHaveValue('2.05');
   await expect(page.getByRole('img', { name: /Dimensioned Moxon rectangle/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Critical tip gap');
+  await expect(page.getByText('Hold both critical gaps', { exact: true })).toBeHidden();
+  await page.getByText('Build and verify a Moxon rectangle').click();
+  await expect(page.getByText('Hold both critical gaps', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Conductor diameter').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Conductor diameter' })).toContainText('Cebik regression');
   await expect(page.getByRole('button', { name: /advanced/ })).toHaveCount(0);
 
   await page.getByRole('button', { name: /Basic Yagi/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('146.000');
   await expect(page.getByRole('heading', { name: 'Three-element Yagi' })).toBeVisible();
-  await expect(page.getByText('NBS reference geometry')).toBeVisible();
+  await expect(page.getByText('NBS reference geometry', { exact: true })).toBeVisible();
   await expect(page.getByRole('img', { name: /Dimensioned three-element Yagi/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Reference element diameter');
+  await expect(page.getByText('Scale every dimension together', { exact: true })).toBeHidden();
+  await page.getByText('Build and verify the NBS Yagi').click();
+  await expect(page.getByText('Scale every dimension together', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: NBS Yagi reference geometry').click();
+  await expect(page.getByRole('note').filter({ hasText: 'NBS Yagi reference geometry' })).toContainText('complete measured reference system');
   await expect(page.locator('.caution-card')).toContainText('do not guarantee a 50 Ω feed');
 
   await page.getByRole('button', { name: /Ground vertical/ }).click();

@@ -56,6 +56,8 @@ Quarter-wave vertical guidance must distinguish a ground-mounted RF radial field
 
 Centre-fed dipole and inverted-V guidance must preserve equal legs, balanced feeding, common-mode control, endpoint safety, final support geometry, and symmetrical trimming. Inverted-V guidance must explain that the apex angle changes span and drop without prescribing support height. Full-wave-loop guidance must preserve total perimeter while distinguishing the selected idealized shape from the installed plane, feedpoint, matching, and distorted geometry. These guides may not promise impedance, bandwidth, multiband response, or pattern.
 
+Directional-antenna guidance must preserve the Moxon rectangle's constant-diameter assumption, symmetrical A–E geometry, critical gaps, balanced feeding, and installed pattern verification. The basic Yagi guide must treat the element lengths, 0.0085λ diameter, centre-to-centre spacing, folded driven element, matching arrangement, and non-conductive boom as one NBS reference system. Material, boom, mounting, or feed substitutions require separate modelling and measurement; neither guide may promise SWR, gain, bandwidth, front-to-back ratio, or installed pattern.
+
 ## Visual language
 
 Visuals are functional rather than decorative:

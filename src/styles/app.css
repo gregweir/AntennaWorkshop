@@ -1484,6 +1484,19 @@ select {
   justify-content: space-between;
 }
 
+.input-panel .field-label-with-help,
+.input-panel .model-note .help-heading {
+  width: 100%;
+}
+
+.input-panel .model-note .help-heading {
+  justify-content: space-between;
+}
+
+.input-panel .context-help-panel {
+  right: -2rem;
+}
+
 .context-help {
   position: relative;
   display: inline-block;
@@ -3719,6 +3732,10 @@ select {
   display: block;
   margin-bottom: 0.35rem;
   font-weight: 750;
+}
+
+.input-panel .field > .field-label-with-help {
+  display: flex;
 }
 
 .field small {
