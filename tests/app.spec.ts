@@ -427,7 +427,7 @@ test('combines FCC multiple-source exemption fractions and special low-power con
   await expect(multiple.locator('fieldset.fcc-multiple-source')).toHaveCount(2);
 });
 
-test('applies the Ofcom assessment gateway and compliance distance for United Kingdom stations', async ({ page }) => {
+test('applies the Ofcom assessment and distance workflows for United Kingdom stations', async ({ page }) => {
   await page.locator('.global-controls select').selectOption('GB');
   await expect(page.getByText('Jurisdiction: United Kingdom')).toBeVisible();
   await page.getByRole('button', { name: /RF exposure/ }).click();
@@ -468,6 +468,26 @@ test('applies the Ofcom assessment gateway and compliance distance for United Ki
   await distance.getByRole('spinbutton', { name: 'Maximum radiated power' }).fill('100');
   await distance.getByRole('spinbutton', { name: 'Maximum transmission time in any six minutes' }).fill('36');
   await expect(distance.locator('.screen-outcome')).toContainText('No further assessment is required');
+
+  await page.getByRole('button', { name: /Multiple transmitters/ }).click();
+  const multiple = page.locator('.ofcom-multiple-distance-section');
+  await expect(multiple.getByRole('heading', { name: 'Ofcom multiple-transmitter distance' })).toBeVisible();
+  await expect(multiple.locator('.ofcom-multiple-summary')).toContainText('200.00 W EIRP');
+  await expect(multiple.locator('.ofcom-multiple-summary')).toContainText('120 s');
+  await expect(multiple.locator('.ofcom-multiple-summary')).toContainText('2.46 m');
+  await expect(multiple.locator('.ofcom-frequency-results article')).toHaveCount(2);
+  await expect(multiple.locator('.screen-outcome')).toContainText('450 MHz governs');
+
+  await multiple.getByRole('spinbutton', { name: 'Transmitter 1 maximum time in six minutes' }).fill('240');
+  await multiple.getByRole('spinbutton', { name: 'Transmitter 2 maximum time in six minutes' }).fill('240');
+  await expect(multiple.locator('.ofcom-multiple-summary')).toContainText('480 s summed; capped at six minutes');
+  await multiple.getByRole('spinbutton', { name: 'Transmitter 1 largest antenna dimension' }).fill('1');
+  await expect(multiple.locator('.screen-outcome')).toContainText('material limitation');
+
+  await multiple.getByRole('button', { name: 'Add transmitter' }).click();
+  await expect(multiple.locator('fieldset.ofcom-multiple-source')).toHaveCount(3);
+  await multiple.getByRole('button', { name: 'Remove transmitter 3' }).click();
+  await expect(multiple.locator('fieldset.ofcom-multiple-source')).toHaveCount(2);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);

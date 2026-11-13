@@ -20,6 +20,7 @@ import { FccExemptionPanel } from './FccExemptionPanel';
 import { FccMultipleExemptionPanel } from './FccMultipleExemptionPanel';
 import { OfcomAssessmentPanel } from './OfcomAssessmentPanel';
 import { OfcomComplianceDistancePanel } from './OfcomComplianceDistancePanel';
+import { OfcomMultipleDistancePanel } from './OfcomMultipleDistancePanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
@@ -30,7 +31,7 @@ interface Props {
   onSourceConsumed: () => void;
 }
 
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance';
+type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
@@ -43,7 +44,8 @@ const viewOptions: Array<{ id: ExposureView; title: string; description: string 
 
 const ukViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'ofcom-assessment', title: 'Ofcom gateway', description: 'Assessment and record requirement' },
-  { id: 'ofcom-distance', title: 'Compliance distance', description: 'Conservative public exclusion radius' }
+  { id: 'ofcom-distance', title: 'Compliance distance', description: 'Conservative public exclusion radius' },
+  { id: 'ofcom-multiple', title: 'Multiple transmitters', description: 'Conservative collective distance' }
 ];
 
 export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed }: Props) {
@@ -59,8 +61,8 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const isUk = jurisdiction === 'GB';
   const availableViews = isUk ? ukViewOptions : viewOptions;
   useEffect(() => {
-    if (isUk && view !== 'ofcom-assessment' && view !== 'ofcom-distance') setView('ofcom-assessment');
-    if (!isUk && (view === 'ofcom-assessment' || view === 'ofcom-distance')) setView('reference');
+    if (isUk && view !== 'ofcom-assessment' && view !== 'ofcom-distance' && view !== 'ofcom-multiple') setView('ofcom-assessment');
+    if (!isUk && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple')) setView('reference');
   }, [isUk, view]);
   const needsFrequency = (!isUk && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance');
   const needsEnvironment = !isUk && view !== 'fcc-exemption' && view !== 'fcc-multiple';
@@ -125,7 +127,8 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     {!isUk && view === 'aggregate' && <ExposureAggregationPanel jurisdiction={exposureJurisdiction} environment={environment} />}
     {!isUk && view === 'fcc-exemption' && <FccExemptionPanel jurisdiction={exposureJurisdiction} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
     {!isUk && view === 'fcc-multiple' && <FccMultipleExemptionPanel jurisdiction={exposureJurisdiction} unitSystem={unitSystem} />}
-    {isUk && view !== 'ofcom-distance' && <OfcomAssessmentPanel />}
+    {isUk && view === 'ofcom-assessment' && <OfcomAssessmentPanel />}
     {isUk && view === 'ofcom-distance' && <OfcomComplianceDistancePanel frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
+    {isUk && view === 'ofcom-multiple' && <OfcomMultipleDistancePanel unitSystem={unitSystem} />}
   </section>;
 }

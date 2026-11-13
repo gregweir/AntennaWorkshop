@@ -3313,7 +3313,7 @@ select {
 }
 
 .exposure-mode-picker-uk {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .ofcom-distance-inputs {
@@ -3387,6 +3387,115 @@ select {
 .ofcom-intermediates span,
 .ofcom-intermediates strong {
   display: block;
+}
+
+.ofcom-multiple-source-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.ofcom-multiple-source {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.ofcom-multiple-source legend {
+  padding-inline: 0.35rem;
+  font-family: var(--font-mono);
+  font-weight: 900;
+}
+
+.ofcom-multiple-source .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.ofcom-multiple-source > button {
+  align-self: end;
+}
+
+.ofcom-multiple-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.ofcom-multiple-actions label {
+  font-weight: 800;
+}
+
+.ofcom-multiple-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ofcom-multiple-summary article {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.ofcom-multiple-summary span,
+.ofcom-multiple-summary strong,
+.ofcom-multiple-summary small {
+  display: block;
+}
+
+.ofcom-multiple-summary strong {
+  margin: 0.35rem 0;
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+
+.ofcom-frequency-results {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ofcom-frequency-results article {
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.ofcom-frequency-results article > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ofcom-frequency-governing {
+  border-left: 4px solid var(--tl-coral) !important;
+}
+
+.ofcom-frequency-bar {
+  height: 0.7rem;
+  margin: 0.6rem 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.ofcom-frequency-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tl-blue);
 }
 
 .ofcom-intermediates span {
@@ -4870,7 +4979,9 @@ select {
   .fcc-contribution-grid,
   .ofcom-input-grid,
   .ofcom-distance-inputs,
-  .ofcom-intermediates {
+  .ofcom-intermediates,
+  .ofcom-multiple-source,
+  .ofcom-multiple-summary {
     grid-template-columns: 1fr;
   }
 
@@ -4885,6 +4996,11 @@ select {
   .ofcom-decision-graphic i {
     transform: rotate(90deg);
     text-align: center;
+  }
+
+  .ofcom-multiple-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .azimuth-source-editor {
