@@ -60,6 +60,8 @@ Directional-antenna guidance must preserve the Moxon rectangle's constant-diamet
 
 Feedline guidance must distinguish manufacturer matched-loss data from installed loss under mismatch, use the complete cable and accessory path, identify the measurement reference plane, and explain that SWR does not reveal complex impedance. Coaxial-stub guidance must distinguish electrical from physical length, use the actual cable velocity factor, include connectors and termination geometry, and require calibrated measurement and trimming at the design frequency. Neither guide may imply a transmission-line simulation, power rating, complete matching-network design, or guaranteed bandwidth.
 
+Equivalent-radiated-power guidance must preserve the transmitter-power reference plane and definition, document feed-system loss, use antenna gain rather than uncorrected directivity, and keep the selected dBi or dBd reference attached to the entered value. Exposure duty cycle and installed geometry remain separate station-project inputs and must not silently reduce the displayed ERP or EIRP. The workflow may not represent a directional equivalent power as total radiated power, pattern prediction, time averaging, near-field analysis, or compliance.
+
 ## Visual language
 
 Visuals are functional rather than decorative:

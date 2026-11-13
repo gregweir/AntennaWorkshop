@@ -220,15 +220,22 @@ test('calculates feedline loss and preserves physical values across unit changes
 
   await page.getByRole('button', { name: /ERP \/ EIRP/ }).click();
   await expect(page.getByRole('heading', { name: 'ERP and EIRP' })).toBeVisible();
-  await page.getByLabel('Transmitter power').fill('100');
-  await page.getByLabel('Total feed-system loss').fill('2');
-  await page.getByLabel('Antenna gain').fill('6');
-  await expect(page.getByLabel('Gain reference')).toHaveValue('dBi');
+  await expect(page.getByText('Confirm the gain reference', { exact: true })).toBeHidden();
+  await page.getByText('Calculate and document ERP / EIRP').click();
+  await expect(page.getByText('Confirm the gain reference', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Total feed-system loss').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Total feed-system loss' })).toContainText('transmitter-power reference plane');
+  await page.getByLabel('Help: Gain reference').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Gain reference' })).toContainText('2.15 dB greater');
+  await page.getByLabel('Transmitter power', { exact: true }).fill('100');
+  await page.getByLabel('Total feed-system loss', { exact: true }).fill('2');
+  await page.getByLabel('Antenna gain', { exact: true }).fill('6');
+  await expect(page.getByLabel('Gain reference', { exact: true })).toHaveValue('dBi');
   await expect(page.getByRole('img', { name: /ERP and EIRP antenna-system diagram/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('251.19 W');
   await expect(page.locator('.result-summary')).toContainText('153.11 W');
 
-  await page.getByLabel('Gain reference').selectOption('dBd');
+  await page.getByLabel('Gain reference', { exact: true }).selectOption('dBd');
   await expect(page.locator('.result-summary')).toContainText('412.10 W');
 });
 
@@ -244,11 +251,13 @@ test('carries an antenna and feed-system source into a station project', async (
   await expect(page.getByLabel('Operating frequency')).toHaveAttribute('readonly');
   await expect(page.locator('select.band-select')).toBeDisabled();
 
-  await page.getByLabel('Transmitter power').fill('75');
-  await page.getByLabel('Total feed-system loss').fill('2');
-  await page.getByLabel('Antenna gain').fill('3');
-  await page.getByLabel('Exposure duty cycle').fill('25');
-  await page.getByLabel('Installed antenna centre height').fill('11');
+  await page.getByLabel('Help: Exposure duty cycle').click();
+  await expect(page.getByLabel('Help: Exposure duty cycle').locator('..').getByRole('note')).toContainText('not applied to the displayed ERP or EIRP');
+  await page.getByLabel('Transmitter power', { exact: true }).fill('75');
+  await page.getByLabel('Total feed-system loss', { exact: true }).fill('2');
+  await page.getByLabel('Antenna gain', { exact: true }).fill('3');
+  await page.getByLabel('Exposure duty cycle', { exact: true }).fill('25');
+  await page.getByLabel('Installed antenna centre height', { exact: true }).fill('11');
   await page.getByLabel('Installed antenna east position').fill('6');
   await page.getByLabel('Installed antenna north position').fill('-3');
   await page.getByRole('button', { name: 'Add to station project' }).click();
