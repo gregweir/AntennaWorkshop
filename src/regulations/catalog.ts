@@ -63,7 +63,7 @@ export const jurisdictionProfiles: JurisdictionProfile[] = [
   {
     code: 'GB',
     name: 'United Kingdom',
-    releaseStatus: 'planned',
+    releaseStatus: 'initial',
     sources: [
       {
         title: 'Guidance on EMF compliance and enforcement',

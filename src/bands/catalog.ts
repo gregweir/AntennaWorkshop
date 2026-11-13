@@ -65,9 +65,30 @@ const unitedStatesBands: AmateurBand[] = [
   { id: '23cm', label: '23 cm', lowerMHz: 1240, upperMHz: 1300, designMHz: 1270 }
 ];
 
+const unitedKingdomBands: AmateurBand[] = [
+  { id: '2200m', label: '2200 m', lowerMHz: 0.1357, upperMHz: 0.1378, designMHz: 0.13675 },
+  { id: '630m', label: '630 m', lowerMHz: 0.472, upperMHz: 0.479, designMHz: 0.4755 },
+  { id: '160m', label: '160 m', lowerMHz: 1.81, upperMHz: 2, designMHz: 1.9 },
+  { id: '80m', label: '80 m', lowerMHz: 3.5, upperMHz: 3.8, designMHz: 3.65 },
+  { id: '60m', label: '60 m', lowerMHz: 5.2585, upperMHz: 5.4065, designMHz: 5.359, continuous: false, rangeLabel: 'Eleven Full-licence segments', note: 'Only the specified segments are available and additional conditions apply.' },
+  { id: '40m', label: '40 m', lowerMHz: 7, upperMHz: 7.2, designMHz: 7.1 },
+  { id: '30m', label: '30 m', lowerMHz: 10.1, upperMHz: 10.15, designMHz: 10.125 },
+  { id: '20m', label: '20 m', lowerMHz: 14, upperMHz: 14.35, designMHz: 14.175 },
+  { id: '17m', label: '17 m', lowerMHz: 18.068, upperMHz: 18.168, designMHz: 18.118 },
+  { id: '15m', label: '15 m', lowerMHz: 21, upperMHz: 21.45, designMHz: 21.225 },
+  { id: '12m', label: '12 m', lowerMHz: 24.89, upperMHz: 24.99, designMHz: 24.94 },
+  { id: '10m', label: '10 m', lowerMHz: 28, upperMHz: 29.7, designMHz: 28.85 },
+  { id: '6m', label: '6 m', lowerMHz: 50, upperMHz: 52, designMHz: 51 },
+  { id: '4m', label: '4 m', lowerMHz: 70, upperMHz: 70.5, designMHz: 70.25 },
+  { id: '2m', label: '2 m', lowerMHz: 144, upperMHz: 146, designMHz: 145 },
+  { id: '70cm', label: '70 cm', lowerMHz: 430, upperMHz: 440, designMHz: 435 },
+  { id: '23cm', label: '23 cm', lowerMHz: 1240, upperMHz: 1325, designMHz: 1296 }
+];
+
 const bandsByJurisdiction: Partial<Record<JurisdictionCode, AmateurBand[]>> = {
   CA: canadianBands,
-  US: unitedStatesBands
+  US: unitedStatesBands,
+  GB: unitedKingdomBands
 };
 
 const bandSources: Partial<Record<JurisdictionCode, BandSource>> = {
@@ -80,6 +101,11 @@ const bandSources: Partial<Record<JurisdictionCode, BandSource>> = {
     title: '47 CFR § 97.301',
     url: 'https://www.ecfr.gov/current/title-47/chapter-I/subchapter-D/part-97/subpart-D/section-97.301',
     reviewedOn: '2026-11-11'
+  },
+  GB: {
+    title: 'Ofcom Amateur Radio Licence Schedule 1, Table C',
+    url: 'https://www.ofcom.org.uk/siteassets/resources/documents/spectrum/emf/emf-amateur-licence-terms-and-conditions.pdf',
+    reviewedOn: '2026-11-13'
   }
 };
 

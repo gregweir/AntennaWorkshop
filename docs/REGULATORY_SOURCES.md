@@ -23,8 +23,9 @@ The [RF exposure independent review package](RF_EXPOSURE_REVIEW.md) maps these m
 
 ## United Kingdom
 
-- Ofcom, *Guidance on EMF Compliance and Enforcement*.
-- Ofcom, *EMF licence condition: what you need to know as an Amateur Radio user*.
+- Ofcom, *Guidance on EMF Compliance and Enforcement* V1.1, 9 February 2026 — assessment thresholds, averaging, records, public-access scope, and accepted assessment methods.
+- Ofcom, *EMF licence condition: what you need to know as an Amateur Radio user* V2.1.
+- Ofcom Amateur Radio Licence Schedule 1, Table C — Full-licence amateur allocation ranges displayed by the band selector.
 - Ofcom EMF calculator methodology and recognised equipment standards.
 
 ## Australia
@@ -39,6 +40,8 @@ Every regulatory result must display its jurisdiction, source revision, last-rev
 The FCC single-source exemption model implements all three independent paths in 47 CFR § 1.1307(b)(3)(i): available maximum time-averaged power no greater than 1 mW; the close-proximity `Pth` equation from 0.5 to 40 cm and 0.3 to 6 GHz; and the frequency-specific Table 1 ERP threshold at a separation of at least `λ/(2π)`. The close-proximity comparison uses the greater of available maximum time-averaged power or ERP. The distance method requires entered ERP and does not apply the rule's conditional substitution for unknown ERP. A qualifying result means only exemption from routine environmental evaluation; it does not waive compliance with § 1.1310 or other obligations.
 
 The FCC multiple-source model implements § 1.1307(b)(3)(ii) as two separate alternatives. The special low-power path requires every source to be no more than 1 mW and either a total strictly below 1 mW or at least 2 cm between simultaneously operating radiating structures. The fractional path sums close-proximity `P/Pth`, distance-based `ERP/ERPth`, and supported existing `Evaluated/Exposure Limit` terms and qualifies at a total no greater than one. It requires confirmation of the complete source set, a fixed positional relationship, a common time-averaging basis, and an applicable selected method for every included source. It does not verify existing evaluations or discover omitted sources.
+
+The Ofcom assessment gateway implements the decision thresholds in guidance paragraphs 6.10–6.19. Equipment at or below 10 W EIRP or 6.1 W ERP follows the no-assessment, no-record maximum-power branch. Above that level, average radiated power is maximum radiated power multiplied by the maximum transmission seconds in any six-minute period and divided by 360. No assessment is required when that average is at or below 10 W EIRP or 6.1 W ERP and peak power is at or below 100 W EIRP or 61 W ERP, but the calculation record must be retained. Exceeding either cap requires an assessment and record; it does not establish non-compliance. The model does not calculate a compliance distance or implement the full ICNIRP assessment.
 
 The preliminary far-field screen uses the maximum stated antenna gain and the TN-261 modified free-space expression, including the 2.56 power-density multiplier arising from a reflected electric field 60% as strong as the direct field. Canadian uncontrolled scenarios escalate for detailed review at 50% of the applicable Safety Code 6 limit. For all jurisdictions, the result is inconclusive when other RF sources have not been assessed and inapplicable inside the conservative far-field boundary.
 

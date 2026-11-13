@@ -21,11 +21,11 @@ describe('regulatory source catalog', () => {
     }
   });
 
-  it('marks Canada and the United States for the initial release', () => {
+  it('marks Canada, the United States, and the United Kingdom as available', () => {
     expect(
       jurisdictionProfiles
         .filter((profile) => profile.releaseStatus === 'initial')
         .map((profile) => profile.code)
-    ).toEqual(['CA', 'US']);
+    ).toEqual(['CA', 'US', 'GB']);
   });
 });

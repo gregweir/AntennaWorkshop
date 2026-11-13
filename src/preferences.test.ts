@@ -30,6 +30,11 @@ describe('application preferences', () => {
     expect(loadPreferences(storage)).toEqual(preferences);
   });
 
+  it('persists United Kingdom jurisdiction selection', () => {
+    const storage = memoryStorage(JSON.stringify({ jurisdiction: 'GB', unitSystem: 'metric', advancedOpen: false }));
+    expect(loadPreferences(storage).jurisdiction).toBe('GB');
+  });
+
   it('fails closed to valid defaults for malformed or unsupported values', () => {
     expect(loadPreferences(memoryStorage('{bad json'))).toEqual(defaultPreferences);
     expect(

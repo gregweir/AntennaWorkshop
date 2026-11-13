@@ -28,7 +28,7 @@ export const defaultPreferences: AppPreferences = {
 };
 
 function isJurisdiction(value: unknown): value is JurisdictionCode {
-  return value === 'CA' || value === 'US';
+  return value === 'CA' || value === 'US' || value === 'GB';
 }
 
 function isUnitSystem(value: unknown): value is UnitSystem {

@@ -9,7 +9,7 @@ The application will run in a desktop or mobile browser, install as an offline-c
 ## Confirmed decisions
 
 - Canada is the default jurisdiction, with a prominent persistent selector.
-- United States support is required for the first release. United Kingdom support follows; Australia requires further scoping.
+- Canada, United States, and an initial United Kingdom assessment gateway are available. Australia requires further scoping.
 - Station location, not browsing location, determines the applicable jurisdiction. Network-derived location may suggest a first-visit default but never overrides an explicit selection.
 - Metric is the default unit system. Imperial conversion is available everywhere through a single toggle.
 - Design frequency inputs include jurisdiction-aware amateur-band selectors. The interface distinguishes conventional band names from the actual wavelength at the selected frequency.
@@ -23,11 +23,12 @@ The application will run in a desktop or mobile browser, install as an offline-c
 The public repository currently includes:
 
 - Eleven graphical antenna starting designs covering wire, vertical, loop, folded, and directional families.
-- Canada- and United States-aware amateur-band selection with metric and imperial presentation.
+- Canada-, United States-, and United Kingdom-aware amateur-band selection with metric and imperial presentation.
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
 - Official Canadian and United States RF power-density reference levels.
 - A United States single-source FCC routine-evaluation exemption workflow covering all three criteria in 47 CFR § 1.1307(b)(3)(i), with ERP/EIRP distinctions and explicit non-compliance vocabulary.
 - A United States multiple-source FCC exemption workflow covering the special 1 mW conditions and mixed close-proximity, distance-ERP, and existing-evaluation fractions in § 1.1307(b)(3)(ii).
+- A United Kingdom Ofcom gateway covering the no-action, retained average-power record, and assessment-required branches; compliance-distance calculation remains a later independently reviewed model.
 - Conservative single-source far-field screening, frequency-normalized multiple-source aggregation, and printable multi-point station projects with independent source coordinates, accessible drag/touch/keyboard layout, illustrative azimuth envelopes, and descriptive source-to-point bearing analysis.
 - An on-device station-project library with validated, versioned JSON import/export, a searchable and filterable evidence log scoped to projects, sources, points, and individual inputs, reusable templates, self-declared quality prompts, documentation summaries, and optional author-set review reminders. A derived assessment checklist keeps blockers, category and field-level documentation gaps, and external review distinct, and a guided action prepares the evidence form for a selected missing critical value. An optional station-assessment guide and contextual help explain shared coordinates, duty cycle, gain, antenna dimensions, height references, and inventory confirmation without hiding the complete controls. The workspace also supports non-destructive baseline-versus-scenario comparison, a typed audit of changed inputs, and read-only sensitivity curves with custom ranges, screening-trigger annotations, accessible data tables, and CSV export.
 - A connected antenna-to-system-to-exposure workflow that preserves typed inputs and calculator-model provenance.
@@ -98,6 +99,8 @@ Exposure guidance must require the station jurisdiction, a defensible controlled
 The FCC single-source exemption workflow must evaluate the 1 mW, 0.5–40 cm `Pth`, and distance-based ERP criteria independently. It must use the FCC definitions of available maximum time-averaged power, ERP, and minimum body separation; enforce each frequency and distance boundary; and state that exemption is solely from routine environmental evaluation. Unknown-ERP substitution, SAR, mitigation, and compliance evaluation remain outside this model.
 
 The FCC multiple-source workflow must keep the special 1 mW path separate from the fractional equation, enforce the strict total-below-1-mW and 2 cm alternatives, and require a supported contribution method for each source. It must stop when a selected method is inapplicable or the complete source set, fixed positional relationship, and common time-averaging basis are not confirmed. Existing evaluated exposures and limits must use the same quantity and units.
+
+The Ofcom gateway must distinguish EIRP from ERP, use maximum radiated power in the strongest direction, and average the conservative maximum transmission time over six minutes. It must treat 10 W EIRP and 6.1 W ERP as inclusive no-action maximum-power thresholds. The recorded-average branch additionally requires no more than 100 W EIRP or 61 W ERP peak. It must identify when a calculation record is required and must not imply that the gateway calculates an exclusion distance or demonstrates compliance.
 
 ## Acceptance criteria for the first public beta
 

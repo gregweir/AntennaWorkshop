@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { EXPOSURE_LIMIT_MODELS, getExposureReferenceLevel, type ExposureEnvironment, type ExposureJurisdiction } from '../regulations/exposureLimits';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
@@ -18,6 +18,7 @@ import { ExposureProjectPanel } from './ExposureProjectPanel';
 import { ExposureScreenPanel } from './ExposureScreenPanel';
 import { FccExemptionPanel } from './FccExemptionPanel';
 import { FccMultipleExemptionPanel } from './FccMultipleExemptionPanel';
+import { OfcomAssessmentPanel } from './OfcomAssessmentPanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 interface Props {
@@ -28,7 +29,7 @@ interface Props {
   onSourceConsumed: () => void;
 }
 
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple';
+type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
@@ -37,6 +38,10 @@ const viewOptions: Array<{ id: ExposureView; title: string; description: string 
   { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields' },
   { id: 'fcc-exemption', title: 'FCC single', description: 'One-source evaluation exemption' },
   { id: 'fcc-multiple', title: 'FCC multiple', description: 'Collective-source exemption sum' }
+];
+
+const ukViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
+  { id: 'ofcom-assessment', title: 'Ofcom gateway', description: 'Assessment and record requirement' }
 ];
 
 export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed }: Props) {
@@ -49,9 +54,15 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const activeBand = findBandForFrequency(frequencyMHz, jurisdiction);
   const bandSource = getBandSource(jurisdiction);
   const profile = jurisdictionProfiles.find((item) => item.code === jurisdiction);
-  const needsFrequency = view === 'reference' || view === 'single' || view === 'fcc-exemption';
-  const needsEnvironment = view !== 'fcc-exemption' && view !== 'fcc-multiple';
-  const contextClass = view === 'fcc-multiple' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
+  const isUk = jurisdiction === 'GB';
+  const availableViews = isUk ? ukViewOptions : viewOptions;
+  useEffect(() => {
+    if (isUk && view !== 'ofcom-assessment') setView('ofcom-assessment');
+    if (!isUk && view === 'ofcom-assessment') setView('reference');
+  }, [isUk, view]);
+  const needsFrequency = !isUk && (view === 'reference' || view === 'single' || view === 'fcc-exemption');
+  const needsEnvironment = !isUk && view !== 'fcc-exemption' && view !== 'fcc-multiple';
+  const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
 
   const levels = useMemo(() => {
     if (exposureJurisdiction !== 'CA' && exposureJurisdiction !== 'US') return null;
@@ -71,8 +82,8 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title">
     <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div><span className="model-badge">Preliminary beta</span></div>
     <div className="exposure-status" role="note"><strong>Preliminary tools only</strong><span>Reference lookup, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
-    <div className="exposure-mode-picker" aria-label="RF exposure workflow">
-      {viewOptions.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}
+    <div className={`exposure-mode-picker ${isUk ? 'exposure-mode-picker-one' : ''}`} aria-label="RF exposure workflow">
+      {availableViews.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}
     </div>
 
     <form className={`exposure-context-panel ${contextClass}`} onSubmit={(event) => event.preventDefault()}>
@@ -84,7 +95,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
       </>}
     </form>
 
-    {view === 'reference' && <section className="exposure-view" aria-labelledby="reference-view-heading">
+    {!isUk && view === 'reference' && <section className="exposure-view" aria-labelledby="reference-view-heading">
       <div className="section-heading"><div><p className="eyebrow">Official lookup</p><h3 id="reference-view-heading">Official reference limits</h3></div><span className="model-badge">Model {model.version}</span></div>
       <StepByStepHelp title="Choose an exposure reference level" intro="Use this sequence to identify the applicable official number before attempting a calculation or measurement comparison." steps={[
         { title: 'Confirm the station jurisdiction', detail: 'Use the rules that govern the station location; browser location, citizenship, or a preferred unit system does not choose the authority.' },
@@ -107,10 +118,11 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
         <article className="provenance-card"><p className="eyebrow">Method and source</p><h3>{model.sourceRevision}</h3><p>The selected value is evaluated directly from the official piecewise power-density table. No interpolation is used beyond the formulas stated by the authority.</p><ul><li><a href={model.source.url} target="_blank" rel="noreferrer">{model.source.title}</a></li></ul><small>Model ID: {model.id} · Reviewed {model.reviewedOn}</small></article>
       </div>
     </section>}
-    {view === 'single' && <ExposureScreenPanel jurisdiction={exposureJurisdiction} environment={environment} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
-    {view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} onJurisdictionChange={setJurisdiction} onEnvironmentChange={setEnvironment} incomingSource={incomingSource} onSourceConsumed={onSourceConsumed} />}
-    {view === 'aggregate' && <ExposureAggregationPanel jurisdiction={exposureJurisdiction} environment={environment} />}
-    {view === 'fcc-exemption' && <FccExemptionPanel jurisdiction={exposureJurisdiction} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
-    {view === 'fcc-multiple' && <FccMultipleExemptionPanel jurisdiction={exposureJurisdiction} unitSystem={unitSystem} />}
+    {!isUk && view === 'single' && <ExposureScreenPanel jurisdiction={exposureJurisdiction} environment={environment} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
+    {!isUk && view === 'project' && <ExposureProjectPanel jurisdiction={exposureJurisdiction} environment={environment} unitSystem={unitSystem} onJurisdictionChange={setJurisdiction} onEnvironmentChange={setEnvironment} incomingSource={incomingSource} onSourceConsumed={onSourceConsumed} />}
+    {!isUk && view === 'aggregate' && <ExposureAggregationPanel jurisdiction={exposureJurisdiction} environment={environment} />}
+    {!isUk && view === 'fcc-exemption' && <FccExemptionPanel jurisdiction={exposureJurisdiction} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
+    {!isUk && view === 'fcc-multiple' && <FccMultipleExemptionPanel jurisdiction={exposureJurisdiction} unitSystem={unitSystem} />}
+    {isUk && <OfcomAssessmentPanel />}
   </section>;
 }

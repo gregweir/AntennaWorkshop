@@ -12,6 +12,7 @@ describe('amateur band catalog', () => {
   it('maps common design frequencies to conventional bands', () => {
     expect(findBandForFrequency(14.2, 'CA')?.label).toBe('20 m');
     expect(findBandForFrequency(146.52, 'US')?.label).toBe('2 m');
+    expect(findBandForFrequency(70.25, 'GB')?.label).toBe('4 m');
   });
 
   it('uses jurisdiction-specific 70 cm allocations', () => {
@@ -20,7 +21,7 @@ describe('amateur band catalog', () => {
   });
 
   it('provides a design frequency within every listed range', () => {
-    for (const jurisdiction of ['CA', 'US'] as const) {
+    for (const jurisdiction of ['CA', 'US', 'GB'] as const) {
       for (const band of getBandsForJurisdiction(jurisdiction)) {
         expect(band.designMHz).toBeGreaterThanOrEqual(band.lowerMHz);
         expect(band.designMHz).toBeLessThanOrEqual(band.upperMHz);
@@ -37,12 +38,13 @@ describe('amateur band catalog', () => {
     const band = findBandForFrequency(5.359, 'CA');
     expect(band && formatFrequencyRange(band)).toBe('Channelized / special allocation');
     expect(band?.continuous).toBe(false);
+    expect(formatFrequencyRange(getBandsForJurisdiction('GB').find((candidate) => candidate.id === '60m')!)).toBe('Eleven Full-licence segments');
   });
 
   it('links each initial jurisdiction to its governing allocation source', () => {
-    for (const jurisdiction of ['CA', 'US'] as const) {
+    for (const jurisdiction of ['CA', 'US', 'GB'] as const) {
       expect(getBandSource(jurisdiction)?.url.startsWith('https://')).toBe(true);
-      expect(getBandSource(jurisdiction)?.reviewedOn).toBe('2026-11-11');
+      expect(getBandSource(jurisdiction)?.reviewedOn).toMatch(/^2026-11-1[13]$/);
     }
   });
 });

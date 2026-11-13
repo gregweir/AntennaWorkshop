@@ -427,6 +427,34 @@ test('combines FCC multiple-source exemption fractions and special low-power con
   await expect(multiple.locator('fieldset.fcc-multiple-source')).toHaveCount(2);
 });
 
+test('applies the Ofcom assessment and record gateway for United Kingdom stations', async ({ page }) => {
+  await page.locator('.global-controls select').selectOption('GB');
+  await expect(page.getByText('Jurisdiction: United Kingdom')).toBeVisible();
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+
+  await expect(page.getByRole('button', { name: /Ofcom gateway/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /FCC single/ })).toHaveCount(0);
+  const panel = page.locator('.ofcom-assessment-section');
+  await expect(panel.getByRole('heading', { name: 'Ofcom EMF assessment requirement' })).toBeVisible();
+  await expect(panel.locator('.screen-outcome')).toContainText('retain the average-power record');
+  await expect(panel.getByRole('img', { name: /Ofcom assessment gateway/ })).toContainText('8.33 W');
+
+  await panel.getByRole('spinbutton', { name: 'Maximum radiated power' }).fill('101');
+  await panel.getByRole('spinbutton', { name: 'Maximum transmission time in any six minutes' }).fill('1');
+  await expect(panel.locator('.screen-outcome')).toContainText('An EMF assessment and record are required');
+
+  await panel.getByLabel('Radiated-power basis', { exact: true }).selectOption('ERP');
+  await panel.getByRole('spinbutton', { name: 'Maximum radiated power' }).fill('61');
+  await panel.getByRole('spinbutton', { name: 'Maximum transmission time in any six minutes' }).fill('36');
+  await expect(panel.locator('.screen-outcome')).toContainText('retain the average-power record');
+
+  await panel.getByRole('checkbox', { name: /Equipment is currently used/ }).uncheck();
+  await expect(panel.locator('.screen-outcome')).toContainText('No EMF assessment or record is required');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test('normalizes and sums multiple RF sources without inferring compliance', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Measured sources/ }).click();

@@ -3302,6 +3302,78 @@ select {
   color: var(--text-secondary);
 }
 
+.ofcom-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.exposure-mode-picker-one {
+  grid-template-columns: 1fr;
+}
+
+.ofcom-input-grid > label:not(.field) {
+  min-height: 3.5rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-weight: 800;
+}
+
+.ofcom-input-grid input[type='checkbox'] {
+  margin-right: 0.45rem;
+}
+
+.ofcom-input-grid .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.ofcom-decision-graphic {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-surface));
+}
+
+.ofcom-decision-graphic div {
+  min-width: 0;
+  padding: 1rem;
+  border-top: 4px solid var(--tl-blue);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.ofcom-decision-graphic span,
+.ofcom-decision-graphic small {
+  display: block;
+  color: var(--text-secondary);
+}
+
+.ofcom-decision-graphic strong {
+  display: block;
+  margin: 0.35rem 0;
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 2vw, 1.35rem);
+}
+
+.ofcom-decision-graphic i {
+  color: var(--tl-coral);
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .fcc-multiple-source-list {
   display: grid;
   gap: 1rem;
@@ -4713,8 +4785,18 @@ select {
 
   .fcc-multiple-conditions,
   .fcc-multiple-source,
-  .fcc-contribution-grid {
+  .fcc-contribution-grid,
+  .ofcom-input-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ofcom-decision-graphic {
+    grid-template-columns: 1fr;
+  }
+
+  .ofcom-decision-graphic i {
+    transform: rotate(90deg);
+    text-align: center;
   }
 
   .azimuth-source-editor {
