@@ -34,6 +34,7 @@ import { LoadedDipoleDiagram } from './LoadedDipoleDiagram';
 import { LoadedVerticalDiagram } from './LoadedVerticalDiagram';
 import { TrapDipoleDiagram } from './TrapDipoleDiagram';
 import { AirCoreCoilPanel } from './AirCoreCoilPanel';
+import { TrapCommissioningPanel } from './TrapCommissioningPanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'loaded-dipole' | 'trap-dipole' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
@@ -530,6 +531,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
       {calculation?.type === 'loaded-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each loading coil" unitSystem={unitSystem} />}
       {calculation?.type === 'trap-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each trap coil" unitSystem={unitSystem} />}
+      {calculation?.type === 'trap-dipole' && <TrapCommissioningPanel key={`${calculation.value.inductanceMicrohenries}-${calculation.value.capacitancePicofarads}-${calculation.value.trapResonanceMHz}`} targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} targetCapacitancePicofarads={calculation.value.capacitancePicofarads} targetResonanceMHz={calculation.value.trapResonanceMHz} />}
       {calculation?.type === 'loaded-vertical' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Loading coil" unitSystem={unitSystem} />}
 
       {calculation && <section className="workflow-handoff" aria-labelledby="antenna-handoff-heading">

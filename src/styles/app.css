@@ -5372,6 +5372,239 @@ path.loading-coil {
   border-radius: var(--radius-md);
 }
 
+.trap-commissioning-panel {
+  margin: 1.5rem 0;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.trap-commissioning-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.trap-commissioning-heading h3 {
+  margin-top: 0;
+}
+
+.trap-commissioning-heading dl {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.trap-commissioning-heading dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.trap-commissioning-heading dt {
+  color: var(--text-secondary);
+}
+
+.trap-commissioning-heading dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.trap-commissioning-panel .step-by-step-help {
+  margin-block: 1rem;
+}
+
+.trap-measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.trap-measurement-grid fieldset,
+.trap-thresholds {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.trap-measurement-grid legend,
+.trap-thresholds legend {
+  padding-inline: 0.35rem;
+  font-weight: 800;
+}
+
+.trap-measurement-grid .field,
+.trap-thresholds .field {
+  margin: 0;
+}
+
+.trap-thresholds {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.trap-commissioning-results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.3fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.trap-result-table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.trap-result-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trap-result-table-wrap caption {
+  padding-bottom: 0.65rem;
+  text-align: left;
+  font-weight: 800;
+}
+
+.trap-result-table-wrap th,
+.trap-result-table-wrap td {
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.trap-result-table-wrap th {
+  color: var(--text-secondary);
+}
+
+.trap-result-table-wrap td {
+  font-family: var(--font-mono);
+}
+
+.trap-result-table-wrap td small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+}
+
+.pair-state {
+  display: block;
+  width: fit-content;
+  margin-top: 0.25rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.pair-state-within {
+  background: color-mix(in srgb, var(--success) 16%, transparent);
+  color: var(--success);
+}
+
+.pair-state-outside {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+}
+
+.trap-commissioning-results aside {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.trap-commissioning-results aside strong {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+}
+
+.trap-commissioning-results aside p:last-child {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.trap-resonance-comparison {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.trap-resonance-comparison svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.comparison-axis {
+  stroke: var(--border-strong);
+  stroke-width: 4;
+}
+
+.comparison-target {
+  stroke: var(--accent-technical);
+  stroke-dasharray: 5 4;
+  stroke-width: 2;
+}
+
+.comparison-trap-a {
+  fill: var(--tl-coral);
+}
+
+.comparison-trap-b {
+  fill: var(--accent-technical);
+}
+
+.comparison-labels text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.trap-resonance-comparison figcaption {
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.trap-commissioning-panel > .caution-card {
+  margin-top: 1rem;
+}
+
+.trap-commissioning-panel > .caution-card h4 {
+  margin: 0.15rem 0 0.45rem;
+  font-size: 1rem;
+}
+
+.trap-commissioning-source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
 .validation-message {
   color: var(--danger);
   font-weight: 700;
@@ -6004,7 +6237,10 @@ path.loading-coil {
   }
 
   .coil-construction-layout,
-  .coil-construction-inputs {
+  .coil-construction-inputs,
+  .trap-measurement-grid,
+  .trap-thresholds,
+  .trap-commissioning-results {
     grid-template-columns: 1fr;
   }
 
@@ -6178,12 +6414,57 @@ path.loading-coil {
 }
 
 @media (max-width: 540px) {
+  .trap-result-table-wrap table,
+  .trap-result-table-wrap tbody,
+  .trap-result-table-wrap tr,
+  .trap-result-table-wrap th,
+  .trap-result-table-wrap td {
+    display: block;
+  }
+
+  .trap-result-table-wrap thead {
+    display: none;
+  }
+
+  .trap-result-table-wrap tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .trap-result-table-wrap tbody tr {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+  }
+
+  .trap-result-table-wrap tbody th {
+    padding: 0 0 0.55rem;
+    border: 0;
+    color: var(--text-primary);
+  }
+
+  .trap-result-table-wrap tbody td {
+    padding: 0.45rem 0;
+    border: 0;
+  }
+
+  .trap-result-table-wrap tbody td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+
   .doublet-system-editor,
   .loaded-antenna-editor {
     grid-template-columns: 1fr;
   }
 
   .coil-construction-heading,
+  .trap-commissioning-heading,
   .coil-construction-results dl div {
     display: grid;
   }
