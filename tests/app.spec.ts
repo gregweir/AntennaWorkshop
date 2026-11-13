@@ -491,6 +491,49 @@ test('plans a receive-only Beverage route with explicit direction and impedance 
   await expect(page.locator('.result-summary')).toContainText('517 ft 8 in horizontal endpoint distance');
 });
 
+test('plans Flag, point-fed Pennant, and EWE receive antennas with the correct direction convention', async ({ page }) => {
+  await page.getByRole('button', { name: /Flag · Pennant · EWE/ }).click();
+  await page.locator('select.band-select').selectOption('160m');
+
+  await expect(page.getByRole('heading', { name: 'Compact terminated receiving antenna' })).toBeVisible();
+  await expect(page.getByLabel('Compact receive antenna geometry', { exact: true })).toHaveValue('flag');
+  await expect(page.getByRole('spinbutton', { name: 'Horizontal span' })).toHaveValue('8.84');
+  await expect(page.getByRole('spinbutton', { name: 'Vertical height' })).toHaveValue('4.27');
+  await expect(page.getByRole('spinbutton', { name: 'Receive bearing toward feed end' })).toHaveValue('45');
+  await expect(page.getByRole('img', { name: /Flag receiving-antenna geometry and direction/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build a receive-only Flag');
+  await expect(page.locator('.result-summary')).toContainText('Primary response toward feed45° NE');
+  await expect(page.locator('.result-summary')).toContainText('Principal null toward termination225° SW');
+  await expect(page.locator('.result-summary')).toContainText('Predicted gain, null depth, and front-to-back ratioNot inferred');
+  await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
+
+  await page.getByLabel('Compact receive antenna geometry', { exact: true }).selectOption('pennant');
+  await expect(page.getByRole('img', { name: /point-fed Pennant receiving-antenna geometry and direction/ })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Termination resistance' })).toHaveValue('860');
+  await expect(page.locator('.result-summary')).toContainText('Build a receive-only Point-fed Pennant');
+
+  await page.getByLabel('Compact receive antenna geometry', { exact: true }).selectOption('ewe');
+  await expect(page.getByRole('spinbutton', { name: 'Bottom wire clearance' })).toHaveCount(0);
+  await expect(page.getByRole('spinbutton', { name: 'Horizontal span' })).toHaveValue('7.62');
+  await expect(page.getByRole('spinbutton', { name: 'Vertical height' })).toHaveValue('3.048');
+  await expect(page.getByRole('spinbutton', { name: 'Termination resistance' })).toHaveValue('850');
+  await expect(page.getByRole('img', { name: /EWE receiving-antenna geometry and direction/ })).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Compact receive design advisories' })).toContainText('depends on two ground returns');
+
+  await expect(page.getByText('Aim the feed end toward the target')).toBeHidden();
+  await page.getByText('Build and commission a compact directional receiving antenna').click();
+  await expect(page.getByText('Aim the feed end toward the target')).toBeVisible();
+  await page.getByLabel('Help: Receive bearing toward feed end').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Receive bearing toward feed end' })).toContainText('opposite end-direction convention from a terminated Beverage');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Assumed antenna-side impedance' })).toHaveValue('450');
+  await expect(page.getByRole('spinbutton', { name: 'Receiver feedline impedance' })).toHaveValue('50');
+  await expect(page.getByRole('spinbutton', { name: 'Extra wire for connections and trimming' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'A compact loop is still a complete outdoor RF system' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('compact-terminated-receive-planner');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

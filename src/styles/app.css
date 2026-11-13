@@ -4871,7 +4871,8 @@ select {
 .helix-layout,
 .discone-layout,
 .lpda-layout,
-.beverage-layout {
+.beverage-layout,
+.compact-receive-layout {
   grid-template-columns: 1fr;
 }
 
@@ -4881,7 +4882,8 @@ select {
 .helix-layout .input-panel,
 .discone-layout .input-panel,
 .lpda-layout .input-panel,
-.beverage-layout .input-panel {
+.beverage-layout .input-panel,
+.compact-receive-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4900,7 +4902,9 @@ select {
 .lpda-layout .input-panel > .field,
 .lpda-layout .lpda-editor,
 .beverage-layout .input-panel > .field,
-.beverage-layout .beverage-editor {
+.beverage-layout .beverage-editor,
+.compact-receive-layout .input-panel > .field,
+.compact-receive-layout .compact-receive-editor {
   margin: 0;
 }
 
@@ -4933,7 +4937,12 @@ select {
 .beverage-layout .advanced-fields,
 .beverage-layout .result-summary,
 .beverage-layout .beverage-advisory,
-.beverage-layout .validation-message {
+.beverage-layout .validation-message,
+.compact-receive-layout .compact-receive-editor,
+.compact-receive-layout .advanced-fields,
+.compact-receive-layout .result-summary,
+.compact-receive-layout .compact-receive-advisory,
+.compact-receive-layout .validation-message {
   grid-column: 1 / -1;
 }
 
@@ -4943,7 +4952,8 @@ select {
 .helix-layout .helix-editor,
 .discone-layout .discone-editor,
 .lpda-layout .lpda-editor,
-.beverage-layout .beverage-editor {
+.beverage-layout .beverage-editor,
+.compact-receive-layout .compact-receive-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5167,7 +5177,8 @@ select {
 .helix-editor,
 .discone-editor,
 .lpda-editor,
-.beverage-editor {
+.beverage-editor,
+.compact-receive-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5185,7 +5196,8 @@ select {
 .helix-editor legend,
 .discone-editor legend,
 .lpda-editor legend,
-.beverage-editor legend {
+.beverage-editor legend,
+.compact-receive-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5214,7 +5226,8 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.beverage-editor {
+.beverage-editor,
+.compact-receive-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5234,7 +5247,8 @@ select {
 .helix-editor > .field,
 .discone-editor > .field,
 .lpda-editor > .field,
-.beverage-editor > .field {
+.beverage-editor > .field,
+.compact-receive-editor > .field {
   margin: 0;
 }
 
@@ -5757,6 +5771,73 @@ path.loading-coil {
   fill: none;
   stroke: var(--text-primary);
   stroke-width: 2;
+}
+
+.compact-direction-panel text,
+.compact-elevation text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.compact-direction-axis {
+  stroke: var(--border-strong);
+  stroke-dasharray: 7 5;
+  stroke-width: 3;
+}
+
+.compact-response-arrow {
+  fill: none;
+  marker-end: url('#compact-receive-arrow-end');
+  stroke: var(--tl-gold);
+  stroke-width: 5;
+}
+
+.compact-feed-point {
+  fill: var(--accent-technical);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.compact-termination-point {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.compact-receive-label,
+.compact-null-label {
+  font-size: 12px !important;
+}
+
+.compact-wire {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.compact-component {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.compact-ground {
+  stroke: var(--text-secondary);
+  stroke-width: 4;
+}
+
+.compact-ground-symbol {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.compact-geometry-label {
+  font-size: 13px !important;
 }
 
 .coil-construction-panel {
@@ -6894,7 +6975,9 @@ path.loading-coil {
   .lpda-layout .input-panel,
   .lpda-layout .lpda-editor,
   .beverage-layout .input-panel,
-  .beverage-layout .beverage-editor {
+  .beverage-layout .beverage-editor,
+  .compact-receive-layout .input-panel,
+  .compact-receive-layout .compact-receive-editor {
     grid-template-columns: 1fr;
   }
 
@@ -7179,7 +7262,8 @@ path.loading-coil {
   .helix-editor,
   .discone-editor,
   .lpda-editor,
-  .beverage-editor {
+  .beverage-editor,
+  .compact-receive-editor {
     grid-template-columns: 1fr;
   }
 
