@@ -62,6 +62,8 @@ The single-band loaded-dipole and loaded-vertical guides may calculate the ideal
 
 The two-band trap-dipole guide may solve the documented ideal parallel-LC network that supplies inductive reactance at the lower design frequency and capacitive reactance at the upper design frequency for a selected span, height, conductor diameter, and symmetric trap position. It must enforce the method's wire-section constraints, show that the trap resonance lies between the operating frequencies, and require two measured, matched traps. It must not infer component technology, power rating, Q, parasitics, tolerance, loss, heating, voltage, feedpoint impedance, matching, bandwidth, efficiency, or pattern. Both operating bands must be rechecked after every installed adjustment.
 
+The physical coil planner may translate an antenna-derived inductance target into a single-layer air-core coil using the documented ARRL approximation. It must use form outside diameter, insulated-wire outside diameter, and winding length to calculate mean diameter, ideal and whole-turn estimates, pitch, spacing, and approximate winding-wire length. It must enforce the published minimum winding-length-to-diameter ratio and identify when the selected wire cannot fit in one layer. It must not infer RF Q, resistance, self-capacitance, self-resonance, current, voltage, heating, corona, form loss, environmental stability, or a finished measured inductance.
+
 J-pole and Slim Jim guides must explain the construction-medium correction factor, parallel matching geometry, paired coax-tap adjustment, feedline choking, and installed vertical measurement. Slim Jim guidance must additionally preserve the interrupted folded side and gap. Neither guide may promise feedpoint impedance, bandwidth, pattern, or a universal tap or gap position from a low-SWR result.
 
 Quarter-wave vertical guidance must distinguish a ground-mounted RF radial field from equal elevated counterpoise radials. The ground-mounted workflow must cover radial count and length, the radiator-only trim allowance, base and feed connections, and separate lightning and electrical-safety grounding. The elevated ground-plane workflow must cover equal radial count, symmetrical slope, shared cut allowance, coax routing, and common-mode control. Neither may promise impedance, efficiency, matching, or installed pattern.
@@ -89,7 +91,7 @@ Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon
 
 The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
-Advanced families later include other multiband designs, magnetic loops, collinears, cubical quads, helices, discones, log-periodics, receive antennas, physical coil construction, trap construction, and matching networks.
+Advanced families later include other multiband designs, magnetic loops, collinears, cubical quads, helices, discones, log-periodics, receive antennas, detailed trap and capacitor construction, and matching networks.
 
 ## RF exposure
 

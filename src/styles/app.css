@@ -5198,6 +5198,180 @@ path.loading-coil {
   stroke-width: 2.5;
 }
 
+.coil-construction-panel {
+  margin: 1.5rem 0;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.coil-construction-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.coil-construction-heading h3,
+.coil-construction-heading p,
+.coil-construction-panel > p {
+  margin-top: 0;
+}
+
+.coil-construction-heading > strong {
+  flex: 0 0 auto;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.coil-construction-panel > p {
+  max-width: 75ch;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.coil-construction-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.85fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.coil-construction-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.coil-construction-inputs .field {
+  margin: 0;
+}
+
+.coil-construction-results {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.coil-turn-result {
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.coil-turn-result span,
+.coil-turn-result small {
+  color: var(--text-secondary);
+}
+
+.coil-turn-result strong {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.coil-construction-results dl {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.9rem 0 0;
+}
+
+.coil-construction-results dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.coil-construction-results dt {
+  color: var(--text-secondary);
+}
+
+.coil-construction-results dd {
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+.coil-construction-figure {
+  margin: 1.25rem 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.coil-construction-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.coil-form {
+  fill: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.coil-winding ellipse {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+}
+
+.coil-dimensions line {
+  marker-start: url('#coil-arrow');
+  marker-end: url('#coil-arrow');
+  stroke: var(--accent-technical);
+  stroke-width: 1.5;
+}
+
+.coil-dimensions text,
+.coil-turn-label {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.coil-construction-figure figcaption {
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.coil-applicability {
+  margin-top: 1.25rem;
+}
+
+.coil-applicability h4 {
+  margin: 0.15rem 0 0.45rem;
+  font-size: 1rem;
+}
+
+.coil-model-source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.coil-construction-error {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+}
+
 .validation-message {
   color: var(--danger);
   font-weight: 700;
@@ -5829,6 +6003,11 @@ path.loading-coil {
     grid-template-columns: 1fr;
   }
 
+  .coil-construction-layout,
+  .coil-construction-inputs {
+    grid-template-columns: 1fr;
+  }
+
   .azimuth-route-overview {
     grid-template-columns: 1fr;
   }
@@ -6002,6 +6181,19 @@ path.loading-coil {
   .doublet-system-editor,
   .loaded-antenna-editor {
     grid-template-columns: 1fr;
+  }
+
+  .coil-construction-heading,
+  .coil-construction-results dl div {
+    display: grid;
+  }
+
+  .coil-construction-heading > strong {
+    justify-self: start;
+  }
+
+  .coil-construction-results dd {
+    text-align: left;
   }
 
   .fan-frequency-row {

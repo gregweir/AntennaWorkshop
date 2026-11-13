@@ -33,6 +33,7 @@ import { DoubletDiagram } from './DoubletDiagram';
 import { LoadedDipoleDiagram } from './LoadedDipoleDiagram';
 import { LoadedVerticalDiagram } from './LoadedVerticalDiagram';
 import { TrapDipoleDiagram } from './TrapDipoleDiagram';
+import { AirCoreCoilPanel } from './AirCoreCoilPanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'loaded-dipole' | 'trap-dipole' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
@@ -526,6 +527,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {!calculation && <div className="diagram-placeholder">The construction drawing will appear when the inputs are valid.</div>}
         </div>
       </div>
+
+      {calculation?.type === 'loaded-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each loading coil" unitSystem={unitSystem} />}
+      {calculation?.type === 'trap-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each trap coil" unitSystem={unitSystem} />}
+      {calculation?.type === 'loaded-vertical' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Loading coil" unitSystem={unitSystem} />}
 
       {calculation && <section className="workflow-handoff" aria-labelledby="antenna-handoff-heading">
         <div><p className="eyebrow">Connected workflow</p><h3 id="antenna-handoff-heading">Use this design in an RF station project</h3><p>Carry the design frequency and largest physical dimension into the feed-system calculator. Gain, loss, power, duty cycle, and installed height remain explicit inputs.</p></div>

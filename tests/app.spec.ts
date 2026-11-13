@@ -118,7 +118,7 @@ test('plans loaded dipoles and verticals with adjustable coil positions', async 
   await expect(page.locator('.result-summary')).toContainText('Build one base-loading coil');
   await page.getByRole('spinbutton', { name: 'Coil position from base' }).fill('5.741');
   await expect(page.locator('.result-summary')).toContainText('Build one series loading coil');
-  await expect(page.locator('.caution-card')).toContainText('Inductance alone does not describe the finished coil');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Inductance alone does not describe the finished coil' })).toBeVisible();
   await page.getByText('Build and tune a loaded vertical').click();
   await expect(page.getByText('Plan the RF return system')).toBeVisible();
 });
@@ -139,18 +139,32 @@ test('designs two matched parallel-LC traps for a two-band dipole', async ({ pag
   await expect(page.locator('.result-summary')).toContainText('12.811 MHz');
   await expect(page.locator('.result-summary')).toContainText('+j491 Ω');
   await expect(page.locator('.result-summary')).toContainText('−j1274 Ω');
+  await expect(page.getByRole('heading', { name: 'Each trap coil: single-layer air-core geometry' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Single-layer air-core coil construction diagram/ })).toBeVisible();
+  await expect(page.locator('.coil-turn-result')).toContainText('10 turns');
+  await page.getByLabel('Help: Coil winding length').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Coil winding length' })).toContainText('at least 0.4 times the mean coil diameter');
+  await page.getByRole('spinbutton', { name: 'Coil winding length' }).fill('20');
+  await expect(page.getByRole('alert')).toContainText('at least 0.4 times the mean coil diameter');
+  await page.getByRole('spinbutton', { name: 'Coil winding length' }).fill('75');
+  await page.getByRole('spinbutton', { name: 'Insulated wire outside diameter' }).fill('10');
+  await expect(page.locator('.coil-construction-results')).toContainText('Does not fit');
+  await page.getByRole('spinbutton', { name: 'Insulated wire outside diameter' }).fill('2');
   await page.getByLabel('Help: Upper design frequency').click();
   await expect(page.getByRole('note').filter({ hasText: 'Upper design frequency' })).toContainText('resonance lies between the two design frequencies');
   await expect(page.getByText('Build and measure a matched pair')).toBeHidden();
   await page.getByText('Build and tune a two-band trap dipole').click();
   await expect(page.getByText('Build and measure a matched pair')).toBeVisible();
-  await expect(page.locator('.caution-card')).toContainText('Ideal L and C values are not a power rating');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Ideal L and C values are not a power rating' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Imperial' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Available total span' })).toHaveValue('40');
   await expect(page.getByRole('spinbutton', { name: 'Trap position from centre' })).toHaveValue('14');
   await expect(page.getByRole('spinbutton', { name: 'Installed wire height' })).toHaveValue('20');
   await expect(page.getByRole('spinbutton', { name: 'Conductor outside diameter' })).toHaveValue('0.125');
+  await expect(page.getByRole('spinbutton', { name: 'Coil form outside diameter' })).toHaveValue('1.9685');
+  await expect(page.getByRole('spinbutton', { name: 'Coil winding length' })).toHaveValue('2.9528');
+  await expect(page.getByRole('spinbutton', { name: 'Insulated wire outside diameter' })).toHaveValue('0.0787');
 });
 
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
@@ -415,9 +429,9 @@ test('shows and dismisses an application update notice', async ({ page }) => {
     );
   });
 
-  await expect(page.getByRole('status')).toContainText('A new version is ready');
+  await expect(page.locator('.update-banner')).toContainText('A new version is ready');
   await page.getByRole('button', { name: 'Later' }).click();
-  await expect(page.getByRole('status')).toHaveCount(0);
+  await expect(page.locator('.update-banner')).toHaveCount(0);
 });
 
 test('shows official RF exposure reference limits without a compliance result', async ({ page }) => {

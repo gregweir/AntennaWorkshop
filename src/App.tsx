@@ -6,7 +6,6 @@
  */
 
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { AntennaWorkbench } from './components/AntennaWorkbench';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
 import { loadPreferences, savePreferences, type ThemePreference } from './preferences';
@@ -14,6 +13,7 @@ import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catal
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 
 const initialJurisdictions = jurisdictionProfiles.filter((profile) => profile.releaseStatus === 'initial');
+const AntennaWorkbench = lazy(() => import('./components/AntennaWorkbench').then((module) => ({ default: module.AntennaWorkbench })));
 const FeedlineWorkbench = lazy(() => import('./components/FeedlineWorkbench').then((module) => ({ default: module.FeedlineWorkbench })));
 const ExposureReferenceWorkbench = lazy(() => import('./components/ExposureReferenceWorkbench').then((module) => ({ default: module.ExposureReferenceWorkbench })));
 
