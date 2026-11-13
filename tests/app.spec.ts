@@ -315,6 +315,50 @@ test('plans a two-element cubical quad without inventing directional performance
   await expect(page.locator('.result-summary')).toContainText('18 ft 1.625 in');
 });
 
+test('plans an axial-mode helix and separates dimensions from classical estimates', async ({ page }) => {
+  await page.getByRole('button', { name: /Axial helix/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('435');
+
+  await expect(page.getByRole('heading', { name: 'Axial-mode helical antenna' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Turn circumference' })).toHaveValue('1');
+  await expect(page.getByRole('spinbutton', { name: 'Pitch angle' })).toHaveValue('12.5');
+  await expect(page.getByRole('spinbutton', { name: 'Number of turns' })).toHaveValue('6');
+  await expect(page.getByRole('spinbutton', { name: 'Ground-plane diameter' })).toHaveValue('0.8');
+  await expect(page.getByLabel('Helix winding and polarization', { exact: true })).toHaveValue('right');
+  await expect(page.getByRole('img', { name: /Dimensioned axial-mode helical antenna/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Wind 6 uniform axial-mode turns');
+  await expect(page.locator('.result-summary')).toContainText('21.9 cm diameter');
+  await expect(page.locator('.result-summary')).toContainText('Turn spacing15.3 cm · 0.222 λ');
+  await expect(page.locator('.result-summary')).toContainText('Axial length91.7 cm');
+  await expect(page.locator('.result-summary')).toContainText('Helix conductor with allowance4.341 m');
+  await expect(page.locator('.result-summary')).toContainText('Classical half-power beamwidth estimate45.1°');
+  await expect(page.locator('.result-summary')).toContainText('Classical gain estimate11.2 dBi');
+  await expect(page.locator('.helix-polarization')).toContainText('Right-handed winding · RHCP');
+  await expect(page.getByRole('complementary', { name: 'Helix design advisories' })).toHaveCount(0);
+
+  await expect(page.getByText('Choose polarization before winding')).toBeHidden();
+  await page.getByText('Build and commission an axial-mode helix').click();
+  await expect(page.getByText('Choose polarization before winding')).toBeVisible();
+  await page.getByLabel('Help: Helix winding and polarization').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Helix winding and polarization' })).toContainText('dish reverses the circular-polarization sense');
+
+  await page.getByRole('spinbutton', { name: 'Number of turns' }).fill('8');
+  await expect(page.locator('.result-summary')).toContainText('Wind 8 uniform axial-mode turns');
+  await page.getByRole('spinbutton', { name: 'Turn circumference' }).fill('0.8');
+  await expect(page.getByRole('complementary', { name: 'Helix design advisories' })).toContainText('outside the narrower 0.9–1.1 λ starting region');
+  await page.getByLabel('Helix winding and polarization', { exact: true }).selectOption('left');
+  await expect(page.locator('.helix-polarization')).toContainText('Left-handed winding · LHCP');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Extra helix conductor for connections' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'A one-wavelength turn is not a completed 50-ohm antenna' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('nasa-axial-mode-helix');
+
+  await page.getByRole('spinbutton', { name: 'Turn circumference' }).fill('1');
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.locator('.result-summary')).toContainText('0 ft 8.625 in diameter');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();

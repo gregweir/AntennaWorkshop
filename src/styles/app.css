@@ -4867,13 +4867,15 @@ select {
 
 .small-loop-layout,
 .collinear-layout,
-.quad-layout {
+.quad-layout,
+.helix-layout {
   grid-template-columns: 1fr;
 }
 
 .small-loop-layout .input-panel,
 .collinear-layout .input-panel,
-.quad-layout .input-panel {
+.quad-layout .input-panel,
+.helix-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4884,7 +4886,9 @@ select {
 .collinear-layout .input-panel > .field,
 .collinear-layout .collinear-editor,
 .quad-layout .input-panel > .field,
-.quad-layout .quad-editor {
+.quad-layout .quad-editor,
+.helix-layout .input-panel > .field,
+.helix-layout .helix-editor {
   margin: 0;
 }
 
@@ -4897,13 +4901,19 @@ select {
 .quad-layout .quad-editor,
 .quad-layout .advanced-fields,
 .quad-layout .result-summary,
-.quad-layout .validation-message {
+.quad-layout .validation-message,
+.helix-layout .helix-editor,
+.helix-layout .advanced-fields,
+.helix-layout .result-summary,
+.helix-layout .helix-advisory,
+.helix-layout .validation-message {
   grid-column: 1 / -1;
 }
 
 .small-loop-layout .small-loop-editor,
 .collinear-layout .collinear-editor,
-.quad-layout .quad-editor {
+.quad-layout .quad-editor,
+.helix-layout .helix-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5123,7 +5133,8 @@ select {
 .loaded-antenna-editor,
 .small-loop-editor,
 .collinear-editor,
-.quad-editor {
+.quad-editor,
+.helix-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5137,7 +5148,8 @@ select {
 .loaded-antenna-editor legend,
 .small-loop-editor legend,
 .collinear-editor legend,
-.quad-editor legend {
+.quad-editor legend,
+.helix-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5154,6 +5166,10 @@ select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.helix-editor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .loaded-antenna-editor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -5166,7 +5182,8 @@ select {
 .loaded-antenna-editor > .field,
 .small-loop-editor > .field,
 .collinear-editor > .field,
-.quad-editor > .field {
+.quad-editor > .field,
+.helix-editor > .field {
   margin: 0;
 }
 
@@ -5398,6 +5415,69 @@ path.loading-coil {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3;
+}
+
+.helix-ground-plane ellipse {
+  fill: color-mix(in srgb, var(--accent-technical) 13%, var(--bg-surface));
+  stroke: var(--accent-technical);
+  stroke-width: 4;
+}
+
+.helix-ground-plane line,
+.helix-axis {
+  stroke: var(--text-muted);
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.helix-conductor {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 6;
+}
+
+.helix-feedpoint {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.helix-forward line,
+.helix-forward path {
+  fill: var(--tl-coral);
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.helix-forward text {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.helix-polarization rect {
+  fill: color-mix(in srgb, var(--accent-technical) 10%, var(--bg-surface));
+  stroke: var(--accent-technical);
+}
+
+.helix-polarization text {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.helix-advisory ul {
+  margin: 0.55rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.helix-advisory li + li {
+  margin-top: 0.35rem;
 }
 
 .coil-construction-panel {
@@ -6527,7 +6607,9 @@ path.loading-coil {
   .collinear-layout .input-panel,
   .collinear-layout .collinear-editor,
   .quad-layout .input-panel,
-  .quad-layout .quad-editor {
+  .quad-layout .quad-editor,
+  .helix-layout .input-panel,
+  .helix-layout .helix-editor {
     grid-template-columns: 1fr;
   }
 
@@ -6808,7 +6890,8 @@ path.loading-coil {
   .loaded-antenna-editor,
   .small-loop-editor,
   .collinear-editor,
-  .quad-editor {
+  .quad-editor,
+  .helix-editor {
     grid-template-columns: 1fr;
   }
 
