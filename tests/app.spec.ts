@@ -358,7 +358,7 @@ test('classifies conservative far-field screening limitations', async ({ page })
 
 test('evaluates the three FCC single-source exemption paths without implying compliance', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
-  await page.getByRole('button', { name: /FCC exemption/ }).click();
+  await page.getByRole('button', { name: /FCC single/ }).click();
   const exemption = page.locator('.fcc-exemption-section');
   await expect(exemption.getByRole('heading', { name: 'FCC single-source exemption' })).toBeVisible();
   await expect(exemption.locator('.screen-outcome')).toContainText('FCC exemption is not evaluated');
@@ -385,6 +385,46 @@ test('evaluates the three FCC single-source exemption paths without implying com
   await exemption.getByLabel('Available maximum time-averaged power', { exact: true }).fill('0.001');
   await exemption.getByLabel('Maximum time-averaged ERP', { exact: true }).fill('1000');
   await expect(exemption.locator('.screen-outcome')).toContainText('One-milliwatt criterion is satisfied');
+});
+
+test('combines FCC multiple-source exemption fractions and special low-power conditions', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /FCC multiple/ }).click();
+  const multiple = page.locator('.fcc-multiple-section');
+  await expect(multiple.getByRole('heading', { name: 'FCC multiple-source exemption', exact: true })).toBeVisible();
+  await expect(multiple.locator('.screen-outcome')).toContainText('FCC multiple-source exemption is not evaluated');
+
+  await page.locator('.global-controls select').selectOption('US');
+  await expect(multiple.locator('.screen-outcome')).toContainText('Collective-source conditions are not confirmed');
+  await multiple.getByRole('checkbox', { name: /Collective source set complete/ }).check();
+  await multiple.getByRole('checkbox', { name: /Fixed positional relationship/ }).check();
+  await multiple.getByRole('checkbox', { name: /Same time-averaging basis/ }).check();
+  await expect(multiple.locator('.screen-outcome')).toContainText('Collective sources are exempt from routine evaluation');
+  await expect(multiple.getByRole('img', { name: /FCC multiple-source exemption fractions/ })).toBeVisible();
+  await expect(multiple.locator('.fcc-contribution-grid .fcc-criterion-card')).toHaveCount(2);
+  await expect(multiple.locator('.screen-limitations')).toContainText('not a compliance determination');
+
+  const sourceFields = multiple.locator('fieldset.fcc-multiple-source');
+  await sourceFields.nth(0).getByLabel('Contribution method').selectOption('evaluated');
+  await sourceFields.nth(1).getByLabel('Contribution method').selectOption('evaluated');
+  await sourceFields.nth(0).getByRole('spinbutton', { name: 'Source 1 evaluated exposure' }).fill('0.6');
+  await sourceFields.nth(0).getByRole('spinbutton', { name: 'Source 1 applicable exposure limit' }).fill('1');
+  await sourceFields.nth(1).getByRole('spinbutton', { name: 'Source 2 evaluated exposure' }).fill('0.5');
+  await sourceFields.nth(1).getByRole('spinbutton', { name: 'Source 2 applicable exposure limit' }).fill('1');
+  await expect(multiple.locator('.screen-outcome')).toContainText('Routine environmental evaluation is required');
+
+  await sourceFields.nth(0).getByLabel('Contribution method').selectOption('close-proximity');
+  await expect(multiple.locator('.screen-outcome')).toContainText('selected contribution method is inapplicable');
+
+  await sourceFields.nth(0).getByRole('spinbutton', { name: 'Source 1 available maximum time-averaged power' }).fill('0.0006');
+  await sourceFields.nth(1).getByRole('spinbutton', { name: 'Source 2 available maximum time-averaged power' }).fill('0.0006');
+  await multiple.getByLabel('Minimum inter-source separation', { exact: true }).fill('2');
+  await expect(multiple.locator('.screen-outcome')).toContainText('special multiple-source 1 mW path is satisfied');
+
+  await multiple.getByRole('button', { name: 'Add RF source' }).click();
+  await expect(multiple.locator('fieldset.fcc-multiple-source')).toHaveCount(3);
+  await multiple.getByRole('button', { name: 'Remove source 3' }).click();
+  await expect(multiple.locator('fieldset.fcc-multiple-source')).toHaveCount(2);
 });
 
 test('normalizes and sums multiple RF sources without inferring compliance', async ({ page }) => {

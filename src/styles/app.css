@@ -694,7 +694,7 @@ select {
 
 .exposure-mode-picker {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
   margin-bottom: 1rem;
 }
@@ -776,6 +776,10 @@ select {
 
 .exposure-context-panel-three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.exposure-context-panel-one {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .exposure-view {
@@ -3270,6 +3274,139 @@ select {
   text-align: right;
 }
 
+.fcc-multiple-conditions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.fcc-multiple-conditions > div {
+  min-width: 0;
+}
+
+.fcc-multiple-conditions label {
+  font-weight: 800;
+}
+
+.fcc-multiple-conditions label input[type='checkbox'] {
+  margin-right: 0.45rem;
+}
+
+.fcc-multiple-conditions small {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--text-secondary);
+}
+
+.fcc-multiple-source-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.fcc-multiple-source {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.fcc-multiple-source legend {
+  padding-inline: 0.35rem;
+  font-family: var(--font-mono);
+  font-weight: 900;
+}
+
+.fcc-multiple-source .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.fcc-multiple-source select,
+.fcc-multiple-source input {
+  width: 100%;
+}
+
+.fcc-multiple-source > button {
+  align-self: end;
+}
+
+.fcc-add-source {
+  margin-top: 1rem;
+}
+
+.fcc-multiple-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.fcc-multiple-summary article {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.fcc-multiple-summary h4 {
+  margin: 0.3rem 0 0.8rem;
+  font-family: var(--font-mono);
+}
+
+.fcc-multiple-summary dl {
+  margin: 0;
+}
+
+.fcc-multiple-summary dl div {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  border-top: 1px dotted var(--border);
+}
+
+.fcc-multiple-summary dd {
+  text-align: right;
+}
+
+.fcc-contribution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.fcc-multiple-diagram {
+  min-height: 300px;
+}
+
+.fcc-fraction-track {
+  fill: var(--bg-elevated);
+  stroke: var(--border);
+}
+
+.fcc-fraction-source-1 { fill: var(--tl-teal); }
+.fcc-fraction-source-2 { fill: var(--tl-coral); }
+.fcc-fraction-source-3 { fill: var(--success); }
+.fcc-fraction-source-4 { fill: var(--tl-slate); }
+
+.fcc-diagram-total {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.fcc-multiple-divider {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
 .screen-results-layout {
   display: grid;
   grid-template-columns: minmax(230px, 0.62fr) minmax(0, 1.5fr);
@@ -4574,6 +4711,12 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .fcc-multiple-conditions,
+  .fcc-multiple-source,
+  .fcc-contribution-grid {
+    grid-template-columns: 1fr;
+  }
+
   .azimuth-source-editor {
     grid-template-columns: 1fr;
   }
@@ -4663,6 +4806,11 @@ select {
 
 @media (max-width: 540px) {
   .fcc-exemption-diagram {
+    height: auto;
+    min-height: 0;
+  }
+
+  .fcc-multiple-diagram {
     height: auto;
     min-height: 0;
   }

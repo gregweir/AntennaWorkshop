@@ -4,7 +4,7 @@
 
 This package defines the RF-exposure implementation that requires independent technical review before public beta release. It is a reproducible map from governing sources to code, equations, test vectors, user-visible classifications, and unresolved decisions. It is not a compliance report or evidence that review has passed.
 
-Review scope includes the Canadian and United States reference-limit lookup, FCC single-source routine-evaluation exemption, conservative far-field screen, normalized multiple-source total, and multi-point station project. FCC multiple-source exemption analysis, near-field analysis, measurements, uncertainty analysis, pattern attenuation, and compliance certification are not implemented.
+Review scope includes the Canadian and United States reference-limit lookup, FCC single- and multiple-source routine-evaluation exemptions, conservative far-field screen, normalized multiple-source total, and multi-point station project. Near-field analysis, measurements, uncertainty analysis, pattern attenuation, and compliance certification are not implemented.
 
 ## Authoritative sources
 
@@ -20,6 +20,7 @@ Sources and links were rechecked on 2026-11-13. A reviewer should record the edi
 | --- | --- | --- |
 | Canadian and US reference levels | `src/regulations/exposureLimits.ts` | `src/regulations/exposureLimits.test.ts` |
 | FCC single-source exemption | `src/calculators/fccExemption.ts` | `src/calculators/fccExemption.test.ts` |
+| FCC multiple-source exemption | `src/calculators/fccMultipleExemption.ts` | `src/calculators/fccMultipleExemption.test.ts` |
 | Single-source estimate and applicability | `src/calculators/exposureScreen.ts` | `src/calculators/exposureScreen.test.ts` |
 | Multiple-source normalization | `src/calculators/exposureAggregation.ts` | `src/calculators/exposureAggregation.test.ts` |
 | Source-to-point geometry and project status | `src/calculators/exposureProject.ts` | `src/calculators/exposureProject.test.ts` |
@@ -53,6 +54,8 @@ Canadian uncontrolled scenarios escalate at `F ≥ 0.5`; other encoded scenarios
 
 The FCC single-source exemption model evaluates § 1.1307(b)(3)(i)(A)–(C) independently. Criterion A compares available maximum time-averaged power with `1 mW`. Criterion B evaluates the official `Pth` equation only from 0.5 to 40 cm and 0.3 to 6 GHz, using the greater of available power or ERP. Criterion C compares entered ERP with the piecewise Table 1 threshold only from 0.3 to 100,000 MHz and at `R ≥ λ/(2π)`. Satisfying any path means exemption only from routine environmental evaluation.
 
+The FCC multiple-source model keeps § 1.1307(b)(3)(ii)(A) separate from the fractional equation in paragraph (B). The low-power path requires every source at or below 1 mW plus either total available power strictly below 1 mW or at least 2 cm inter-source separation. The alternative equation sums `P/Pth`, `ERP/ERPth`, and `Evaluated/Exposure Limit` terms and qualifies at a total no greater than one. The user must confirm the complete source set, fixed positional relationship, and compatible time averaging.
+
 ## Reproducible vectors
 
 The automated suite should reproduce these values within the precision asserted by its tests:
@@ -66,6 +69,7 @@ The automated suite should reproduce these values within the precision asserted 
 | Canadian screen: 146 MHz, 50 W, 50%, 1 dB loss, 2.15 dBi, 10 m | `Pavg = 25 W`; `Pantenna ≈ 19.858 W`; `EIRPavg ≈ 32.579 W`; `S ≈ 0.06637 W/m²`; `F ≈ 0.0514` |
 | Canadian aggregate: 0.1291 W/m² at 146 MHz plus 0.06455 W/m² at 446 MHz | contributions `0.1000` and approximately `0.03813`; total approximately `0.13813` |
 | FCC distance exemption: 146 MHz, 100 W ERP, 10 m | Table 1 threshold `3.83 × 10² = 383 W`; qualifies for exemption from routine evaluation |
+| FCC mixed collective exemption | close-proximity `0.20` + distance ERP `0.30` + existing evaluation `0.50` = `1.00`; qualifies at the inclusive fractional threshold |
 
 Health Canada Technical Guide Example C-1 provides an official free-space cross-check: 50 W EIRP at 1200 MHz has a `3.33 W/m²` uncontrolled reference level and a minimum distance of approximately `1.09 m` using `EIRP/(4πr²)`. With the application’s explicit `2.56` reflected-field multiplier, the corresponding conservative distance is approximately `1.75 m`. This difference is intentional and must be approved or revised during review.
 
