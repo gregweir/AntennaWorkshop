@@ -24,6 +24,7 @@ import { calculateCompactReceive, COMPACT_RECEIVE_MODEL, COMPACT_RECEIVE_PRESETS
 import { calculateK9ay, K9AY_MODEL } from '../calculators/k9ay';
 import { calculateLoopOnGround, LOOP_ON_GROUND_MODEL } from '../calculators/loopOnGround';
 import { calculateActiveReceiveLoop, ACTIVE_RECEIVE_LOOP_MODEL } from '../calculators/activeReceiveLoop';
+import type { ReceiveAntennaCandidate } from '../calculators/receiveAntennaSelector';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
@@ -57,6 +58,7 @@ import { CompactReceiveDiagram } from './CompactReceiveDiagram';
 import { K9ayDiagram } from './K9ayDiagram';
 import { LoopOnGroundDiagram } from './LoopOnGroundDiagram';
 import { ActiveReceiveLoopDiagram } from './ActiveReceiveLoopDiagram';
+import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
 type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'phased-collinear' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
@@ -374,6 +376,19 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       setActiveLoopUpperFrequencyText(activeBand.upperMHz.toFixed(activeBand.upperMHz < 30 ? 3 : 1));
     }
   };
+  const openReceivePlanner = (candidate: ReceiveAntennaCandidate) => {
+    if (candidate.compactGeometry) {
+      const preset = COMPACT_RECEIVE_PRESETS[candidate.compactGeometry];
+      setCompactReceiveGeometry(candidate.compactGeometry);
+      setCompactReceiveSpanMetres(preset.horizontalSpanMetres);
+      setCompactReceiveHeightMetres(preset.verticalHeightMetres);
+      setCompactReceiveClearanceMetres(preset.bottomClearanceMetres);
+      setCompactReceiveTerminationOhms(preset.terminationResistanceOhms);
+      setCompactReceiveAssumedImpedanceOhms(preset.assumedAntennaImpedanceOhms);
+    }
+    selectDesign(candidate.plannerType);
+    globalThis.requestAnimationFrame?.(() => document.getElementById('calculator-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   return (
     <section className="workspace shell" id="calculator" aria-labelledby="calculator-title">
@@ -386,6 +401,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {advancedOpen ? 'Hide advanced' : 'Show advanced'}
         </button>}
       </div>
+
+      <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />
 
       <div className="design-picker" aria-label="Antenna design">
         {(Object.keys(designs) as AntennaType[]).map((type) => (

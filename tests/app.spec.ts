@@ -647,6 +647,47 @@ test('plans an untuned active receiving loop without inventing amplifier perform
   await expect(page.getByRole('complementary', { name: 'Active receive loop design advisories' })).toContainText('one-sixteenth wavelength');
 });
 
+test('matches receive planners to explicit site and system constraints', async ({ page }) => {
+  await page.locator('select.band-select').selectOption('40m');
+  await page.getByText('Help me choose a receiving antenna').click();
+
+  await expect(page.getByRole('heading', { name: 'Start with constraints, not claimed performance' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Maximum receive-antenna horizontal clearance' })).toHaveValue('10');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum receive-antenna support height' })).toHaveValue('8');
+  await expect(page.getByText('2 fit without identified conflicts')).toBeVisible();
+  await expect(page.getByText('4 blocked by an entered constraint')).toBeVisible();
+
+  const beverage = page.locator('.receive-candidate').filter({ hasText: 'Terminated Beverage' });
+  await expect(beverage).toContainText('Constraint conflict');
+  await expect(beverage).toContainText('Needs about 21.0 m horizontal clearance');
+  await expect(beverage).toContainText('Requires two separate ground returns');
+
+  const activeLoop = page.locator('.receive-candidate').filter({ hasText: 'Untuned active receiving loop' });
+  await expect(activeLoop).toContainText('Fits entered constraints');
+  await expect(activeLoop).toContainText('Continuously rotatable bidirectional null axis');
+
+  await page.getByLabel('Receive-antenna direction-control need').selectOption('four-directions');
+  await page.getByLabel('Receive-antenna ground-return allowance').selectOption('1');
+  const k9ay = page.locator('.receive-candidate').filter({ hasText: 'K9AY crossed loops' });
+  await expect(k9ay).toContainText('Fits entered constraints');
+  await expect(activeLoop).toContainText('Fits with tradeoff');
+  await expect(activeLoop).toContainText('does not provide four electrically selected preset directions');
+
+  await page.getByLabel('Weatherproof direction switching and control wiring are acceptable').uncheck();
+  await expect(k9ay).toContainText('Requires weatherproof loop-selection and reversal switching');
+  await page.getByLabel('Weatherproof direction switching and control wiring are acceptable').check();
+  await k9ay.getByRole('button', { name: 'Open this planner' }).click();
+  await expect(page.getByRole('heading', { name: 'K9AY four-direction receiving loops' })).toBeVisible();
+
+  await page.getByLabel('Receive-antenna direction-control need').selectOption('fixed-axis');
+  await page.getByLabel('Receive-antenna ground-return allowance').selectOption('2');
+  const ewe = page.locator('.receive-candidate').filter({ has: page.getByRole('heading', { name: 'EWE', exact: true }) });
+  await ewe.getByRole('button', { name: 'Open this planner' }).click();
+  await expect(page.getByRole('heading', { name: 'Compact terminated receiving antenna' })).toBeVisible();
+  await expect(page.getByLabel('Compact receive antenna geometry', { exact: true })).toHaveValue('ewe');
+  await expect(page.getByText('Results compare topology, sourced starting dimensions, and required subsystems only.')).toBeVisible();
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
