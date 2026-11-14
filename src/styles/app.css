@@ -656,6 +656,12 @@ select {
   color: var(--text-primary);
 }
 
+.guided-progress span.is-current {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: color-mix(in srgb, var(--accent-technical) 10%, var(--bg-elevated));
+  color: var(--accent-technical);
+}
+
 .guided-question > div:first-child h4,
 .guided-question > div:first-child p {
   margin: 0;
@@ -664,6 +670,23 @@ select {
 .guided-question > div:first-child > p:last-child {
   margin-top: 0.35rem;
   color: var(--text-secondary);
+}
+
+.guided-question .guided-path-summary {
+  width: fit-content;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.guided-path-summary span {
+  padding-inline: 0.25rem;
+  color: var(--accent-technical);
 }
 
 .guided-choice-grid {

@@ -7,10 +7,13 @@
 
 import { expect, test } from '@playwright/test';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
   await page.goto('./');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  if (testInfo.title !== 'offers guided and searchable workbench antenna selection') {
+    await page.getByRole('tab', { name: /Workbench/ }).click();
+  }
 });
 
 test('persists jurisdiction, units, theme, and advanced controls', async ({ page }) => {
@@ -91,11 +94,15 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
 });
 
 test('offers guided and searchable workbench antenna selection', async ({ page }) => {
+  await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
+  await expect(page.getByLabel('Guided antenna choice step 1 of 3').locator('[aria-current="step"]')).toHaveText('1 · Purpose');
+  await expect(page.getByRole('searchbox', { name: 'Search designs' })).toHaveCount(0);
+
+  await page.getByRole('tab', { name: /Workbench/ }).click();
   const dipoleCard = page.getByRole('button', { name: /Dipole/ });
   await expect(dipoleCard).toContainText('Wire');
   await expect(dipoleCard).toContainText('Transmit-capable geometry');
   await page.getByRole('tab', { name: /Guided/ }).click();
-  await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
   await expect(page.getByLabel('Guided antenna choice step 1 of 3')).toBeVisible();
 
   await page.getByRole('button', { name: /Dedicated receiving/ }).click();
@@ -103,6 +110,8 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByLabel('Guided antenna choice step 2 of 3')).toBeVisible();
   await page.getByRole('button', { name: /No vertical support/ }).click();
   await expect(page.getByRole('heading', { name: '1 construction planner to review' })).toBeVisible();
+  await expect(page.getByText('Your path: Dedicated receiving → No vertical support')).toBeVisible();
+  await expect(page.getByLabel('Guided antenna choice step 3 of 3').locator('[aria-current="step"]')).toHaveText('3 · Designs');
   await expect(page.getByText('These are relevant options, not performance rankings.')).toBeVisible();
   await page.getByRole('button', { name: /Loop on Ground/ }).click();
   await expect(page.getByRole('heading', { name: 'Loop-on-Ground receiving antenna' })).toBeVisible();
@@ -139,6 +148,7 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
 
 test('keeps the antenna search control compact on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('tab', { name: /Workbench/ }).click();
 
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await expect(search).toBeVisible();

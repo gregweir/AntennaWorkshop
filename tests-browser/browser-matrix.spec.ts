@@ -62,6 +62,7 @@ test('supports keyboard entry and remains within the viewport', async ({ page, i
   await expect(page).toHaveURL(/#calculator$/);
   await expect(page.locator('#calculator')).toBeFocused();
 
+  await page.getByRole('tab', { name: /Workbench/ }).click();
   await page.getByRole('button', { name: /EFHW/ }).click();
   const frequency = page.getByRole('spinbutton', { name: 'Design frequency' });
   await frequency.focus();

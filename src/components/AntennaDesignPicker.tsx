@@ -29,6 +29,11 @@ const guidedGoals: Record<GuidedIntent, Array<{ id: GuidedGoal; label: string; d
   ]
 };
 
+const guidedIntentLabels: Record<GuidedIntent, string> = {
+  transmit: 'Transmitting and receiving',
+  receive: 'Dedicated receiving'
+};
+
 interface Props {
   activeType: AntennaType;
   onSelect: (type: AntennaType) => void;
@@ -60,7 +65,7 @@ export function AntennaDesignPicker({ activeType, onSelect }: Props) {
   const pickerHeadingRef = useRef<HTMLHeadingElement>(null);
   const previousActiveType = useRef(activeType);
   const [expanded, setExpanded] = useState(true);
-  const [mode, setMode] = useState<PickerMode>('workbench');
+  const [mode, setMode] = useState<PickerMode>('guided');
   const [searchText, setSearchText] = useState('');
   const [category, setCategory] = useState<'all' | AntennaDesignCategory>('all');
   const [guidedStep, setGuidedStep] = useState<1 | 2 | 3>(1);
@@ -72,6 +77,7 @@ export function AntennaDesignPicker({ activeType, onSelect }: Props) {
   }, [activeType]);
   const workbenchTypes = useMemo(() => filterAntennaDesigns(searchText, category), [category, searchText]);
   const guidedTypes = useMemo(() => getGuidedDesigns(guidedIntent, guidedGoal), [guidedGoal, guidedIntent]);
+  const guidedGoalLabel = guidedGoals[guidedIntent].find((goal) => goal.id === guidedGoal)?.label;
   const beginIntent = (intent: GuidedIntent) => {
     setGuidedIntent(intent);
     setGuidedGoal(intent === 'receive' ? 'compact-receive' : 'simple-wire');
@@ -108,10 +114,10 @@ export function AntennaDesignPicker({ activeType, onSelect }: Props) {
       <p className="design-use-explainer"><strong>Use labels describe planner scope, not operating approval.</strong> Transmit-capable geometry still requires a complete feed, safety, exposure, and installed-system review.</p>
       {workbenchTypes.length > 0 ? <DesignButtons types={workbenchTypes} activeType={activeType} onSelect={chooseDesign} /> : <div className="design-empty-state"><strong>No matching designs</strong><p>Clear the search or choose another category. Searching changes only the picker, not the current calculation.</p><button type="button" onClick={() => { setSearchText(''); setCategory('all'); }}>Show all designs</button></div>}
     </div> : <div role="tabpanel" className="picker-guided-panel">
-      <div className="guided-progress" aria-label={`Guided antenna choice step ${guidedStep} of 3`}><span className={guidedStep >= 1 ? 'is-complete' : ''}>1 · Purpose</span><span className={guidedStep >= 2 ? 'is-complete' : ''}>2 · Site or goal</span><span className={guidedStep >= 3 ? 'is-complete' : ''}>3 · Designs</span></div>
+      <div className="guided-progress" aria-label={`Guided antenna choice step ${guidedStep} of 3`}><span className={guidedStep >= 1 ? `is-complete${guidedStep === 1 ? ' is-current' : ''}` : ''} aria-current={guidedStep === 1 ? 'step' : undefined}>1 · Purpose</span><span className={guidedStep >= 2 ? `is-complete${guidedStep === 2 ? ' is-current' : ''}` : ''} aria-current={guidedStep === 2 ? 'step' : undefined}>2 · Site or goal</span><span className={guidedStep >= 3 ? `is-complete${guidedStep === 3 ? ' is-current' : ''}` : ''} aria-current={guidedStep === 3 ? 'step' : undefined}>3 · Designs</span></div>
       {guidedStep === 1 && <div className="guided-question"><div><p className="eyebrow">Step 1 of 3</p><h4>What will this antenna be used for?</h4><p>Receive-only antennas have different priorities and must never be connected to a transmitter.</p></div><div className="guided-choice-grid guided-intent-grid"><button type="button" onClick={() => beginIntent('transmit')}><strong>Transmitting and receiving</strong><span>Resonant, multiband, broadband, vertical, loop, and directional construction choices.</span></button><button type="button" onClick={() => beginIntent('receive')}><strong>Dedicated receiving</strong><span>Low-noise-site, direction-control, compact, long-route, and surface-loop choices.</span></button></div></div>}
       {guidedStep === 2 && <div className="guided-question"><div><p className="eyebrow">Step 2 of 3</p><h4>Which site or operating goal matters most?</h4><p>This narrows the catalog without claiming that one antenna will outperform another at your location.</p></div><div className="guided-choice-grid">{guidedGoals[guidedIntent].map((goal) => <button key={goal.id} type="button" onClick={() => { setGuidedGoal(goal.id); setGuidedStep(3); }}><strong>{goal.label}</strong><span>{goal.description}</span></button>)}</div><button className="picker-back-button" type="button" onClick={() => setGuidedStep(1)}>Back to purpose</button></div>}
-      {guidedStep === 3 && <div className="guided-question guided-results"><div><p className="eyebrow">Step 3 of 3</p><h4>{guidedTypes.length} construction {guidedTypes.length === 1 ? 'planner' : 'planners'} to review</h4><p>Choose a planner to inspect its dimensions, assumptions, diagram, help, and limitations. These are relevant options, not performance rankings.</p></div><DesignButtons types={guidedTypes} activeType={activeType} onSelect={chooseDesign} /><div className="guided-result-actions"><button className="picker-back-button" type="button" onClick={() => setGuidedStep(2)}>Back to site or goal</button><button type="button" onClick={() => { setMode('workbench'); setSearchText(''); setCategory('all'); }}>Open full workbench</button></div></div>}
+      {guidedStep === 3 && <div className="guided-question guided-results"><div><p className="eyebrow">Step 3 of 3</p><h4>{guidedTypes.length} construction {guidedTypes.length === 1 ? 'planner' : 'planners'} to review</h4><p>Choose a planner to inspect its dimensions, assumptions, diagram, help, and limitations. These are relevant options, not performance rankings.</p><p className="guided-path-summary"><strong>Your path:</strong> {guidedIntentLabels[guidedIntent]} <span aria-hidden="true">→</span> {guidedGoalLabel}</p></div><DesignButtons types={guidedTypes} activeType={activeType} onSelect={chooseDesign} /><div className="guided-result-actions"><button className="picker-back-button" type="button" onClick={() => setGuidedStep(2)}>Back to site or goal</button><button type="button" onClick={() => { setMode('workbench'); setSearchText(''); setCategory('all'); }}>Open full workbench</button></div></div>}
     </div>}
   </section>;
 }
