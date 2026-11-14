@@ -115,9 +115,16 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByLabel('Guided antenna choice step 1 of 3').locator('[aria-current="step"]')).toHaveText('1 · Purpose');
   await expect(page.getByRole('searchbox', { name: 'Search designs' })).toHaveCount(0);
 
-  await workbenchTab.click();
+  await guidedTab.focus();
+  await guidedTab.press('ArrowRight');
+  await expect(workbenchTab).toBeFocused();
   await expect(workbenchTab).toContainText('Selected');
   await expect(guidedTab).toContainText('Select');
+  await workbenchTab.press('Home');
+  await expect(guidedTab).toBeFocused();
+  await expect(guidedTab).toContainText('Selected');
+  await guidedTab.press('End');
+  await expect(workbenchTab).toBeFocused();
   const dipoleCard = page.getByRole('button', { name: /Dipole/ });
   await expect(dipoleCard).toContainText('Wire');
   await expect(dipoleCard).toContainText('Transmit-capable geometry');
@@ -1511,6 +1518,17 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.getByRole('img', { name: /Smith chart for the entered complex load/ })).toBeVisible();
   await expect(page.locator('.smith-chart-labels text').first()).toHaveCSS('paint-order', 'stroke');
   await expect(page.locator('.smith-chart-labels text').first()).toHaveCSS('stroke-width', '3px');
+  await expect(page.getByText('The grid maps normalized resistance and reactance.')).toBeVisible();
+  await page.getByRole('button', { name: 'View larger' }).click();
+  const enlargedChart = page.getByRole('dialog', { name: 'Smith chart enlarged view' });
+  await expect(enlargedChart).toBeVisible();
+  await expect(page.locator('body')).toHaveClass(/diagram-view-open/);
+  await expect(enlargedChart.getByText('100%')).toBeVisible();
+  await enlargedChart.getByRole('button', { name: 'Zoom diagram in' }).click();
+  await expect(enlargedChart.getByText('125%')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(enlargedChart).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'View larger' })).toBeFocused();
   await expect(page.locator('.result-summary')).toContainText('2.618 : 1');
   await expect(page.locator('.result-summary')).toContainText('2.000 − j1.000');
   await expect(page.locator('.result-summary')).toContainText('20.00%');

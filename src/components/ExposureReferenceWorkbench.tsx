@@ -28,6 +28,7 @@ import { AcmaExclusionDistancePanel } from './AcmaExclusionDistancePanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import type { AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
 import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
+import { DiagramControls } from './DiagramControls';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -141,7 +142,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
           { term: 'Jurisdiction', value: profile?.name ?? jurisdiction, kind: 'assumption' },
           { term: 'Quantity', value: 'Reference level', kind: 'source' }
         ]} />}</div>
-        <div className="visual-panel">{levels ? <ExposureLimitDiagram levels={levels} selected={environment} /> : <div className="diagram-placeholder">No power-density comparison is available for this frequency.</div>}</div>
+        <div className="visual-panel"><DiagramControls label="Exposure reference-level chart" help="The highlighted value is the selected environment at this frequency. It is a reference-level comparison, not a station compliance result." />{levels ? <ExposureLimitDiagram levels={levels} selected={environment} /> : <div className="diagram-placeholder">No power-density comparison is available for this frequency.</div>}</div>
       </div>
       <BandIndicator band={activeBand} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />
       <p className="allocation-note">Band allocation and exposure limits are separate rule sets.{bandSource && <> Allocation source: <a href={bandSource.url} target="_blank" rel="noreferrer">{bandSource.title}</a> (reviewed {bandSource.reviewedOn}).</>}</p>

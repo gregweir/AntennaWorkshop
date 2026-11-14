@@ -46,6 +46,7 @@ import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
 import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { ResultEvidenceGuide } from './ResultEvidenceGuide';
+import { DiagramControls } from './DiagramControls';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 const AntennaResultSummary = lazy(() => import('./AntennaResultSummary').then((module) => ({ default: module.AntennaResultSummary })));
@@ -1393,6 +1394,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
         </form>
 
         <div className="visual-panel" id="design-drawing">
+          <DiagramControls label={`${ANTENNA_DESIGNS[antennaType].short} construction drawing`} help="Dimensions are calculated starting points; the drawing is not to scale. Enlarge it to zoom and pan, then verify the finished antenna by measurement." />
           <div className="antenna-print-diagram">
           {calculation?.type === 'dipole' && <DipoleDiagram totalMetres={calculation.value.cutTotalMetres} legMetres={calculation.value.cutLegMetres} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
           {calculation?.type === 'folded-dipole' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading folded-dipole drawing…</div>}><FoldedDipoleDiagram spanMetres={calculation.value.cutSpanMetres} spacingMetres={calculation.value.conductorSpacingMetres} unitSystem={unitSystem} /></Suspense>}
