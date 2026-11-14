@@ -103,6 +103,10 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
   await expect(page.getByRole('spinbutton', { name: /Design frequency/ })).toHaveValue('14.175');
   await expect(page.locator('.band-indicator')).toContainText('20 m');
   await expect(page.locator('.band-indicator')).toContainText('21.149 m');
+  const inputImpact = page.getByRole('region', { name: 'What these inputs affect' });
+  await expect(inputImpact).toContainText('At 14.175 MHz');
+  await expect(inputImpact).toContainText('largest displayed dimension');
+  await expect(inputImpact).toContainText('not a match or performance prediction');
 });
 
 test('offers guided and searchable workbench antenna selection', async ({ page }) => {
@@ -1477,6 +1481,10 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.getByRole('img', { name: 'Feedline power-flow diagram' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
   await expect(page.locator('.result-summary')).toContainText('1.80 dB');
+  const inputImpact = page.getByRole('region', { name: 'What these inputs affect' });
+  await expect(inputImpact).toContainText('63.10 W reaches the antenna feedpoint');
+  await expect(inputImpact).toContainText('SWR changes the displayed reflected and accepted fractions');
+  await expect(inputImpact).toContainText('does not model mismatch-dependent line loss');
   await expect(page.getByText('Measure at the antenna reference plane', { exact: true })).toBeHidden();
   await page.getByText('Plan and verify a feedline budget').click();
   await expect(page.getByText('Measure at the antenna reference plane', { exact: true })).toBeVisible();
@@ -1497,6 +1505,8 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.getByLabel('Electrical length', { exact: true })).toHaveValue('0.25');
   await expect(page.getByLabel('Far-end termination', { exact: true })).toHaveValue('short');
   await expect(page.getByRole('img', { name: /Dimensioned coaxial stub/ })).toBeVisible();
+  await expect(inputImpact).toContainText('starting cut length');
+  await expect(inputImpact).toContainText('Connector bodies and termination geometry are not inferred');
   await expect(page.locator('.result-summary')).toContainText('12 ft 1 in');
   await expect(page.locator('.result-summary')).toContainText('High impedance');
   await expect(page.getByText('Build the final termination', { exact: true })).toBeHidden();
@@ -1546,6 +1556,8 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.locator('.result-summary')).toContainText('∞ dB · ideal match');
   await page.getByLabel('Measured resistance for chart', { exact: true }).fill('0');
   await expect(page.getByRole('alert')).toContainText('impedance point');
+  await expect(inputImpact).toContainText('no calculated consequence is shown until the inputs are valid');
+  await expect(inputImpact).not.toContainText('The entered R + jX point produces');
   await page.getByLabel('Measured resistance for chart', { exact: true }).fill('100');
   await page.getByLabel('Measured reactance for chart', { exact: true }).fill('-50');
 

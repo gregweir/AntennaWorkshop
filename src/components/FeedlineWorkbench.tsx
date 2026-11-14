@@ -30,6 +30,7 @@ import { TransmissionLineCascadeDiagram } from './TransmissionLineCascadeDiagram
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
 import { DiagramControls } from './DiagramControls';
+import { InputImpactPanel } from './InputImpactPanel';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -179,6 +180,47 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
 
   const result = mode === 'power' ? powerResult : mode === 'stub' ? stubResult : mode === 'explore' ? explorerResult : mode === 'line' ? lineResult : mode === 'match' ? matchResult : mode === 'transformer' ? transformerResult : mode === 'ratio' ? ratioResult : radiatedResult;
   const model = mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : mode === 'explore' ? IMPEDANCE_EXPLORER_MODEL : mode === 'line' ? TRANSMISSION_LINE_CASCADE_MODEL : mode === 'match' ? L_NETWORK_MODEL : mode === 'transformer' ? QUARTER_WAVE_TRANSFORMER_MODEL : mode === 'ratio' ? IDEAL_TRANSFORMER_MODEL : RADIATED_POWER_MODEL;
+  const inputImpact = !result ? {
+    current: 'One or more entries are outside the accepted range, so no calculated consequence is shown until the inputs are valid.',
+    why: 'Each tool keeps physical inputs and reference planes explicit so a changed number can be traced to the result it affects.',
+    boundary: 'Correct the highlighted input, then verify the completed hardware with suitable calibrated measurements.'
+  } : mode === 'power' && powerResult ? {
+    current: `${powerResult.forwardPowerAtAntennaWatts.toFixed(2)} W reaches the antenna feedpoint in the entered matched-loss budget; ${powerResult.acceptedPowerWatts.toFixed(2)} W is accepted by the load in the scalar mismatch view.`,
+    why: 'Cable length, published loss, and accessory loss change feedpoint power. SWR changes the displayed reflected and accepted fractions, but not the forward-power estimate.',
+    boundary: 'This does not model mismatch-dependent line loss or re-reflections. Confirm cable data at frequency and measure the installed system at the antenna reference plane.'
+  } : mode === 'stub' && stubResult ? {
+    current: `Frequency, velocity factor, electrical length, and allowance produce a starting cut length of ${formatLength(stubResult.cutLengthMetres, unitSystem)}.`,
+    why: 'Frequency and velocity factor set guided wavelength; the selected fraction sets electrical length; allowance adds material for measured trimming.',
+    boundary: 'Connector bodies and termination geometry are not inferred. Attach the final hardware and trim while measuring at the intended reference plane.'
+  } : mode === 'explore' && explorerResult ? {
+    current: `The entered R + jX point produces ${explorerResult.swr.toFixed(3)} : 1 SWR and ${explorerResult.reflectedPowerPercent.toFixed(2)}% ideal reflected power at this reference plane.`,
+    why: 'Resistance, reactance, and reference resistance move the Smith-chart point and change every derived reflection quantity.',
+    boundary: 'One point does not show bandwidth or resonance movement. Calibrate to the connection plane and sweep the installed system across frequency.'
+  } : mode === 'line' && lineResult ? {
+    current: `The entered load and line sections transform to ${lineResult.inputResistanceOhms.toFixed(2)} ${lineResult.inputReactanceOhms < 0 ? '−' : '+'} j${Math.abs(lineResult.inputReactanceOhms).toFixed(2)} Ω at the source-side input.`,
+    why: 'Frequency, physical length, velocity factor, characteristic impedance, attenuation, and section order all change electrical length and input impedance.',
+    boundary: 'Connectors, transitions, common-mode current, and tolerance are outside the model. Measure the assembled cascade at its actual reference planes.'
+  } : mode === 'match' && matchResult ? {
+    current: `The measured load and target resistance produce ${matchResult.solutions.length} ideal L-network ${matchResult.solutions.length === 1 ? 'solution' : 'solutions'} at ${frequencyMHz.toFixed(3)} MHz.`,
+    why: 'Changing R, X, target resistance, or frequency changes the required topology and component values; some loads cannot use every topology.',
+    boundary: 'Parasitics, component Q, voltage, current, heating, and bandwidth are not designed here. Build with rated parts and remeasure at low power.'
+  } : mode === 'transformer' && transformerResult ? {
+    current: `The two real terminal resistances require ${transformerResult.requiredCharacteristicImpedanceOhms.toFixed(2)} Ω line with a starting cut length of ${formatLength(transformerResult.cutLengthMetres, unitSystem)}.`,
+    why: 'Terminal resistances set required line impedance; frequency and velocity factor set physical quarter-wave length; allowance affects only the cut length.',
+    boundary: 'Reactive terminals, line loss, transitions, and realizable impedance are not solved. Measure both terminal impedances and the completed 90° section.'
+  } : mode === 'ratio' && ratioResult ? {
+    current: `The entered real resistances require an ideal source-to-load impedance ratio of 1 : ${ratioResult.idealImpedanceRatioLoadToSource.toFixed(3)} and a turns ratio of 1 : ${ratioResult.idealTurnsRatioLoadToSource.toFixed(3)}.`,
+    why: 'Resistance ratio sets ideal turns ratio; chosen source turns determine the adjacent practical integer winding options.',
+    boundary: 'This does not select a core or prove balance, bandwidth, loss, heating, or power handling. Complete a magnetic design and test the finished device.'
+  } : radiatedResult ? {
+    current: `${formatWatts(radiatedResult.antennaInputPowerWatts)} reaches the antenna and the entered gain produces ${formatWatts(radiatedResult.eirpWatts)} EIRP.`,
+    why: 'Transmitter power and feed loss change antenna input power; gain value and dBi or dBd reference change ERP and EIRP.',
+    boundary: 'This is power accounting, not an RF-exposure conclusion. Verify reference planes and maximum directional gain, then use the applicable jurisdiction workflow.'
+  } : {
+    current: 'The current values are ready for review.',
+    why: 'Changing an input updates only the quantities identified by this calculator.',
+    boundary: 'Verify the completed hardware and installation before relying on the result.'
+  };
 
   return <section className="workspace shell feedline-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
     <div className="workspace-heading">
@@ -334,6 +376,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
             <PowerField label="Installed antenna north position" value={Number(antennaNorthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={-1_000_000} max={1_000_000} step={0.1} onChange={(value) => setAntennaNorthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Enter a north-positive coordinate using the same site origin as evaluation points." />
           </>}
         </>}
+        <InputImpactPanel current={inputImpact.current} why={inputImpact.why} boundary={inputImpact.boundary} />
         {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : mode === 'explore' ? 'impedance point' : mode === 'line' ? 'line transformation' : mode === 'match' ? 'matching network' : mode === 'transformer' ? 'quarter-wave transformer' : mode === 'ratio' ? 'ideal transformer ratio' : 'radiated power'}.</p>}
         {mode === 'power' && powerResult && <EvidenceResultSummary headline="Forward power at antenna feedpoint" primary={`${powerResult.forwardPowerAtAntennaWatts.toFixed(2)} W`} primaryKind="calculated" items={[
           { term: 'Accepted by load', value: `${powerResult.acceptedPowerWatts.toFixed(2)} W`, kind: 'calculated' },

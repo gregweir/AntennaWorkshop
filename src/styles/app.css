@@ -6126,6 +6126,61 @@ select {
   background: var(--bg-elevated);
 }
 
+.input-impact-panel {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 1.2rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-technical) 55%, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: inset 4px 0 0 var(--tl-coral);
+}
+
+.input-impact-heading {
+  padding: 0.75rem 0.85rem 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.input-impact-heading p,
+.input-impact-heading h3,
+.input-impact-grid p {
+  margin: 0;
+}
+
+.input-impact-heading h3 {
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+
+.input-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+
+.input-impact-grid article {
+  min-width: 0;
+  padding: 0.8rem 0.85rem 0.9rem 1rem;
+  background: var(--bg-surface);
+}
+
+.input-impact-grid strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.input-impact-grid p {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
 .field {
   display: block;
   margin-bottom: 1.2rem;
@@ -10163,6 +10218,10 @@ body.diagram-view-open {
 
 @media (max-width: 820px) {
   .pwa-install-platforms {
+    grid-template-columns: 1fr;
+  }
+
+  .input-impact-grid {
     grid-template-columns: 1fr;
   }
 

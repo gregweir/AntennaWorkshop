@@ -47,6 +47,7 @@ import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { ResultEvidenceGuide } from './ResultEvidenceGuide';
 import { DiagramControls } from './DiagramControls';
+import { InputImpactPanel } from './InputImpactPanel';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 const AntennaResultSummary = lazy(() => import('./AntennaResultSummary').then((module) => ({ default: module.AntennaResultSummary })));
@@ -744,6 +745,33 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
     }
   };
 
+  const design = ANTENNA_DESIGNS[antennaType];
+  const currentAntennaImpact = calculation
+    ? `At ${frequencyMHz.toFixed(3)} MHz, the current settings produce a largest displayed dimension of ${formatLength(largestAntennaDimension(calculation, loopShape), unitSystem)}. The result cards and drawing update with every valid edit.`
+    : 'One or more entries are outside the accepted range, so no construction consequence is shown until the inputs are valid.';
+  const antennaImpactWhy = design.receiveOnly
+    ? 'Geometry, bearing, termination, and transformer assumptions change the construction schedule and intended receive orientation.'
+    : antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical' || antennaType === 'trap-dipole' || antennaType === 'small-loop'
+      ? 'Loading or tuning choices trade physical size against component values, tolerances, loss, bandwidth, and tuning sensitivity.'
+      : design.category === 'directional'
+        ? 'Element lengths, spacing, support geometry, and bearing change the physical array or survey layout.'
+        : design.category === 'vertical'
+          ? 'Radiator, radial, counterpoise, and matching-section choices change height, footprint, and cut dimensions.'
+          : design.category === 'loop'
+            ? 'Perimeter, shape, feed placement, and support choices change the conductor schedule and installed footprint.'
+            : design.category === 'broadband'
+              ? 'Frequency range, geometry, termination, and construction allowances change the material schedule and intended operating span.'
+              : 'Frequency, correction factors, geometry, and trimming allowance change the wire schedule and starting dimensions.';
+  const antennaImpactBoundary = design.receiveOnly
+    ? 'This does not predict signal-to-noise ratio, RDF, null depth, gain, or receiver safety. Measure installed response and verify isolation, protection, and direction.'
+    : design.category === 'directional'
+      ? 'This does not predict installed gain, pattern, front-to-back ratio, polarization, or match. Model when appropriate, then sweep and measure the finished array.'
+      : antennaType === 'small-loop'
+        ? 'This does not prove efficiency, capacitor voltage margin, conductor loss, bandwidth, or safe power. Measure inductance, resonance, heating, and field conditions.'
+        : antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical' || antennaType === 'trap-dipole'
+          ? 'This does not predict coil or trap Q, heating, bandwidth, or installed impedance. Build conservatively and tune the complete antenna at low power.'
+          : 'Dimensions are construction starting points, not a match or performance prediction. Install in the intended geometry, sweep the finished system, and trim symmetrically where applicable.';
+
   return (
     <section className="workspace shell" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
       <div className="workspace-heading">
@@ -1367,6 +1395,8 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
           {advancedOpen && antennaType === 'active-receive-loop' && <div className="advanced-fields active-receive-loop-advanced-fields">
             <NumberField label="Active-loop extra conductor for feed gap" tooltip="Adds material to the ideal circular circumference for amplifier terminals, bends, overlap, attachment, and trimming. It does not change the entered finished loop diameter." value={activeLoopWireAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added to the cut-conductor inventory only; preserve the intended finished circle and balanced feed gap." onChange={setActiveLoopWireAllowancePercent} />
           </div>}
+
+          <InputImpactPanel current={currentAntennaImpact} why={antennaImpactWhy} boundary={antennaImpactBoundary} />
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
           {calculation && <><div className="antenna-print-heading">
