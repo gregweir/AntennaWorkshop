@@ -6,6 +6,7 @@
  */
 
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState, type MouseEvent } from 'react';
+import { PwaInstallGuide } from './components/PwaInstallGuide';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
 import { loadPreferences, savePreferences, type ThemePreference } from './preferences';
@@ -105,8 +106,9 @@ export function App() {
           <span className="status-chip">Jurisdiction: {jurisdictionName}</span>
           <span className="status-chip">Units: {unitSystem === 'metric' ? 'Metric' : 'Imperial'}</span>
           <span className="status-chip">Theme: {theme === 'system' ? 'System' : theme === 'light' ? 'Light' : 'Dark'}</span>
-          <span className="status-chip status-chip-muted">Works offline after installation</span>
+          <span className="status-chip status-chip-muted">Works offline after the first online load</span>
         </div>
+        <PwaInstallGuide />
       </section>
 
       <nav className="tool-nav shell" aria-label="Workshop tools">

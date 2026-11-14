@@ -45,6 +45,18 @@ test('applies light, dark, and live system theme modes', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
+test('explains how to install and update the offline application', async ({ page }) => {
+  await page.getByText('Install this app', { exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'iPhone or iPad' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Other browsers' })).toBeVisible();
+  await expect(page.locator('.pwa-install-guide')).toContainText('HTTPS or a localhost address');
+  await expect(page.locator('.pwa-install-guide')).toContainText('Reconnect periodically to receive application updates');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
 test('saves, reopens, duplicates, exports, and imports complete antenna plans', async ({ page }) => {
   await page.getByRole('button', { name: /Folded dipole/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
@@ -94,11 +106,18 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
 });
 
 test('offers guided and searchable workbench antenna selection', async ({ page }) => {
+  const guidedTab = page.getByRole('tab', { name: /Guided/ });
+  const workbenchTab = page.getByRole('tab', { name: /Workbench/ });
+  await expect(guidedTab).toContainText('Selected');
+  await expect(workbenchTab).toContainText('Select');
+  await expect(guidedTab).toHaveCSS('border-top-width', '2px');
   await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
   await expect(page.getByLabel('Guided antenna choice step 1 of 3').locator('[aria-current="step"]')).toHaveText('1 · Purpose');
   await expect(page.getByRole('searchbox', { name: 'Search designs' })).toHaveCount(0);
 
-  await page.getByRole('tab', { name: /Workbench/ }).click();
+  await workbenchTab.click();
+  await expect(workbenchTab).toContainText('Selected');
+  await expect(guidedTab).toContainText('Select');
   const dipoleCard = page.getByRole('button', { name: /Dipole/ });
   await expect(dipoleCard).toContainText('Wire');
   await expect(dipoleCard).toContainText('Transmit-capable geometry');
@@ -1490,6 +1509,8 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.getByLabel('Measured resistance for chart', { exact: true })).toHaveValue('100');
   await expect(page.getByLabel('Measured reactance for chart', { exact: true })).toHaveValue('-50');
   await expect(page.getByRole('img', { name: /Smith chart for the entered complex load/ })).toBeVisible();
+  await expect(page.locator('.smith-chart-labels text').first()).toHaveCSS('paint-order', 'stroke');
+  await expect(page.locator('.smith-chart-labels text').first()).toHaveCSS('stroke-width', '3px');
   await expect(page.locator('.result-summary')).toContainText('2.618 : 1');
   await expect(page.locator('.result-summary')).toContainText('2.000 − j1.000');
   await expect(page.locator('.result-summary')).toContainText('20.00%');

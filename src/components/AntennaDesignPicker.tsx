@@ -107,8 +107,8 @@ export function AntennaDesignPicker({ activeType, onSelect, onCompare }: Props) 
     <div className="antenna-picker-toolbar">
       <div><p className="eyebrow">Choose a design</p><h3 id="antenna-picker-heading" ref={pickerHeadingRef} tabIndex={-1}>Guided choice or direct workbench access</h3></div>
       <div className="picker-mode-tabs" role="tablist" aria-label="Antenna picker mode">
-        <button type="button" role="tab" aria-selected={mode === 'guided'} onClick={() => chooseMode('guided')}><span>Guided</span><small>Help me narrow it down</small></button>
-        <button type="button" role="tab" aria-selected={mode === 'workbench'} onClick={() => chooseMode('workbench')}><span>Workbench</span><small>Search every design</small></button>
+        <button type="button" role="tab" aria-selected={mode === 'guided'} onClick={() => chooseMode('guided')}><span>Guided</span><em aria-hidden="true">{mode === 'guided' ? '✓ Selected' : 'Select'}</em><small>Help me narrow it down</small></button>
+        <button type="button" role="tab" aria-selected={mode === 'workbench'} onClick={() => chooseMode('workbench')}><span>Workbench</span><em aria-hidden="true">{mode === 'workbench' ? '✓ Selected' : 'Select'}</em><small>Search every design</small></button>
       </div>
     </div>
 

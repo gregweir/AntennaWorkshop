@@ -9,6 +9,8 @@ import { expect, test } from '@playwright/test';
 
 test('publishes an installable scoped manifest and active worker', async ({ page, request }) => {
   await page.goto('./');
+  await page.getByText('Install this app', { exact: true }).click();
+  await expect(page.locator('.pwa-install-guide')).toContainText('Add to Home Screen');
   const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
   expect(manifestHref).toBeTruthy();
   const manifestResponse = await request.get(new URL(manifestHref!, page.url()).toString());
