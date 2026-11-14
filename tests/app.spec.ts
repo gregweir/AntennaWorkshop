@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 29 designs')).toBeVisible();
+  await expect(page.getByText('2 of 30 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 29 designs')).toBeVisible();
+  await expect(page.getByText('5 of 30 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('29 of 29 designs')).toBeVisible();
+  await expect(page.getByText('30 of 30 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -110,6 +110,26 @@ test('plans an equal-conductor folded dipole without presenting nominal impedanc
   await expect(page.locator('.caution-card').filter({ hasText: 'Folded-dipole feed system' })).toContainText('A nominal ratio is not a transformer design');
   await page.getByRole('button', { name: 'Imperial' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Parallel conductor spacing' })).toHaveValue('0.492');
+});
+
+test('plans a crossed-dipole turnstile without treating a quarter-wave line as a complete feed network', async ({ page }) => {
+  await page.getByRole('button', { name: /Turnstile/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('145.800');
+  await expect(page.getByRole('heading', { name: 'Crossed-dipole turnstile' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned crossed-dipole turnstile/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Cut two equal crossed dipoles');
+  await expect(page.locator('.result-summary')).toContainText('Dipole B lags Dipole A by 90°');
+  await expect(page.locator('.result-summary')).toContainText('Not inferred · model and measure');
+  await page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' }).fill('0.82');
+  await expect(page.locator('.result-summary')).toContainText('42.2 cm');
+  await page.getByLabel('Turnstile quadrature order', { exact: true }).selectOption('b-leads-a');
+  await expect(page.locator('.result-summary')).toContainText('Dipole B leads Dipole A by 90°');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Turnstile feed network and polarization' })).toContainText('not an equal-power quadrature system by itself');
+  await expect(page.getByText('Develop the quadrature feed')).toBeHidden();
+  await page.getByText('Build and commission a crossed-dipole turnstile').click();
+  await expect(page.getByText('Develop the quadrature feed')).toBeVisible();
+  await page.getByLabel('Help: Turnstile quadrature order').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Turnstile quadrature order' })).toContainText('RHCP and LHCP labels depend on the observation direction');
 });
 
 test('compares three antenna systems without ranking unmodelled performance', async ({ page }) => {

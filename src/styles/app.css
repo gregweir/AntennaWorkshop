@@ -8227,6 +8227,50 @@ path.loading-coil {
   font-size: 12px;
 }
 
+.turnstile-dipole line {
+  stroke-linecap: round;
+  stroke-width: 9;
+}
+
+.turnstile-dipole-a line {
+  stroke: var(--tl-coral);
+}
+
+.turnstile-dipole-b line {
+  stroke: var(--accent-technical);
+}
+
+.turnstile-dipole text,
+.turnstile-labels text,
+.turnstile-feed text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.turnstile-feed circle {
+  fill: var(--tl-navy);
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.turnstile-feed path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.turnstile-feed .phase-path {
+  stroke: var(--tl-coral);
+  stroke-dasharray: 8 6;
+}
+
+.turnstile-feed rect {
+  fill: var(--bg-elevated);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
 .feedpoint rect {
   fill: var(--tl-navy);
   stroke: var(--tl-coral);
@@ -9483,6 +9527,13 @@ path.loading-coil {
   .delta-loop-figure .dimension-lines text,
   .delta-loop-figure .end-labels text {
     font-size: 22px;
+  }
+
+  .turnstile-figure .dimension-lines text,
+  .turnstile-dipole text,
+  .turnstile-labels text,
+  .turnstile-feed text {
+    font-size: 20px;
   }
 }
 

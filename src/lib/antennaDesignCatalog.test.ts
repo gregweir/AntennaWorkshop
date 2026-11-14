@@ -10,7 +10,7 @@ import { ANTENNA_DESIGNS, filterAntennaDesigns, getGuidedDesigns } from './anten
 
 describe('antenna design catalog', () => {
   it('contains every design with searchable guidance metadata', () => {
-    expect(Object.keys(ANTENNA_DESIGNS)).toHaveLength(29);
+    expect(Object.keys(ANTENNA_DESIGNS)).toHaveLength(30);
     expect(Object.values(ANTENNA_DESIGNS).every((design) => design.tags.length > 0 && design.guidedGoals.length > 0)).toBe(true);
   });
 
@@ -21,7 +21,7 @@ describe('antenna design catalog', () => {
 
   it('searches names, descriptions, and tags with all entered terms', () => {
     expect(filterAntennaDesigns('shortened coil', 'all')).toEqual(['loaded-dipole', 'loaded-vertical']);
-    expect(filterAntennaDesigns('circular polarization', 'all')).toEqual(['axial-helix']);
+    expect(filterAntennaDesigns('circular polarization', 'all')).toEqual(['turnstile', 'axial-helix']);
     expect(filterAntennaDesigns('no support', 'all')).toEqual(['loop-on-ground']);
     expect(filterAntennaDesigns('zs6bkw', 'all')).toEqual(['g5rv']);
     expect(filterAntennaDesigns('delta triangle', 'all')).toEqual(['full-wave-loop']);
@@ -35,7 +35,7 @@ describe('antenna design catalog', () => {
   it('keeps receive-only designs out of transmit results', () => {
     const transmit = getGuidedDesigns('transmit', 'all');
     const receive = getGuidedDesigns('receive', 'all');
-    expect(transmit).toHaveLength(24);
+    expect(transmit).toHaveLength(25);
     expect(receive).toHaveLength(5);
     expect(transmit.some((type) => ANTENNA_DESIGNS[type].receiveOnly)).toBe(false);
     expect(receive.every((type) => ANTENNA_DESIGNS[type].receiveOnly)).toBe(true);

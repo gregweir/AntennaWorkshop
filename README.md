@@ -8,6 +8,8 @@ The current workshop includes dimensioned half-wave dipole, equal-conductor fold
 
 An optional three-design comparison aid covers required space and supports, band intent, feed and tuning systems, directional context, construction complexity, and installed measurements for every antenna planner. It deliberately compares practical topology rather than ranking unmodelled gain, efficiency, signal strength, or site suitability; any compared design can be opened directly in the workbench.
 
+The crossed-dipole turnstile workflow sizes two equal orthogonal half-wave dipoles and a velocity-factor-aware quarter-wave path-difference reference. It makes equal amplitude, measured relative phase, balanced ports, lead/lag order, common-mode control, axial-ratio verification, and polarization-sense verification explicit instead of treating a quarter-wave cable as a complete quadrature feed or matching system.
+
 Every valid antenna result can be printed as a focused build sheet containing the selected design, prioritized dimensions, installed-verification items, supporting calculations and assumptions, and the dimensioned drawing. Navigation, selectors, and unrelated workspaces are excluded from the print packet.
 
 The two-band trap-dipole workflow solves matched ideal parallel-LC traps for two design frequencies and a constrained span, then shows component targets, trap placement, operating-frequency reactances, and the intermediate trap resonance graphically. Physical component construction, power rating, parasitics, loss, heating, matching, and installed performance remain explicit measurement and verification tasks.
