@@ -624,7 +624,7 @@ test('designs two matched parallel-LC traps for a two-band dipole', async ({ pag
   await expect(page.getByRole('spinbutton', { name: 'Insulated wire outside diameter' })).toHaveValue('0.0787');
 });
 
-test('plans a measured-inductance small transmitting loop without inferring performance', async ({ page }) => {
+test('plans a measured-inductance small transmitting loop with bounded performance estimates', async ({ page }) => {
   await page.getByRole('button', { name: /Small loop/ }).click();
 
   await expect(page.getByRole('heading', { name: 'Small transmitting loop' })).toBeVisible();
@@ -635,6 +635,14 @@ test('plans a measured-inductance small transmitting loop without inferring perf
   await expect(page.locator('.result-summary')).toContainText('39.2–41.7 pF');
   await expect(page.locator('.result-summary')).toContainText('Measured finished-loop inductance');
   await expect(page.locator('.small-loop-boundary')).toContainText('under 1/16 λ');
+  await expect(page.getByRole('combobox', { name: 'Main-loop conductor' })).toHaveValue('copper');
+  await expect(page.getByRole('spinbutton', { name: 'Conductor outside diameter' })).toHaveValue('22');
+  await expect(page.getByRole('heading', { name: 'Where accepted power may go' })).toBeVisible();
+  await expect(page.locator('.small-loop-analysis')).toContainText('Radiation resistance');
+  await expect(page.locator('.small-loop-analysis')).toContainText('3 dB resonator bandwidth');
+  await expect(page.locator('.small-loop-analysis')).toContainText('Loop current');
+  await expect(page.locator('.small-loop-analysis')).toContainText('Capacitor voltage peak');
+  await expect(page.locator('.small-loop-analysis')).toContainText('Use extra caution');
   await expect(page.getByRole('button', { name: 'Show advanced' })).toBeHidden();
 
   await expect(page.getByText('Measure the finished loop inductance')).toBeHidden();
@@ -648,6 +656,8 @@ test('plans a measured-inductance small transmitting loop without inferring perf
   await page.getByRole('spinbutton', { name: 'Parallel fixed and stray capacitance' }).fill('50');
   await expect(page.locator('.result-summary')).toContainText('No positive variable-C solution');
   await page.getByRole('spinbutton', { name: 'Parallel fixed and stray capacitance' }).fill('10');
+  await page.getByRole('spinbutton', { name: 'Additional series loss' }).fill('20');
+  await expect(page.locator('.small-loop-analysis')).toContainText('20.0 mΩ');
   await page.getByRole('spinbutton', { name: 'Variable-capacitor maximum' }).fill('100');
 
   await page.locator('select.band-select').selectOption('40m');

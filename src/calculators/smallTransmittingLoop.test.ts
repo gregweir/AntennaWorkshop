@@ -15,7 +15,11 @@ const example = {
   measuredInductanceMicrohenries: 2.5,
   strayCapacitancePicofarads: 10,
   capacitorMinimumPicofarads: 5,
-  capacitorMaximumPicofarads: 100
+  capacitorMaximumPicofarads: 100,
+  conductorMaterial: 'copper' as const,
+  conductorOutsideDiameterMillimetres: 22,
+  additionalSeriesLossMilliohms: 0,
+  acceptedPowerWatts: 10
 };
 
 describe('small transmitting loop planner', () => {
@@ -30,6 +34,30 @@ describe('small transmitting loop planner', () => {
     expect(result.minimumRequiredVariableCapacitancePicofarads).toBeCloseTo(39.20, 2);
     expect(result.capacitorCoversRange).toBe(true);
     expect(result.isUnderArrlSmallLoopBoundary).toBe(true);
+  });
+
+  it('estimates the idealized centre-frequency loss budget and resonant stress', () => {
+    const result = calculateSmallTransmittingLoop(example);
+
+    expect(result.centreFrequencyMHz).toBeCloseTo(14.1739, 4);
+    expect(result.radiationResistanceOhms).toBeCloseTo(0.07989, 5);
+    expect(result.idealConductorLossOhms).toBeCloseTo(0.04263, 5);
+    expect(result.estimatedRadiationEfficiencyPercent).toBeCloseTo(65.20, 2);
+    expect(result.estimatedUnloadedQ).toBeCloseTo(1817.14, 2);
+    expect(result.estimatedThreeDbBandwidthKilohertz).toBeCloseTo(7.80, 2);
+    expect(result.estimatedLoopCurrentRmsAmperes).toBeCloseTo(9.034, 3);
+    expect(result.estimatedCapacitorVoltagePeakVolts).toBeCloseTo(2844.55, 2);
+    expect(result.estimatedRadiatedPowerWatts + result.estimatedLossPowerWatts).toBeCloseTo(10, 8);
+    expect(result.isWithinUniformCurrentPreference).toBe(false);
+  });
+
+  it('accounts for material and explicit additional series loss', () => {
+    const copper = calculateSmallTransmittingLoop({ ...example, additionalSeriesLossMilliohms: 20 });
+    const aluminium = calculateSmallTransmittingLoop({ ...example, conductorMaterial: 'aluminium', additionalSeriesLossMilliohms: 20 });
+
+    expect(copper.additionalSeriesLossOhms).toBeCloseTo(0.02, 8);
+    expect(aluminium.idealConductorLossOhms).toBeGreaterThan(copper.idealConductorLossOhms);
+    expect(aluminium.estimatedRadiationEfficiencyPercent).toBeLessThan(copper.estimatedRadiationEfficiencyPercent);
   });
 
   it('uses a strict under-one-sixteenth-wavelength diameter boundary', () => {
@@ -58,11 +86,14 @@ describe('small transmitting loop planner', () => {
     expect(() => calculateSmallTransmittingLoop({ ...example, circumferenceMetres: Number.NaN })).toThrow(RangeError);
     expect(() => calculateSmallTransmittingLoop({ ...example, measuredInductanceMicrohenries: 0 })).toThrow(RangeError);
     expect(() => calculateSmallTransmittingLoop({ ...example, capacitorMinimumPicofarads: 101 })).toThrow('Capacitor maximum');
+    expect(() => calculateSmallTransmittingLoop({ ...example, conductorOutsideDiameterMillimetres: 0 })).toThrow('Conductor outside diameter');
+    expect(() => calculateSmallTransmittingLoop({ ...example, additionalSeriesLossMilliohms: -1 })).toThrow('Additional series loss');
+    expect(() => calculateSmallTransmittingLoop({ ...example, acceptedPowerWatts: 0 })).toThrow('Accepted power');
   });
 
   it('retains source provenance and a review date', () => {
     expect(SMALL_TRANSMITTING_LOOP_MODEL.id).toBe('small-transmitting-loop-measured-inductance');
     expect(SMALL_TRANSMITTING_LOOP_MODEL.reviewedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(SMALL_TRANSMITTING_LOOP_MODEL.sources).toHaveLength(2);
+    expect(SMALL_TRANSMITTING_LOOP_MODEL.sources).toHaveLength(4);
   });
 });

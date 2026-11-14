@@ -45,6 +45,6 @@ export function SmallLoopDiagram({ diameterMetres, circumferenceMetres, minimumC
         <text x="624" y="82" textAnchor="middle">{isUnderArrlSmallLoopBoundary ? 'under 1/16 λ' : 'not under 1/16 λ'}</text>
       </g>
     </svg>
-    <figcaption>Measured-inductance tuning plan · Capacitor and feed-coupling positions are conceptual; the drawing does not predict efficiency, Q, bandwidth, voltage, current, matching, or safe power.</figcaption>
+    <figcaption>Measured-inductance tuning plan · Capacitor and feed-coupling positions are conceptual; the separate loss analysis is an idealized estimate, not a matching design, component rating, or safe-power declaration.</figcaption>
   </figure>;
 }

@@ -6041,6 +6041,150 @@ select {
   grid-template-columns: 1fr;
 }
 
+.small-loop-performance-editor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.small-loop-analysis {
+  margin-top: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-surface) 92%, var(--tl-light-sage));
+}
+
+.small-loop-analysis-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.small-loop-analysis-heading h3,
+.small-loop-analysis-heading p,
+.small-loop-analysis-notes p {
+  margin: 0;
+}
+
+.analysis-fit {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 750;
+}
+
+.analysis-fit-good {
+  color: var(--success);
+}
+
+.analysis-fit-caution {
+  color: var(--tl-coral);
+}
+
+.small-loop-loss-graphic {
+  margin-top: 1rem;
+}
+
+.small-loop-loss-bar {
+  display: flex;
+  height: 1.1rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-surface);
+}
+
+.small-loop-radiated {
+  background: var(--tl-teal);
+}
+
+.small-loop-dissipated {
+  background: var(--tl-coral);
+}
+
+.small-loop-loss-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  margin-top: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.small-loop-loss-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.small-loop-loss-legend i {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+}
+
+.small-loop-analysis-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.small-loop-analysis-metrics div {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+}
+
+.small-loop-analysis-metrics dt {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.small-loop-analysis-metrics dd {
+  margin: 0.22rem 0 0;
+  color: var(--text-primary);
+  font-size: 0.96rem;
+  font-weight: 750;
+}
+
+.small-loop-analysis-notes {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 780px) {
+  .small-loop-performance-editor,
+  .small-loop-analysis-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .small-loop-analysis-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .analysis-fit {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .small-loop-performance-editor,
+  .small-loop-analysis-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
 .doublet-system-editor > .field,
 .loaded-antenna-editor > .field,
 .small-loop-editor > .field,
