@@ -5277,7 +5277,7 @@ select {
 
 .feedline-mode-picker {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.7rem;
   margin-bottom: 1.5rem;
 }
@@ -5329,9 +5329,118 @@ select {
 }
 
 .feedline-workspace .result-summary {
+  grid-column: 1 / -1;
   margin-top: 0;
   padding-top: 0;
   border-top: 0;
+}
+
+.l-network-figure {
+  width: 100%;
+  margin: 0;
+  padding: 1rem;
+}
+
+.l-network-solution-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.l-network-solution {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.l-network-solution header {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.8rem 1rem 0;
+}
+
+.l-network-solution header span {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.l-network-solution header strong {
+  font-size: 0.9rem;
+}
+
+.l-network-solution svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.l-network-wire line {
+  stroke: var(--accent-technical);
+  stroke-width: 4;
+}
+
+.l-network-terminal circle {
+  fill: var(--tl-coral);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.l-network-element rect {
+  fill: var(--bg-surface);
+  stroke: var(--tl-coral);
+  stroke-width: 2;
+}
+
+.l-network-element text,
+.l-network-labels text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.l-network-element text:first-of-type,
+.l-network-labels text {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.l-network-solution dl {
+  display: grid;
+  margin: 0;
+  padding: 0 1rem 1rem;
+}
+
+.l-network-solution dl div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  padding-block: 0.45rem;
+  border-top: 1px dashed var(--border);
+}
+
+.l-network-solution dt {
+  color: var(--text-secondary);
+}
+
+.l-network-solution dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 750;
+  text-align: right;
+}
+
+.l-network-figure figcaption {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  text-align: center;
 }
 
 .stub-coax path {
@@ -8479,6 +8588,10 @@ path.loading-coil {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .l-network-solution-grid {
+    grid-template-columns: 1fr;
+  }
+
   .harmonic-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -8733,6 +8846,15 @@ path.loading-coil {
 
   .feedline-workspace .input-panel {
     grid-template-columns: 1fr;
+  }
+
+  .l-network-solution dl div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .l-network-solution dd {
+    text-align: left;
   }
 
   .screen-input-grid {

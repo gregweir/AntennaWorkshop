@@ -1033,6 +1033,25 @@ test('calculates feedline loss and preserves physical values across unit changes
   await page.getByLabel('Far-end termination', { exact: true }).selectOption('open');
   await expect(page.locator('.result-summary')).toContainText('Low impedance');
 
+  await page.getByRole('button', { name: /L-network/ }).click();
+  await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
+  await expect(page.getByLabel('System resistance', { exact: true })).toHaveValue('50');
+  await expect(page.getByLabel('Measured load resistance', { exact: true })).toHaveValue('100');
+  await expect(page.getByLabel('Measured load reactance', { exact: true })).toHaveValue('-50');
+  await expect(page.locator('.l-network-solution')).toHaveCount(2);
+  await expect(page.getByRole('img', { name: /L-network option 1/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('2 options');
+  await expect(page.locator('.l-network-solution').first()).toContainText('50.000 + j0.000 Ω');
+  await expect(page.getByText('Measure at the intended reference plane', { exact: true })).toBeHidden();
+  await page.getByText('Synthesize and verify an L-network').click();
+  await expect(page.getByText('Measure at the intended reference plane', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Measured load reactance').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Measured load reactance' })).toContainText('Positive reactance is inductive');
+  await page.getByLabel('Measured load resistance', { exact: true }).fill('25');
+  await page.getByLabel('Measured load reactance', { exact: true }).fill('50');
+  await expect(page.locator('.l-network-solution')).toHaveCount(4);
+  await expect(page.locator('.result-summary')).toContainText('4 options');
+
   await page.getByRole('button', { name: /ERP \/ EIRP/ }).click();
   await expect(page.getByRole('heading', { name: 'ERP and EIRP' })).toBeVisible();
   await expect(page.getByText('Confirm the gain reference', { exact: true })).toBeHidden();

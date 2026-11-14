@@ -20,6 +20,11 @@ test('opens every workspace and preserves a user preference', async ({ page }) =
   await page.getByRole('button', { name: /Feedline & matching/ }).click();
   await expect(page.getByRole('heading', { name: 'Feedline power budget' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
+  await page.getByRole('button', { name: /L-network/ }).click();
+  await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
+  await expect(page.locator('.l-network-solution')).toHaveCount(2);
+  const matchingDimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+  expect(matchingDimensions.content).toBeLessThanOrEqual(matchingDimensions.viewport);
 
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
