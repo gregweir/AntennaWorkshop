@@ -12,13 +12,14 @@ export interface TransmissionLineTransformInput {
   characteristicImpedanceOhms: number;
   physicalLengthMetres: number;
   velocityFactor: number;
+  matchedLossDbPer100Metres: number;
   loadResistanceOhms: number;
   loadReactanceOhms: number;
 }
 
 export const TRANSMISSION_LINE_TRANSFORM_MODEL = {
-  id: 'lossless-uniform-transmission-line-transform',
-  version: '1.0.0',
+  id: 'uniform-lossy-transmission-line-transform',
+  version: '2.0.0',
   reviewedOn: '2026-11-14',
   sources: [
     {
@@ -32,6 +33,14 @@ export const TRANSMISSION_LINE_TRANSFORM_MODEL = {
     {
       title: 'Rohde & Schwarz — Cable impedance measurement',
       url: 'https://www.rohde-schwarz.com/us/products/test-and-measurement/essentials-test-equipment/spectrum-analyzers/cable-impedance-measurement_257988.html'
+    },
+    {
+      title: 'Rohde & Schwarz — How to measure cable loss',
+      url: 'https://www.rohde-schwarz.com/au/products/test-and-measurement/essentials-test-equipment/spectrum-analyzers/how-to-measure-cable-loss_258130.html'
+    },
+    {
+      title: 'ARRL — What Does Your SWR Cost You?',
+      url: 'https://www.arrl.org/files/file/Technology/tis/info/pdf/7901019.pdf'
     }
   ]
 } as const;
@@ -47,11 +56,40 @@ function normalizeDegrees(degrees: number) {
   return normalized < 0 ? normalized + 360 : normalized;
 }
 
+interface Complex {
+  real: number;
+  imaginary: number;
+}
+
+function add(left: Complex, right: Complex): Complex {
+  return { real: left.real + right.real, imaginary: left.imaginary + right.imaginary };
+}
+
+function multiply(left: Complex, right: Complex): Complex {
+  return {
+    real: left.real * right.real - left.imaginary * right.imaginary,
+    imaginary: left.real * right.imaginary + left.imaginary * right.real
+  };
+}
+
+function scale(value: Complex, factor: number): Complex {
+  return { real: value.real * factor, imaginary: value.imaginary * factor };
+}
+
+function divide(numerator: Complex, denominator: Complex): Complex {
+  const magnitudeSquared = denominator.real ** 2 + denominator.imaginary ** 2;
+  return {
+    real: (numerator.real * denominator.real + numerator.imaginary * denominator.imaginary) / magnitudeSquared,
+    imaginary: (numerator.imaginary * denominator.real - numerator.real * denominator.imaginary) / magnitudeSquared
+  };
+}
+
 export function calculateTransmissionLineTransform(input: TransmissionLineTransformInput) {
   finiteRange(input.frequencyMHz, 0.001, 300_000, 'Frequency');
   finiteRange(input.characteristicImpedanceOhms, 0.01, 1_000_000, 'Characteristic impedance');
   finiteRange(input.physicalLengthMetres, 0, 1_000_000, 'Physical length');
   finiteRange(input.velocityFactor, 0.01, 1, 'Velocity factor');
+  finiteRange(input.matchedLossDbPer100Metres, 0, 10_000, 'Matched line loss');
   finiteRange(input.loadResistanceOhms, 0.01, 1_000_000, 'Load resistance');
   finiteRange(input.loadReactanceOhms, -1_000_000, 1_000_000, 'Load reactance');
 
@@ -63,14 +101,26 @@ export function calculateTransmissionLineTransform(input: TransmissionLineTransf
   const phaseRadians = wrappedElectricalLengthDegrees * Math.PI / 180;
   const cosine = Math.cos(phaseRadians);
   const sine = Math.sin(phaseRadians);
+  const oneWayMatchedLossDb = input.matchedLossDbPer100Metres * input.physicalLengthMetres / 100;
+  const oneWayAttenuationNepers = oneWayMatchedLossDb / (20 * Math.log10(Math.E));
+  const expMinusTwiceAttenuation = Math.exp(-2 * oneWayAttenuationNepers);
 
-  const numeratorReal = input.loadResistanceOhms * cosine;
-  const numeratorImaginary = input.loadReactanceOhms * cosine + input.characteristicImpedanceOhms * sine;
-  const denominatorReal = input.characteristicImpedanceOhms * cosine - input.loadReactanceOhms * sine;
-  const denominatorImaginary = input.loadResistanceOhms * sine;
-  const denominatorMagnitudeSquared = denominatorReal ** 2 + denominatorImaginary ** 2;
-  const inputResistanceOhms = input.characteristicImpedanceOhms * (numeratorReal * denominatorReal + numeratorImaginary * denominatorImaginary) / denominatorMagnitudeSquared;
-  const inputReactanceOhms = input.characteristicImpedanceOhms * (numeratorImaginary * denominatorReal - numeratorReal * denominatorImaginary) / denominatorMagnitudeSquared;
+  // cosh(αl + jβl) and sinh(αl + jβl), scaled by e^-αl to avoid overflow.
+  // Their common scale cancels in the input-impedance quotient.
+  const scaledCosh = {
+    real: (1 + expMinusTwiceAttenuation) * cosine / 2,
+    imaginary: (1 - expMinusTwiceAttenuation) * sine / 2
+  };
+  const scaledSinh = {
+    real: (1 - expMinusTwiceAttenuation) * cosine / 2,
+    imaginary: (1 + expMinusTwiceAttenuation) * sine / 2
+  };
+  const load = { real: input.loadResistanceOhms, imaginary: input.loadReactanceOhms };
+  const numerator = add(multiply(load, scaledCosh), scale(scaledSinh, input.characteristicImpedanceOhms));
+  const denominator = add(scale(scaledCosh, input.characteristicImpedanceOhms), multiply(load, scaledSinh));
+  const inputImpedance = scale(divide(numerator, denominator), input.characteristicImpedanceOhms);
+  const inputResistanceOhms = inputImpedance.real;
+  const inputReactanceOhms = inputImpedance.imaginary;
 
   const loadPoint = calculateImpedanceExplorer({
     frequencyMHz: input.frequencyMHz,
@@ -92,12 +142,17 @@ export function calculateTransmissionLineTransform(input: TransmissionLineTransf
     electricalLengthWavelengths,
     electricalLengthDegrees,
     wrappedElectricalLengthDegrees,
+    oneWayMatchedLossDb,
+    roundTripReflectionAttenuationDb: oneWayMatchedLossDb * 2,
+    matchedOneWayPowerRemainingPercent: 100 * 10 ** (-oneWayMatchedLossDb / 10),
+    attenuationNepersPerMetre: input.physicalLengthMetres === 0 ? input.matchedLossDbPer100Metres / 100 / (20 * Math.log10(Math.E)) : oneWayAttenuationNepers / input.physicalLengthMetres,
     oneWayDelayNanoseconds: input.physicalLengthMetres / (SPEED_OF_LIGHT_METRES_PER_SECOND * input.velocityFactor) * 1_000_000_000,
     inputResistanceOhms,
     inputReactanceOhms,
     loadPoint,
     inputPoint,
-    reflectionMagnitudeResidual: Math.abs(loadPoint.reflectionMagnitude - inputPoint.reflectionMagnitude),
+    expectedInputReflectionMagnitude: loadPoint.reflectionMagnitude * expMinusTwiceAttenuation,
+    reflectionMagnitudeResidual: Math.abs(loadPoint.reflectionMagnitude * expMinusTwiceAttenuation - inputPoint.reflectionMagnitude),
     expectedReflectionRotationDegrees: normalizeDegrees(-2 * electricalLengthDegrees)
   };
 }

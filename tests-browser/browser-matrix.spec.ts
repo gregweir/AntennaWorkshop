@@ -26,8 +26,8 @@ test('opens every workspace and preserves a user preference', async ({ page }) =
   await expect(page.getByRole('img', { name: /Smith chart for the entered complex load/ })).toBeVisible();
   await page.getByRole('button', { name: /Line transformation/ }).click();
   await expect(page.getByRole('heading', { name: 'Transmission-line transformation' })).toBeVisible();
-  await expect(page.getByRole('img', { name: /Lossless transmission-line impedance transformation/ })).toBeVisible();
-  await expect(page.locator('.result-summary')).toContainText('Ideal SWR at both planes');
+  await expect(page.getByRole('img', { name: /Transmission-line impedance transformation with entered attenuation/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Near-end SWR with entered loss');
   await page.getByRole('button', { name: /L-network/ }).click();
   await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
   await expect(page.locator('.l-network-solution')).toHaveCount(2);
