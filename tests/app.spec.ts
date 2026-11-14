@@ -1033,6 +1033,32 @@ test('calculates feedline loss and preserves physical values across unit changes
   await page.getByLabel('Far-end termination', { exact: true }).selectOption('open');
   await expect(page.locator('.result-summary')).toContainText('Low impedance');
 
+  await page.getByRole('button', { name: /Impedance explorer/ }).click();
+  await expect(page.getByRole('heading', { name: 'Impedance and Smith chart' })).toBeVisible();
+  await expect(page.getByLabel('Reference resistance', { exact: true })).toHaveValue('50');
+  await expect(page.getByLabel('Measured resistance for chart', { exact: true })).toHaveValue('100');
+  await expect(page.getByLabel('Measured reactance for chart', { exact: true })).toHaveValue('-50');
+  await expect(page.getByRole('img', { name: /Smith chart for the entered complex load/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('2.618 : 1');
+  await expect(page.locator('.result-summary')).toContainText('2.000 − j1.000');
+  await expect(page.locator('.result-summary')).toContainText('20.00%');
+  await expect(page.getByText('Calibrate to the intended reference plane', { exact: true })).toBeHidden();
+  await page.getByText('Read a measured impedance on the Smith chart').click();
+  await expect(page.getByText('Calibrate to the intended reference plane', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Measured reactance for chart').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Measured reactance for chart' })).toContainText('plot above the chart axis');
+  await page.getByLabel('Measured reactance for chart', { exact: true }).fill('50');
+  await expect(page.locator('.result-summary')).toContainText('0.4472 ∠ 26.57°');
+  await expect(page.locator('.result-summary')).toContainText('Inductive');
+  await page.getByLabel('Measured resistance for chart', { exact: true }).fill('50');
+  await page.getByLabel('Measured reactance for chart', { exact: true }).fill('0');
+  await expect(page.locator('.result-summary')).toContainText('1.000 : 1');
+  await expect(page.locator('.result-summary')).toContainText('∞ dB · ideal match');
+  await page.getByLabel('Measured resistance for chart', { exact: true }).fill('0');
+  await expect(page.getByRole('alert')).toContainText('impedance point');
+  await page.getByLabel('Measured resistance for chart', { exact: true }).fill('100');
+  await page.getByLabel('Measured reactance for chart', { exact: true }).fill('-50');
+
   await page.getByRole('button', { name: /L-network/ }).click();
   await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
   await expect(page.getByLabel('System resistance', { exact: true })).toHaveValue('50');

@@ -5277,7 +5277,7 @@ select {
 
 .feedline-mode-picker {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.7rem;
   margin-bottom: 1.5rem;
 }
@@ -5580,6 +5580,79 @@ select {
   font-family: var(--font-mono);
   font-weight: 750;
   text-align: right;
+}
+
+.smith-chart-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.smith-chart-background {
+  fill: var(--bg-elevated);
+}
+
+.smith-chart-grid circle,
+.smith-chart-grid line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent-technical) 36%, transparent);
+  stroke-width: 1.2;
+}
+
+.smith-chart-boundary {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.smith-chart-swr {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-dasharray: 7 6;
+  stroke-width: 2;
+}
+
+.smith-chart-vector {
+  stroke: var(--text-primary);
+  stroke-width: 2.5;
+}
+
+.smith-chart-centre {
+  fill: var(--accent-technical);
+}
+
+.smith-chart-point-halo {
+  fill: color-mix(in srgb, var(--tl-coral) 24%, transparent);
+}
+
+.smith-chart-point {
+  fill: var(--tl-coral);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.smith-chart-labels text,
+.smith-chart-readout text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.smith-chart-readout rect {
+  fill: var(--bg-surface);
+  stroke: var(--border);
+}
+
+.smith-chart-readout text:nth-of-type(1) {
+  fill: var(--accent-technical);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.smith-chart-readout text:nth-of-type(2) {
+  fill: var(--text-primary);
+  font-size: 15px;
+  font-weight: 750;
 }
 
 .stub-coax path {

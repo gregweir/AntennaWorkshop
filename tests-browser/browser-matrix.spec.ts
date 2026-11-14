@@ -20,6 +20,10 @@ test('opens every workspace and preserves a user preference', async ({ page }) =
   await page.getByRole('button', { name: /Feedline & matching/ }).click();
   await expect(page.getByRole('heading', { name: 'Feedline power budget' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
+  await page.getByRole('button', { name: /Impedance explorer/ }).click();
+  await expect(page.getByRole('heading', { name: 'Impedance and Smith chart' })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('2.618 : 1');
+  await expect(page.getByRole('img', { name: /Smith chart for the entered complex load/ })).toBeVisible();
   await page.getByRole('button', { name: /L-network/ }).click();
   await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
   await expect(page.locator('.l-network-solution')).toHaveCount(2);
