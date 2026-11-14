@@ -11,7 +11,7 @@ export const ACMA_EVIDENCE_MODEL = {
   id: 'acma-clause-4-assessment-evidence-workflow',
   version: '1.0.0',
   sourceRevision: 'Radiocommunications (Amateur Stations) Class Licence 2023, Schedule 1, clauses 2–6',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   sourceUrl: 'https://www.legislation.gov.au/F2023L01648/latest/text'
 } as const;
 

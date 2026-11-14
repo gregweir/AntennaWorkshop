@@ -40,7 +40,7 @@ export const OFCOM_COMPLIANCE_DISTANCE_MODEL = {
   id: 'ofcom-emf-calculator-v1.1-compliance-distance',
   version: '1.0.0',
   sourceRevision: 'Ofcom EMF Calculator v1.1 and Guidance V1.1',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   source: {
     title: 'Ofcom EMF Calculator v1.1',
     url: 'https://static.ofcom.org.uk/static/emf/index.html'

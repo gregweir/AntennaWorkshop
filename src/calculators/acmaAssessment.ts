@@ -42,7 +42,7 @@ export const ACMA_ASSESSMENT_MODEL = {
   id: 'acma-amateur-class-licence-schedule-1-gateway',
   version: '1.0.0',
   sourceRevision: 'Radiocommunications (Amateur Stations) Class Licence 2023, Schedule 1, clauses 2–7',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   source: {
     title: 'Radiocommunications (Amateur Stations) Class Licence 2023',
     url: 'https://www.legislation.gov.au/F2023L01648/latest/text'

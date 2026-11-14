@@ -45,7 +45,7 @@ export interface ExposureAggregationResult {
 export const EXPOSURE_AGGREGATION_MODEL = {
   id: 'multiple-source-normalized-power-density-sum',
   version: '1.0.0',
-  reviewedOn: '2026-11-11',
+  reviewedOn: '2026-11-14',
   sources: [
     {
       title: 'ISED BPR-1 §8.1 — multiple-source fractional contribution method',

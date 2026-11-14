@@ -30,7 +30,7 @@ export const ARPANSA_REFERENCE_MODEL = {
   id: 'arpansa-rps-s1-rev1-reference-levels',
   version: '1.0.0',
   sourceRevision: 'RPS S-1 (Rev. 1), 2021, Tables 4, 5, 7 and 8',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   applicabilityMHz: [0.1, 300_000] as const,
   source: {
     title: 'ARPANSA RPS S-1 (Rev. 1) — RF exposure standard',

@@ -82,8 +82,8 @@ export interface ExposureProjectResult {
 
 export const EXPOSURE_PROJECT_MODEL = {
   id: 'multi-source-multi-point-far-field-project',
-  version: '2.2.0',
-  reviewedOn: '2026-11-12'
+  version: '2.3.0',
+  reviewedOn: '2026-11-14'
 } as const;
 
 function validateIdentity(id: string, label: string, ids: Set<string>, noun: string) {

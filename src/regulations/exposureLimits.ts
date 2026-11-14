@@ -23,8 +23,8 @@ export const EXPOSURE_LIMIT_MODELS = {
   US: {
     id: 'fcc-47-cfr-1.1310-table-1-mpe',
     version: '1.0.0',
-    sourceRevision: 'eCFR Title 47 § 1.1310, current through 2026-11-09',
-    reviewedOn: '2026-11-11',
+    sourceRevision: 'eCFR Title 47 § 1.1310, current through 2026-11-12',
+    reviewedOn: '2026-11-14',
     applicabilityMHz: [0.3, 100_000] as const,
     source: {
       title: '47 CFR § 1.1310(e)(1) — Limits for Maximum Permissible Exposure',
@@ -35,7 +35,7 @@ export const EXPOSURE_LIMIT_MODELS = {
     id: 'health-canada-safety-code-6-tables-5-6-power-density',
     version: '1.0.0',
     sourceRevision: 'Safety Code 6 (2015), Tables 5 and 6',
-    reviewedOn: '2026-11-11',
+    reviewedOn: '2026-11-14',
     applicabilityMHz: [10, 300_000] as const,
     source: {
       title: 'Health Canada Safety Code 6 — power-density reference levels',

@@ -76,8 +76,8 @@ function applicabilityItem(result: ExposureProjectResult | null): AssessmentChec
   if (!result) return { id: 'far-field-applicability', label: 'Far-field method applicability', status: 'required', detail: 'Applicability cannot be assessed until project inputs are valid.' };
   const inapplicablePaths = result.pointResults.flatMap((point) => point.sourceResults.filter((source) => source.screen.status === 'method-inapplicable'));
   return inapplicablePaths.length
-    ? { id: 'far-field-applicability', label: 'Far-field method applicability', status: 'required', detail: `${inapplicablePaths.length} source-to-point ${inapplicablePaths.length === 1 ? 'path is' : 'paths are'} inside the conservative far-field boundary. Use a suitable near-field method or measurement.` }
-    : { id: 'far-field-applicability', label: 'Far-field method applicability', status: 'recorded', detail: 'Every modelled source-to-point path is beyond its conservative far-field boundary.' };
+    ? { id: 'far-field-applicability', label: 'Far-field method applicability', status: 'required', detail: `${inapplicablePaths.length} source-to-point ${inapplicablePaths.length === 1 ? 'path is' : 'paths are'} inside the application’s stricter far-field guard. Use a suitable near-field method or measurement.` }
+    : { id: 'far-field-applicability', label: 'Far-field method applicability', status: 'recorded', detail: 'Every modelled source-to-point path is beyond the application’s stricter far-field guard.' };
 }
 
 function outcomeItem(result: ExposureProjectResult | null): AssessmentChecklistItem {

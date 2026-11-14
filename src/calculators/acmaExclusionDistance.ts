@@ -31,7 +31,7 @@ export const ACMA_EXCLUSION_DISTANCE_MODEL = {
   id: 'acma-simple-rf-exclusion-distance-arpansa-2021',
   version: '1.0.0',
   sourceRevision: 'ACMA Simple RF exclusion distance calculator for antenna (ARPANSA 2021)',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   source: {
     title: 'ACMA rules for EME and official calculator',
     url: 'https://www.acma.gov.au/our-rules-eme'

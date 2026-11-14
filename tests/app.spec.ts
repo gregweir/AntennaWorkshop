@@ -1561,7 +1561,7 @@ test('shows official RF exposure reference limits without a compliance result', 
   await expect(page.locator('.result-summary')).toContainText('6.00 min');
 });
 
-test('classifies conservative far-field screening limitations', async ({ page }) => {
+test('classifies modified-free-space screening limitations', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /Single source/ }).click();
   const stationScreen = page.locator('.exposure-screen-section');
@@ -1569,12 +1569,13 @@ test('classifies conservative far-field screening limitations', async ({ page })
   await expect(page.getByRole('heading', { name: 'Single-source far-field estimate' })).toBeVisible();
   await expect(stationScreen.locator('.screen-outcome')).toContainText('Far-field method is inapplicable here');
   await expect(stationScreen.getByText('Check far-field applicability', { exact: true })).toBeHidden();
-  await stationScreen.getByText('Run a conservative single-source screen').click();
+  await stationScreen.getByText('Run a preliminary single-source screen').click();
   await expect(stationScreen.getByText('Check far-field applicability', { exact: true })).toBeVisible();
   await stationScreen.getByLabel('Help: Transmit duty cycle').click();
   await expect(stationScreen.getByRole('note').filter({ hasText: 'Transmit duty cycle' })).toContainText('regulatory averaging period');
   await stationScreen.getByLabel('Help: Transmit duty cycle').click();
   await stationScreen.getByLabel('Help: Largest antenna dimension').click();
+  await expect(stationScreen.getByRole('note').filter({ hasText: 'Largest antenna dimension' })).toContainText('0.5D²/λ');
   await expect(stationScreen.getByRole('note').filter({ hasText: 'Largest antenna dimension' })).toContainText('2D²/λ');
   await stationScreen.getByLabel('Help: Largest antenna dimension').click();
 
@@ -1584,6 +1585,9 @@ test('classifies conservative far-field screening limitations', async ({ page })
   await page.getByLabel('Other RF sources', { exact: true }).selectOption('assessed');
   await expect(stationScreen.locator('.screen-outcome')).toContainText('Below the preliminary screening trigger');
   await expect(stationScreen.locator('.screen-result-card')).toContainText('50.0 W');
+  await expect(stationScreen.locator('.screen-result-card')).toContainText('TN-261 boundary');
+  await expect(stationScreen.locator('.screen-result-card')).toContainText('Application guard');
+  await expect(stationScreen.locator('.screen-limitations')).toContainText('2 m above ground or rooftop level');
   await expect(page.getByRole('img', { name: /Far-field exposure screening geometry/ })).toBeVisible();
 
   await page.getByRole('spinbutton', { name: 'Straight-line separation' }).fill('2');
@@ -1926,7 +1930,8 @@ test('calculates a multi-source station project across accessible locations', as
   const firstSource = project.locator('.project-source-editor').first();
   await firstSource.locator(':scope > summary').click();
   await firstSource.getByLabel('Help: Source 1 largest antenna dimension').click();
-  await expect(project.getByRole('note').filter({ hasText: 'Source 1 largest antenna dimension' })).toContainText('far-field boundary');
+  await expect(project.getByRole('note').filter({ hasText: 'Source 1 largest antenna dimension' })).toContainText('0.5D²/λ');
+  await expect(project.getByRole('note').filter({ hasText: 'Source 1 largest antenna dimension' })).toContainText('stricter 2D²/λ guard');
 
   await project.getByRole('checkbox', { name: /Station-site source inventory assessed/ }).check();
   await expect(project.locator('.screen-outcome')).toContainText('All modelled points are below the screening trigger');
@@ -1965,7 +1970,7 @@ test('tracks assessment blockers, documentation gaps, and external review separa
 
   await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('0');
   await project.getByRole('spinbutton', { name: 'Project point 1 height' }).fill('9.9');
-  await expect(checklist).toContainText('source-to-point path is inside the conservative far-field boundary');
+  await expect(checklist).toContainText('source-to-point path is inside the application’s stricter far-field guard');
   await expect(checklist.getByText('Far-field method applicability').locator('..')).toContainText('Action required');
   await expect(checklist.locator('.assessment-check-external-review')).toContainText('near-field method or measurement');
 

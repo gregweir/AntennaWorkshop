@@ -31,7 +31,7 @@ export const OFCOM_ASSESSMENT_MODEL = {
   id: 'ofcom-emf-assessment-requirement',
   version: '1.0.0',
   sourceRevision: 'Ofcom Guidance on EMF Compliance and Enforcement V1.1, 9 February 2026',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   source: {
     title: 'Ofcom Guidance on EMF Compliance and Enforcement',
     url: 'https://www.ofcom.org.uk/spectrum/electromagnetic-fields/compliance-and-enforcement-guidance'

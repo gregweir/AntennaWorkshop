@@ -21,7 +21,7 @@ const baseInput: ExposureScreenInput = {
   nearbySourcesAssessed: true
 };
 
-describe('conservative far-field exposure screen', () => {
+describe('modified-free-space preliminary exposure screen', () => {
   it('calculates the complete average-power path and Canadian 50% trigger', () => {
     const result = calculateExposureScreen(baseInput);
     expect(result.averageTransmitterPowerWatts).toBeCloseTo(25, 10);
@@ -38,6 +38,26 @@ describe('conservative far-field exposure screen', () => {
     const result = calculateExposureScreen({ ...baseInput, jurisdiction: 'US' });
     expect(result.referenceLevelWattsPerSquareMetre).toBe(2);
     expect(result.screeningTriggerFraction).toBe(1);
+    expect(result.limitations).toContain('The 2.56 reflected-field multiplier is an ISED screening assumption, not an FCC-prescribed multiplier. FCC evaluation must use an applicable supported method.');
+  });
+
+  it('distinguishes the TN-261 large-antenna boundary from the stricter application guard', () => {
+    const result = calculateExposureScreen({ ...baseInput, antennaLargestDimensionMetres: 10 });
+    expect(result.tn261BoundaryMetres).toBeCloseTo(0.5 * 10 ** 2 / result.wavelengthMetres, 12);
+    expect(result.farFieldBoundaryMetres).toBeCloseTo(2 * 10 ** 2 / result.wavelengthMetres, 12);
+    expect(result.farFieldBoundaryMetres).toBe(4 * result.tn261BoundaryMetres);
+    expect(result.limitations.join(' ')).toContain('TN-261 Table 1 uses 0.5D²/λ');
+  });
+
+  it('uses the same TN-261 and application boundary for an electrically small antenna', () => {
+    const result = calculateExposureScreen(baseInput);
+    expect(result.tn261BoundaryMetres).toBe(result.farFieldBoundaryMetres);
+    expect(result.limitations.join(' ')).toContain('TN-261 λ/(2π)');
+  });
+
+  it('identifies controlled Canadian use as a preliminary comparison', () => {
+    const result = calculateExposureScreen({ ...baseInput, environment: 'controlled' });
+    expect(result.limitations.join(' ')).toContain('TN-261 is an uncontrolled-environment template');
   });
 
   it('escalates a result at or above its screening trigger', () => {

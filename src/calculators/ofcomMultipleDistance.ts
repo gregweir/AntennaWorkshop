@@ -45,7 +45,7 @@ export const OFCOM_MULTIPLE_DISTANCE_MODEL = {
   id: 'ofcom-emf-calculator-v1.1-conservative-multiple-transmitter',
   version: '1.0.0',
   sourceRevision: 'Ofcom EMF Calculator v1.1, Guidance on Multiple Transmitters',
-  reviewedOn: '2026-11-13',
+  reviewedOn: '2026-11-14',
   source: {
     title: 'Ofcom EMF Calculator v1.1 — Guidance on Multiple Transmitters',
     url: 'https://static.ofcom.org.uk/static/emf/index.html#/multiple-transmitters'

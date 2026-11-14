@@ -33,6 +33,7 @@ export interface ExposureScreenInput {
 export interface ExposureScreenResult {
   status: ExposureScreenStatus;
   wavelengthMetres: number;
+  tn261BoundaryMetres: number;
   farFieldBoundaryMetres: number;
   averageTransmitterPowerWatts: number;
   averagePowerAtAntennaWatts: number;
@@ -49,8 +50,8 @@ export interface ExposureScreenResult {
 
 export const EXPOSURE_SCREEN_MODEL = {
   id: 'conservative-single-source-far-field-screen',
-  version: '1.0.0',
-  reviewedOn: '2026-11-11',
+  version: '1.1.0',
+  reviewedOn: '2026-11-14',
   reflectionMultiplier: 2.56,
   sources: [
     {
@@ -81,8 +82,12 @@ export function calculateExposureScreen(input: ExposureScreenInput): ExposureScr
 
   const reference = getExposureReferenceLevel(input.jurisdiction, input.frequencyMHz, input.environment);
   const wavelengthMetres = 299_792_458 / (input.frequencyMHz * 1_000_000);
-  const farFieldBoundaryMetres = input.antennaLargestDimensionMetres <= wavelengthMetres
+  const electricallySmall = input.antennaLargestDimensionMetres <= wavelengthMetres;
+  const tn261BoundaryMetres = electricallySmall
     ? wavelengthMetres / (2 * Math.PI)
+    : 0.5 * input.antennaLargestDimensionMetres ** 2 / wavelengthMetres;
+  const farFieldBoundaryMetres = electricallySmall
+    ? tn261BoundaryMetres
     : 2 * input.antennaLargestDimensionMetres ** 2 / wavelengthMetres;
   const averageTransmitterPowerWatts = input.transmitterPowerWatts * input.dutyCyclePercent / 100;
   const averagePowerAtAntennaWatts = averageTransmitterPowerWatts * 10 ** (-input.feedSystemLossDb / 10);
@@ -99,10 +104,18 @@ export function calculateExposureScreen(input: ExposureScreenInput): ExposureScr
   const distanceToScreeningTriggerMetres = distanceToReferenceLevelMetres / Math.sqrt(screeningTriggerFraction);
   const limitations = [
     'Uses maximum stated antenna gain in the direction of the person; no antenna pattern is modelled.',
-    'Uses a 2.56 power-density multiplier corresponding to a reflected electric field 60% of the direct field.',
+    'Uses the ISED TN-261 2.56 power-density multiplier for a reflected electric field 60% of the direct field. TN-261 applies this assumption to calculations at 2 m above ground or rooftop level.',
+    electricallySmall
+      ? 'Uses the TN-261 λ/(2π) boundary for an electrically small antenna.'
+      : 'Uses 2D²/λ as a stricter application guard for an electrically large antenna; TN-261 Table 1 uses 0.5D²/λ for its simplified transition/far-field boundary.',
     'Duty cycle must represent the applicable regulatory averaging period.',
     'Does not model reactive or radiating near fields, body coupling, terrain, buildings, or measurements.'
   ];
+  if (input.jurisdiction === 'US') {
+    limitations.push('The 2.56 reflected-field multiplier is an ISED screening assumption, not an FCC-prescribed multiplier. FCC evaluation must use an applicable supported method.');
+  } else if (input.environment === 'controlled') {
+    limitations.push('TN-261 is an uncontrolled-environment template. Pairing its propagation assumption with controlled reference levels is a preliminary comparison, not the TN-261 procedure.');
+  }
 
   let status: ExposureScreenStatus;
   if (input.separationDistanceMetres < farFieldBoundaryMetres) {
@@ -118,6 +131,7 @@ export function calculateExposureScreen(input: ExposureScreenInput): ExposureScr
   return {
     status,
     wavelengthMetres,
+    tn261BoundaryMetres,
     farFieldBoundaryMetres,
     averageTransmitterPowerWatts,
     averagePowerAtAntennaWatts,

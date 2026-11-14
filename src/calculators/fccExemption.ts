@@ -36,8 +36,8 @@ export interface FccExemptionResult {
 export const FCC_EXEMPTION_MODEL = {
   id: 'fcc-47-cfr-1.1307-single-source-exemption',
   version: '1.0.0',
-  sourceRevision: 'eCFR Title 47 § 1.1307(b)(3), current through 2026-11-10',
-  reviewedOn: '2026-11-13',
+  sourceRevision: 'eCFR Title 47 § 1.1307(b)(3), current through 2026-11-12',
+  reviewedOn: '2026-11-14',
   source: {
     title: '47 CFR § 1.1307(b)(3) — determination of exemption',
     url: 'https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-1/subpart-I/section-1.1307'
