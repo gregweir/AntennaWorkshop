@@ -50,6 +50,8 @@ Users can begin either by choosing an antenna family or by describing a goal suc
 
 Contextual help must work with touch, keyboard, and pointer input. Complex sections may also provide an optional, collapsible step-by-step guide. Guidance should explain the existing workflow rather than create a separate simplified mode or conceal advanced controls.
 
+The antenna workspace must provide an optional comparison of three user-selected construction planners. It must cover site footprint, band intent, feed and tuning system, directional context, build complexity, and required installed verification without assigning a performance ranking or inferring gain, efficiency, signal strength, or suitability at the user’s site.
+
 The EFHW guide must distinguish impedance ratio from winding turns ratio, treat end impedance and multiband resonances as installation-dependent assumptions, and lead the builder through return-path planning, documented transformer selection, build-long construction, installed measurement, and per-band verification. It must not imply that the calculator designs or power-rates a transformer or prescribes one universal counterpoise.
 
 The OCFD guide must explain how the selected split changes both leg lengths and likely feedpoint impedance, distinguish a nominal current-balun ratio from a complete balun and choking design, and preserve the selected split while trimming. It must require installed measurement on each intended band and avoid promising a match, pattern, or tuner-correctable common-mode system.

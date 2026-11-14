@@ -57,5 +57,9 @@ test('supports keyboard entry and remains within the viewport', async ({ page, i
     await expect(page.getByRole('button', { name: 'View drawing' })).toHaveCSS('min-height', '44px');
     await page.getByRole('button', { name: 'View drawing' }).click();
     await expect(page.locator('#design-drawing')).toBeInViewport();
+    await page.getByText('Compare antenna designs', { exact: true }).click();
+    await expect(page.locator('.comparison-card')).toHaveCount(3);
+    const comparisonDimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+    expect(comparisonDimensions.content).toBeLessThanOrEqual(comparisonDimensions.viewport);
   }
 });

@@ -90,6 +90,29 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByText('28 of 28 designs')).toBeVisible();
 });
 
+test('compares three antenna systems without ranking unmodelled performance', async ({ page }) => {
+  await page.getByText('Compare antenna designs', { exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Compare construction systems—not advertised performance' })).toBeVisible();
+  await expect(page.locator('.comparison-card')).toHaveCount(3);
+  await expect(page.locator('.comparison-card').first()).toContainText('Dipole');
+  await expect(page.locator('.comparison-card').first()).toContainText('Space and supports');
+  await expect(page.locator('.comparison-card').first()).toContainText('Must verify after installation');
+  await expect(page.getByText(/do not rank gain, efficiency, signal strength/)).toBeVisible();
+
+  await page.getByLabel('Comparison design 2').selectOption('doublet');
+  await page.getByLabel('Comparison design 3').selectOption('g5rv');
+  await expect(page.locator('.comparison-card').nth(1)).toContainText('Doublet');
+  await expect(page.locator('.comparison-card').nth(1)).toContainText('Low-loss balanced line');
+  await expect(page.locator('.comparison-card').nth(2)).toContainText('G5RV family');
+  await expect(page.locator('.comparison-card').nth(2)).toContainText('Two-conductor matching section');
+
+  await page.getByRole('button', { name: 'Open G5RV family planner' }).click();
+  await expect(page.getByRole('heading', { name: 'G5RV family antenna system' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Current: G5RV family' })).toBeVisible();
+  await expect(page.locator('.comparison-card-current')).toContainText('G5RV family');
+  await expect(page.locator('.comparison-card-current').getByRole('button', { name: 'Planner open' })).toBeDisabled();
+});
+
 test('separates build dimensions, assumptions, references, and field verification', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Know what the number means before cutting' })).toBeVisible();
   await expect(page.locator('.result-evidence-guide')).toContainText('Calculated');

@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ANTENNA_CATEGORIES, ANTENNA_DESIGNS, filterAntennaDesigns, getGuidedDesigns, type AntennaDesignCategory, type AntennaType, type GuidedGoal, type GuidedIntent } from '../lib/antennaDesignCatalog';
 
 type PickerMode = 'workbench' | 'guided';
@@ -42,6 +42,7 @@ function DesignButtons({ types, activeType, onSelect }: { types: AntennaType[]; 
 
 export function AntennaDesignPicker({ activeType, onSelect }: Props) {
   const pickerHeadingRef = useRef<HTMLHeadingElement>(null);
+  const previousActiveType = useRef(activeType);
   const [expanded, setExpanded] = useState(true);
   const [mode, setMode] = useState<PickerMode>('workbench');
   const [searchText, setSearchText] = useState('');
@@ -49,6 +50,10 @@ export function AntennaDesignPicker({ activeType, onSelect }: Props) {
   const [guidedStep, setGuidedStep] = useState<1 | 2 | 3>(1);
   const [guidedIntent, setGuidedIntent] = useState<GuidedIntent>('transmit');
   const [guidedGoal, setGuidedGoal] = useState<GuidedGoal>('simple-wire');
+  useEffect(() => {
+    if (previousActiveType.current !== activeType) setExpanded(false);
+    previousActiveType.current = activeType;
+  }, [activeType]);
   const workbenchTypes = useMemo(() => filterAntennaDesigns(searchText, category), [category, searchText]);
   const guidedTypes = useMemo(() => getGuidedDesigns(guidedIntent, guidedGoal), [guidedGoal, guidedIntent]);
   const beginIntent = (intent: GuidedIntent) => {

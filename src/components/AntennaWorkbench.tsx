@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
@@ -66,6 +66,8 @@ import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
 import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { ResultEvidenceBadge, ResultEvidenceGuide } from './ResultEvidenceGuide';
+
+const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -374,6 +376,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     selectDesign(candidate.plannerType);
     globalThis.requestAnimationFrame?.(() => document.getElementById('calculator-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
+  const openComparedPlanner = (type: AntennaType) => {
+    selectDesign(type);
+    globalThis.requestAnimationFrame?.(() => document.getElementById('calculator-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   return (
     <section className="workspace shell" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
@@ -388,6 +394,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       </div>
 
       <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />
+
+      <Suspense fallback={<div className="antenna-comparison comparison-loading" role="status">Loading design comparison…</div>}>
+        <AntennaDesignComparison activeType={antennaType} onOpenPlanner={openComparedPlanner} />
+      </Suspense>
 
       <AntennaDesignPicker activeType={antennaType} onSelect={selectDesign} />
 
