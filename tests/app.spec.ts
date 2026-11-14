@@ -42,6 +42,46 @@ test('applies light, dark, and live system theme modes', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
+test('saves, reopens, duplicates, exports, and imports complete antenna plans', async ({ page }) => {
+  await page.getByRole('button', { name: /Folded dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await page.getByRole('spinbutton', { name: 'Reference single-dipole resistance' }).fill('80');
+
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByLabel('New plan name').fill('40 metre folded dipole');
+  await page.getByRole('button', { name: 'Save new plan' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'New plan saved' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).toContain('40 metre folded dipole');
+
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('CA');
+  await page.getByRole('button', { name: 'Change design' }).click();
+  await page.getByRole('button', { name: /^Dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('14.200');
+  await page.getByRole('button', { name: 'Open plan' }).click();
+  await expect(page.getByRole('heading', { name: 'Equal-conductor folded dipole' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency' })).toHaveValue('7.100');
+  await expect(page.getByRole('spinbutton', { name: 'Reference single-dipole resistance' })).toHaveValue('80');
+  await expect(page.getByLabel('Station jurisdiction', { exact: true })).toHaveValue('US');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download JSON' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('40-metre-folded-dipole.antenna-plan.json');
+  const downloadedPath = await download.path();
+  expect(downloadedPath).toBeTruthy();
+  await page.getByLabel('Import antenna plan JSON').setInputFiles(downloadedPath!);
+  await expect(page.getByLabel('Saved antenna plan').locator('option')).toHaveCount(2);
+  await expect(page.getByRole('status').filter({ hasText: 'existing plans were not changed' })).toBeVisible();
+  await page.getByRole('button', { name: 'Duplicate' }).click();
+  await expect(page.getByLabel('Saved antenna plan').locator('option')).toHaveCount(3);
+
+  await page.reload();
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await expect(page.getByLabel('Saved antenna plan').locator('option')).toHaveCount(3);
+});
+
 test('maps a selected band to frequency and wavelength', async ({ page }) => {
   await page.locator('select.band-select').selectOption('20m');
 

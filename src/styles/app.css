@@ -7586,6 +7586,139 @@ path.loading-coil {
 }
 
 .trap-record-heading,
+.antenna-plan-loading {
+  margin-block: 0 1rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.antenna-plan-library {
+  margin: 0 0 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+}
+
+.antenna-plan-library > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+}
+
+.antenna-plan-library > summary span:first-child,
+.plan-privacy {
+  display: grid;
+}
+
+.antenna-plan-library > summary small,
+.plan-privacy span,
+.plan-summary span {
+  color: var(--text-secondary);
+}
+
+.plan-count {
+  display: grid;
+  min-width: 2rem;
+  min-height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  font-weight: 800;
+}
+
+.antenna-plan-library-body {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.plan-privacy {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 4px solid var(--accent-technical);
+  background: var(--bg-surface);
+}
+
+.plan-save-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.plan-save-row label,
+.plan-picker {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 800;
+}
+
+.plan-save-row input,
+.plan-picker select {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.plan-summary {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.plan-summary code {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.plan-import {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.plan-import input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.plan-message,
+.plan-empty {
+  min-height: 1.4rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .trap-record-privacy {
   display: flex;
   align-items: start;
@@ -9920,6 +10053,18 @@ path.loading-coil {
   .v-beam-direction text,
   .v-beam-angle text,
   .v-beam-labels text { font-size: 18px; }
+}
+
+@media (max-width: 560px) {
+  .plan-save-row {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-actions,
+  .plan-actions button,
+  .plan-import {
+    width: 100%;
+  }
 }
 
 @media print {

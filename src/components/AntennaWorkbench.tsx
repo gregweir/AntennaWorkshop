@@ -37,18 +37,20 @@ import type { ReceiveAntennaCandidate } from '../calculators/receiveAntennaSelec
 import { ANTENNA_DESIGNS, type AntennaType } from '../lib/antennaDesignCatalog';
 import { classifyResultEvidence, isSupportingResult, type ResultEvidenceKind } from '../lib/resultEvidence';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
+import { restoreAntennaPlanWorkspace, type AntennaPlan, type AntennaPlanValue, type AntennaPlanWorkspace } from '../projects/antennaPlans';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { DipoleDiagram } from './DipoleDiagram';
-import { AirCoreCoilPanel } from './AirCoreCoilPanel';
-import { TrapCommissioningPanel } from './TrapCommissioningPanel';
 import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
 import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { ResultEvidenceBadge, ResultEvidenceGuide } from './ResultEvidenceGuide';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
+const AntennaPlanLibrary = lazy(() => import('./AntennaPlanLibrary').then((module) => ({ default: module.AntennaPlanLibrary })));
+const AirCoreCoilPanel = lazy(() => import('./AirCoreCoilPanel').then((module) => ({ default: module.AirCoreCoilPanel })));
+const TrapCommissioningPanel = lazy(() => import('./TrapCommissioningPanel').then((module) => ({ default: module.TrapCommissioningPanel })));
 const EfhwDiagram = lazy(() => import('./EfhwDiagram').then((module) => ({ default: module.EfhwDiagram })));
 const InvertedVDiagram = lazy(() => import('./InvertedVDiagram').then((module) => ({ default: module.InvertedVDiagram })));
 const OcfdDiagram = lazy(() => import('./OcfdDiagram').then((module) => ({ default: module.OcfdDiagram })));
@@ -110,13 +112,19 @@ const ActiveReceiveLoopDiagram = lazy(() => import('./ActiveReceiveLoopDiagram')
 
 interface Props {
   jurisdiction: JurisdictionCode;
+  setJurisdiction: (jurisdiction: JurisdictionCode) => void;
   unitSystem: UnitSystem;
+  setUnitSystem: (unitSystem: UnitSystem) => void;
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
   onContinueToSystem: (handoff: AntennaDesignHandoff) => void;
 }
 
-export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAdvancedOpen, onContinueToSystem }: Props) {
+function planBinding<T extends AntennaPlanValue>(value: T, setter: (value: T) => void): readonly [AntennaPlanValue, (next: AntennaPlanValue) => void] {
+  return [value, (next) => setter(next as T)];
+}
+
+export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, onContinueToSystem }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>('dipole');
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [foldedDipoleSpacingMetres, setFoldedDipoleSpacingMetres] = useState(0.15);
@@ -400,6 +408,149 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
                 ? ANTENNA_MODELS.groundPlane
                 : ANTENNA_MODELS.fullWaveLoop;
   const handoffFrequencyMHz = calculation?.type === 'hex-beam' ? calculation.value.referenceFrequencyMHz : calculation?.type === 'small-loop' ? calculation.value.centreFrequencyMHz : calculation?.type === 'log-periodic' ? Math.sqrt(calculation.value.lowerFrequencyMHz * calculation.value.upperFrequencyMHz) : frequencyMHz;
+  const workspaceBindings = [
+    planBinding(antennaType, setAntennaType),
+    planBinding(frequencyText, setFrequencyText),
+    planBinding(foldedDipoleSpacingMetres, setFoldedDipoleSpacingMetres),
+    planBinding(foldedDipoleReferenceResistanceOhms, setFoldedDipoleReferenceResistanceOhms),
+    planBinding(foldedDipoleFeedlineImpedanceOhms, setFoldedDipoleFeedlineImpedanceOhms),
+    planBinding(fanAdditionalFrequencyTexts, setFanAdditionalFrequencyTexts),
+    planBinding(doubletLineLengthMetres, setDoubletLineLengthMetres),
+    planBinding(doubletLineVelocityFactor, setDoubletLineVelocityFactor),
+    planBinding(doubletLineImpedanceOhms, setDoubletLineImpedanceOhms),
+    planBinding(doubletCheckFrequencyText, setDoubletCheckFrequencyText),
+    planBinding(doubletTunerInterface, setDoubletTunerInterface),
+    planBinding(g5rvPreset, setG5rvPreset),
+    planBinding(g5rvLineVelocityFactor, setG5rvLineVelocityFactor),
+    planBinding(g5rvLineImpedanceOhms, setG5rvLineImpedanceOhms),
+    planBinding(g5rvCustomRadiatorMetres, setG5rvCustomRadiatorMetres),
+    planBinding(g5rvCustomElectricalLineMetres, setG5rvCustomElectricalLineMetres),
+    planBinding(collinearElementCount, setCollinearElementCount),
+    planBinding(collinearPhasingVelocityFactor, setCollinearPhasingVelocityFactor),
+    planBinding(collinearStubTrimAllowancePercent, setCollinearStubTrimAllowancePercent),
+    planBinding(turnstilePhasingVelocityFactor, setTurnstilePhasingVelocityFactor),
+    planBinding(turnstileQuadratureOrder, setTurnstileQuadratureOrder),
+    planBinding(haloShape, setHaloShape),
+    planBinding(haloFarEndGapMetres, setHaloFarEndGapMetres),
+    planBinding(haloFeedpointGapMetres, setHaloFeedpointGapMetres),
+    planBinding(skywireAspectRatio, setSkywireAspectRatio),
+    planBinding(skywireSupportHeightsMetres, setSkywireSupportHeightsMetres),
+    planBinding(skywireRiggingReservePercent, setSkywireRiggingReservePercent),
+    planBinding(skywireFeedSide, setSkywireFeedSide),
+    planBinding(skywireFeedPositionPercent, setSkywireFeedPositionPercent),
+    planBinding(hexBeamBands, setHexBeamBands),
+    planBinding(hexBeamWireGauge, setHexBeamWireGauge),
+    planBinding(vBeamLegWavelengths, setVBeamLegWavelengths),
+    planBinding(vBeamTargetBearingDegrees, setVBeamTargetBearingDegrees),
+    planBinding(vBeamMode, setVBeamMode),
+    planBinding(vBeamTerminationResistanceOhms, setVBeamTerminationResistanceOhms),
+    planBinding(vBeamTrimAllowancePercent, setVBeamTrimAllowancePercent),
+    planBinding(rhombicSideWavelengths, setRhombicSideWavelengths),
+    planBinding(rhombicIncludedAngleDegrees, setRhombicIncludedAngleDegrees),
+    planBinding(rhombicForwardBearingDegrees, setRhombicForwardBearingDegrees),
+    planBinding(rhombicMode, setRhombicMode),
+    planBinding(rhombicTerminationResistanceOhms, setRhombicTerminationResistanceOhms),
+    planBinding(rhombicTrimAllowancePercent, setRhombicTrimAllowancePercent),
+    planBinding(halfRhombicWireWavelengths, setHalfRhombicWireWavelengths),
+    planBinding(halfRhombicApexHeightMetres, setHalfRhombicApexHeightMetres),
+    planBinding(halfRhombicForwardBearingDegrees, setHalfRhombicForwardBearingDegrees),
+    planBinding(halfRhombicMode, setHalfRhombicMode),
+    planBinding(halfRhombicTerminationResistanceOhms, setHalfRhombicTerminationResistanceOhms),
+    planBinding(halfRhombicAttachmentAllowancePercent, setHalfRhombicAttachmentAllowancePercent),
+    planBinding(loadedDipoleSpanMetres, setLoadedDipoleSpanMetres),
+    planBinding(loadedDipoleCoilPositionMetres, setLoadedDipoleCoilPositionMetres),
+    planBinding(loadedDipoleHeightMetres, setLoadedDipoleHeightMetres),
+    planBinding(loadedDipoleConductorDiameterMillimetres, setLoadedDipoleConductorDiameterMillimetres),
+    planBinding(trapUpperFrequencyText, setTrapUpperFrequencyText),
+    planBinding(trapDipoleSpanMetres, setTrapDipoleSpanMetres),
+    planBinding(trapPositionMetres, setTrapPositionMetres),
+    planBinding(trapDipoleHeightMetres, setTrapDipoleHeightMetres),
+    planBinding(trapDipoleConductorDiameterMillimetres, setTrapDipoleConductorDiameterMillimetres),
+    planBinding(smallLoopUpperFrequencyText, setSmallLoopUpperFrequencyText),
+    planBinding(smallLoopCircumferenceMetres, setSmallLoopCircumferenceMetres),
+    planBinding(smallLoopMeasuredInductanceMicrohenries, setSmallLoopMeasuredInductanceMicrohenries),
+    planBinding(smallLoopStrayCapacitancePicofarads, setSmallLoopStrayCapacitancePicofarads),
+    planBinding(smallLoopCapacitorMinimumPicofarads, setSmallLoopCapacitorMinimumPicofarads),
+    planBinding(smallLoopCapacitorMaximumPicofarads, setSmallLoopCapacitorMaximumPicofarads),
+    planBinding(loadedVerticalHeightMetres, setLoadedVerticalHeightMetres),
+    planBinding(loadedVerticalCoilPositionMetres, setLoadedVerticalCoilPositionMetres),
+    planBinding(loadedVerticalConductorDiameterMillimetres, setLoadedVerticalConductorDiameterMillimetres),
+    planBinding(lengthCorrectionFactor, setLengthCorrectionFactor),
+    planBinding(trimAllowancePercent, setTrimAllowancePercent),
+    planBinding(includedAngleDegrees, setIncludedAngleDegrees),
+    planBinding(radialCount, setRadialCount),
+    planBinding(radialSlopeDegrees, setRadialSlopeDegrees),
+    planBinding(loopShape, setLoopShape),
+    planBinding(deltaLoopOrientation, setDeltaLoopOrientation),
+    planBinding(deltaLoopFeedMode, setDeltaLoopFeedMode),
+    planBinding(transformerRatio, setTransformerRatio),
+    planBinding(estimatedEndImpedanceOhms, setEstimatedEndImpedanceOhms),
+    planBinding(feedpointPercentFromEnd, setFeedpointPercentFromEnd),
+    planBinding(estimatedOcfdImpedanceOhms, setEstimatedOcfdImpedanceOhms),
+    planBinding(jpoleConstruction, setJpoleConstruction),
+    planBinding(jpoleTapPercent, setJpoleTapPercent),
+    planBinding(slimJimGapPercent, setSlimJimGapPercent),
+    planBinding(moxonConductorDiameterMillimetres, setMoxonConductorDiameterMillimetres),
+    planBinding(quadElementSpacingWavelengths, setQuadElementSpacingWavelengths),
+    planBinding(quadPolarization, setQuadPolarization),
+    planBinding(helixCircumferenceWavelengths, setHelixCircumferenceWavelengths),
+    planBinding(helixPitchAngleDegrees, setHelixPitchAngleDegrees),
+    planBinding(helixTurnCount, setHelixTurnCount),
+    planBinding(helixGroundPlaneWavelengths, setHelixGroundPlaneWavelengths),
+    planBinding(helixHandedness, setHelixHandedness),
+    planBinding(disconeHalfAngleDegrees, setDisconeHalfAngleDegrees),
+    planBinding(disconeConeRadialCount, setDisconeConeRadialCount),
+    planBinding(disconeDiscRadialCount, setDisconeDiscRadialCount),
+    planBinding(logPeriodicUpperFrequencyText, setLogPeriodicUpperFrequencyText),
+    planBinding(logPeriodicTau, setLogPeriodicTau),
+    planBinding(logPeriodicSigma, setLogPeriodicSigma),
+    planBinding(logPeriodicActiveRegionFactor, setLogPeriodicActiveRegionFactor),
+    planBinding(beverageWireLengthWavelengths, setBeverageWireLengthWavelengths),
+    planBinding(beverageWireHeightMetres, setBeverageWireHeightMetres),
+    planBinding(beverageTargetBearingDegrees, setBeverageTargetBearingDegrees),
+    planBinding(beverageReceptionMode, setBeverageReceptionMode),
+    planBinding(beverageTerminationResistanceOhms, setBeverageTerminationResistanceOhms),
+    planBinding(beverageAssumedImpedanceOhms, setBeverageAssumedImpedanceOhms),
+    planBinding(beverageFeedlineImpedanceOhms, setBeverageFeedlineImpedanceOhms),
+    planBinding(compactReceiveGeometry, setCompactReceiveGeometry),
+    planBinding(compactReceiveSpanMetres, setCompactReceiveSpanMetres),
+    planBinding(compactReceiveHeightMetres, setCompactReceiveHeightMetres),
+    planBinding(compactReceiveClearanceMetres, setCompactReceiveClearanceMetres),
+    planBinding(compactReceiveBearingDegrees, setCompactReceiveBearingDegrees),
+    planBinding(compactReceiveTerminationOhms, setCompactReceiveTerminationOhms),
+    planBinding(compactReceiveAssumedImpedanceOhms, setCompactReceiveAssumedImpedanceOhms),
+    planBinding(compactReceiveFeedlineImpedanceOhms, setCompactReceiveFeedlineImpedanceOhms),
+    planBinding(k9ayApexHeightMetres, setK9ayApexHeightMetres),
+    planBinding(k9ayHalfWidthMetres, setK9ayHalfWidthMetres),
+    planBinding(k9ayLowerCornerHeightMetres, setK9ayLowerCornerHeightMetres),
+    planBinding(k9ayFirstReceiveBearingDegrees, setK9ayFirstReceiveBearingDegrees),
+    planBinding(k9aySelectedDirectionIndex, setK9aySelectedDirectionIndex),
+    planBinding(k9ayTerminationResistanceOhms, setK9ayTerminationResistanceOhms),
+    planBinding(k9ayAssumedImpedanceOhms, setK9ayAssumedImpedanceOhms),
+    planBinding(k9ayFeedlineImpedanceOhms, setK9ayFeedlineImpedanceOhms),
+    planBinding(k9ayWireAllowancePercent, setK9ayWireAllowancePercent),
+    planBinding(logSideLengthMetres, setLogSideLengthMetres),
+    planBinding(logReceiveAxisBearingDegrees, setLogReceiveAxisBearingDegrees),
+    planBinding(logAntennaWindingTurns, setLogAntennaWindingTurns),
+    planBinding(logCoaxWindingTurns, setLogCoaxWindingTurns),
+    planBinding(logFeedlineImpedanceOhms, setLogFeedlineImpedanceOhms),
+    planBinding(logWireAllowancePercent, setLogWireAllowancePercent),
+    planBinding(activeLoopUpperFrequencyText, setActiveLoopUpperFrequencyText),
+    planBinding(activeLoopDiameterMetres, setActiveLoopDiameterMetres),
+    planBinding(activeLoopBaseHeightMetres, setActiveLoopBaseHeightMetres),
+    planBinding(activeLoopNullAxisBearingDegrees, setActiveLoopNullAxisBearingDegrees),
+    planBinding(activeLoopWireAllowancePercent, setActiveLoopWireAllowancePercent),
+    planBinding(groundRadialCount, setGroundRadialCount),
+    planBinding(groundRadialLengthMultiplier, setGroundRadialLengthMultiplier),
+  ];
+  const currentWorkspace = Object.fromEntries(workspaceBindings.map(([value], index) => [`s${index}`, value])) as AntennaPlanWorkspace;
+  const openAntennaPlan = (plan: AntennaPlan) => {
+    const restored = restoreAntennaPlanWorkspace({ ...plan.workspace, s0: plan.antennaType }, currentWorkspace);
+    workspaceBindings.forEach(([, setter], index) => setter(restored[`s${index}`]));
+    setJurisdiction(plan.jurisdiction);
+    setUnitSystem(plan.unitSystem);
+    globalThis.requestAnimationFrame?.(() => document.getElementById('calculator-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   const recommendedFactor = antennaType === 'full-wave-loop' || antennaType === 'skywire' ? 1.02 : antennaType === 'jpole' || antennaType === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95;
   const lengthCorrectionTooltip = antennaType === 'trap-dipole'
@@ -506,6 +657,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {advancedOpen ? 'Hide advanced' : 'Show advanced'}
         </button>}
       </div>
+
+      <Suspense fallback={<div className="antenna-plan-loading" role="status">Loading saved plans…</div>}>
+        <AntennaPlanLibrary antennaType={antennaType} jurisdiction={jurisdiction} unitSystem={unitSystem} modelId={model.id} modelVersion={model.version} workspace={currentWorkspace} onOpen={openAntennaPlan} />
+      </Suspense>
 
       <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />
 
@@ -1171,10 +1326,12 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         </tbody></table></div>
       </section>}
 
-      {calculation?.type === 'loaded-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each loading coil" unitSystem={unitSystem} />}
-      {calculation?.type === 'trap-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each trap coil" unitSystem={unitSystem} />}
-      {calculation?.type === 'trap-dipole' && <TrapCommissioningPanel key={`${calculation.value.inductanceMicrohenries}-${calculation.value.capacitancePicofarads}-${calculation.value.trapResonanceMHz}`} targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} targetCapacitancePicofarads={calculation.value.capacitancePicofarads} targetResonanceMHz={calculation.value.trapResonanceMHz} />}
-      {calculation?.type === 'loaded-vertical' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Loading coil" unitSystem={unitSystem} />}
+      <Suspense fallback={<div className="diagram-placeholder" role="status">Loading coil worksheet…</div>}>
+        {calculation?.type === 'loaded-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each loading coil" unitSystem={unitSystem} />}
+        {calculation?.type === 'trap-dipole' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Each trap coil" unitSystem={unitSystem} />}
+        {calculation?.type === 'trap-dipole' && <TrapCommissioningPanel key={`${calculation.value.inductanceMicrohenries}-${calculation.value.capacitancePicofarads}-${calculation.value.trapResonanceMHz}`} targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} targetCapacitancePicofarads={calculation.value.capacitancePicofarads} targetResonanceMHz={calculation.value.trapResonanceMHz} />}
+        {calculation?.type === 'loaded-vertical' && <AirCoreCoilPanel targetInductanceMicrohenries={calculation.value.inductanceMicrohenries} coilLabel="Loading coil" unitSystem={unitSystem} />}
+      </Suspense>
 
       {calculation && calculation.type !== 'beverage' && calculation.type !== 'compact-receive' && calculation.type !== 'k9ay' && calculation.type !== 'loop-on-ground' && calculation.type !== 'active-receive-loop' && <section className="workflow-handoff" aria-labelledby="antenna-handoff-heading">
         <div><p className="eyebrow">Connected workflow</p><h3 id="antenna-handoff-heading">Use this design in an RF station project</h3><p>Carry a representative frequency and the largest physical dimension into the feed-system calculator. Gain, loss, power, duty cycle, installed height, and the exact operating frequency remain explicit inputs.</p></div>

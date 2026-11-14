@@ -123,7 +123,7 @@ export function App() {
 
       <Suspense fallback={<section className="workspace shell tool-loading" role="status" aria-live="polite"><p className="eyebrow">Opening workshop</p><h2>Loading the selected tool…</h2><p>The calculator and its saved on-device data will be ready momentarily.</p></section>}>
         {workshopTool === 'antennas'
-          ? <AntennaWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
+          ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
           : workshopTool === 'feedline'
             ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
             : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} />}
