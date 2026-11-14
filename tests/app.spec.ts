@@ -63,6 +63,9 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByText('These are relevant options, not performance rankings.')).toBeVisible();
   await page.getByRole('button', { name: /Loop on Ground/ }).click();
   await expect(page.getByRole('heading', { name: 'Loop-on-Ground receiving antenna' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Current: Loop on Ground' })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search designs' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Change design' }).click();
 
   await page.getByRole('button', { name: 'Back to site or goal' }).click();
   await page.getByRole('button', { name: /Control noise direction/ }).click();
@@ -71,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 27 designs')).toBeVisible();
+  await expect(page.getByText('2 of 28 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 27 designs')).toBeVisible();
+  await expect(page.getByText('5 of 28 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('27 of 27 designs')).toBeVisible();
+  await expect(page.getByText('28 of 28 designs')).toBeVisible();
 });
 
 test('separates build dimensions, assumptions, references, and field verification', async ({ page }) => {
@@ -152,6 +155,29 @@ test('plans a balanced-line doublet without inventing a tuner-side impedance', a
   await expect(page.locator('.result-summary')).toContainText('66 ft 6.125 in');
 });
 
+test('builds distinct G5RV-family presets without promising an all-band match', async ({ page }) => {
+  await page.getByRole('button', { name: /G5RV family/ }).click();
+  await expect(page.getByRole('heading', { name: 'G5RV family antenna system' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Change design' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Inspection frequency' })).toHaveValue('14.150');
+  await expect(page.getByRole('img', { name: /Dimensioned Classic full-size G5RV antenna system/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('15.550 m per radiator leg');
+  await expect(page.locator('.result-summary')).toContainText('9.842 m');
+  await expect(page.locator('.caution-card')).toContainText('A named geometry is not an all-band match');
+
+  await page.getByLabel('G5RV-family design', { exact: true }).selectOption('zs6bkw');
+  await expect(page.getByRole('img', { name: /Dimensioned ZS6BKW \/ G0GSF antenna system/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('14.250 m per radiator leg');
+  await expect(page.locator('.result-summary')).toContainText('12.635 m');
+  await expect(page.locator('.result-summary')).toContainText('40, 20, 17, 12, and 10 m');
+
+  await page.getByLabel('G5RV-family design', { exact: true }).selectOption('custom');
+  await expect(page.getByRole('spinbutton', { name: 'Custom total radiator length' })).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'Custom total radiator length' }).fill('26');
+  await page.getByRole('spinbutton', { name: 'Custom matching-section electrical reference' }).fill('11');
+  await expect(page.locator('.result-summary')).toContainText('13.000 m per radiator leg');
+});
+
 test('plans loaded dipoles and verticals with adjustable coil positions', async ({ page }) => {
   await page.getByRole('button', { name: /Loaded dipole/ }).click();
   await expect(page.getByRole('heading', { name: 'Inductively loaded dipole' })).toBeVisible();
@@ -168,6 +194,7 @@ test('plans loaded dipoles and verticals with adjustable coil positions', async 
   await expect(page.getByRole('spinbutton', { name: 'Available total span' })).toHaveValue('24.606');
   await expect(page.getByRole('spinbutton', { name: 'Conductor outside diameter' })).toHaveValue('0.0787');
 
+  await page.getByRole('button', { name: 'Change design' }).click();
   await page.getByRole('button', { name: /Loaded vertical/ }).click();
   await expect(page.getByRole('heading', { name: 'Inductively loaded vertical' })).toBeVisible();
   await expect(page.getByRole('img', { name: /Dimensioned inductively loaded vertical/ })).toBeVisible();
@@ -745,11 +772,16 @@ test('matches receive planners to explicit site and system constraints', async (
 });
 
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
+  const selectAntenna = async (name: RegExp) => {
+    const changeDesign = page.getByRole('button', { name: 'Change design' });
+    if (await changeDesign.isVisible()) await changeDesign.click();
+    await page.getByRole('button', { name }).click();
+  };
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
   await expect(page.getByText('Plan the installed span')).toBeVisible();
 
-  await page.getByRole('button', { name: /Inverted-V/ }).click();
+  await selectAntenna(/Inverted-V/);
   await expect(page.getByRole('heading', { name: 'Inverted-V dipole' })).toBeVisible();
   await expect(page.getByLabel('Included apex angle', { exact: true })).toHaveValue('120');
   await expect(page.getByRole('img', { name: /Dimensioned inverted-V/ })).toBeVisible();
@@ -759,7 +791,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Help: Included apex angle').click();
   await expect(page.getByRole('note').filter({ hasText: 'Included apex angle' })).toContainText('angle between the two wire legs');
 
-  await page.getByRole('button', { name: /EFHW/ }).click();
+  await selectAntenna(/EFHW/);
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
   await expect(page.getByRole('heading', { name: 'End-fed half-wave (EFHW)' })).toBeVisible();
   await expect(page.getByLabel('Transformer impedance ratio', { exact: true })).toHaveValue('49');
@@ -779,7 +811,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Help: Estimated antenna end impedance').click();
   await expect(page.getByRole('note').filter({ hasText: 'Estimated antenna end impedance' })).toContainText('planning assumption');
 
-  await page.getByRole('button', { name: /OCFD/ }).click();
+  await selectAntenna(/OCFD/);
   await expect(page.getByRole('heading', { name: 'Off-centre-fed dipole (OCFD)' })).toBeVisible();
   await expect(page.getByLabel('Feedpoint position from short end', { exact: true })).toHaveValue('33.333');
   await expect(page.getByLabel('Current-balun impedance ratio', { exact: true })).toHaveValue('4');
@@ -797,7 +829,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Help: Estimated OCFD feedpoint impedance').click();
   await expect(page.getByRole('note').filter({ hasText: 'Estimated OCFD feedpoint impedance' })).toContainText('resistance assumption');
 
-  await page.getByRole('button', { name: /J-pole/ }).click();
+  await selectAntenna(/J-pole/);
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('146.000');
   await expect(page.getByRole('heading', { name: 'J-pole vertical' })).toBeVisible();
   await expect(page.getByLabel('Construction medium', { exact: true })).toHaveValue('twinlead');
@@ -816,7 +848,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Construction medium', { exact: true }).selectOption('metal');
   await expect(page.getByLabel('Length correction factor', { exact: true })).toHaveValue('0.93');
 
-  await page.getByRole('button', { name: /Slim Jim/ }).click();
+  await selectAntenna(/Slim Jim/);
   await expect(page.getByRole('heading', { name: 'Slim Jim vertical' })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Interruption gap' })).toHaveValue('5');
   await expect(page.getByRole('img', { name: /Dimensioned Slim Jim antenna/ })).toBeVisible();
@@ -829,7 +861,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Construction medium', { exact: true }).selectOption('twinlead');
   await expect(page.getByLabel('Length correction factor', { exact: true })).toHaveValue('0.83');
 
-  await page.getByRole('button', { name: /Moxon/ }).click();
+  await selectAntenna(/Moxon/);
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('435.000');
   await expect(page.getByRole('heading', { name: 'Moxon rectangle' })).toBeVisible();
   await expect(page.getByLabel('Conductor diameter', { exact: true })).toHaveValue('2.05');
@@ -842,7 +874,7 @@ test('switches among graphical antenna designs and updates construction results'
   await expect(page.getByRole('note').filter({ hasText: 'Conductor diameter' })).toContainText('Cebik regression');
   await expect(page.getByRole('button', { name: /advanced/ })).toHaveCount(0);
 
-  await page.getByRole('button', { name: /Basic Yagi/ }).click();
+  await selectAntenna(/Basic Yagi/);
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('146.000');
   await expect(page.getByRole('heading', { name: 'Three-element Yagi' })).toBeVisible();
   await expect(page.getByText('NBS reference geometry', { exact: true })).toBeVisible();
@@ -855,7 +887,7 @@ test('switches among graphical antenna designs and updates construction results'
   await expect(page.getByRole('note').filter({ hasText: 'NBS Yagi reference geometry' })).toContainText('complete measured reference system');
   await expect(page.locator('.caution-card')).toContainText('do not guarantee a 50 Ω feed');
 
-  await page.getByRole('button', { name: /Ground vertical/ }).click();
+  await selectAntenna(/Ground vertical/);
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
   await expect(page.getByRole('heading', { name: 'Ground-mounted quarter-wave vertical' })).toBeVisible();
   await expect(page.getByLabel('Number of ground radials', { exact: true })).toHaveValue('32');
@@ -869,7 +901,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Help: Number of ground radials').click();
   await expect(page.getByRole('note').filter({ hasText: 'Number of ground radials' })).toContainText('ground rod is not a substitute');
 
-  await page.getByRole('button', { name: /Ground plane/ }).click();
+  await selectAntenna(/Ground plane/);
   await expect(page.getByLabel('Number of radials', { exact: true })).toHaveValue('4');
   await expect(page.getByRole('img', { name: /Dimensioned quarter-wave ground-plane/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('4 radial wires');
@@ -879,7 +911,7 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Help: Radial slope below horizontal').click();
   await expect(page.getByRole('note').filter({ hasText: 'Radial slope below horizontal' })).toContainText('actual result depends on the complete installation');
 
-  await page.getByRole('button', { name: /Full-wave loop/ }).click();
+  await selectAntenna(/Full-wave loop/);
   await page.getByLabel('Loop shape', { exact: true }).selectOption('circle');
   await expect(page.getByRole('img', { name: /Dimensioned full-wave circle loop/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Diameter');

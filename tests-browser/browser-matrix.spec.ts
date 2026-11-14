@@ -53,5 +53,9 @@ test('supports keyboard entry and remains within the viewport', async ({ page, i
   if (isMobile) {
     await expect(page.getByRole('button', { name: /Antenna designs/ })).toHaveCSS('min-height', '44px');
     await expect(page.getByRole('button', { name: /Feedline & matching/ })).toHaveCSS('min-height', '44px');
+    await expect(page.getByRole('button', { name: 'Change design' })).toHaveCSS('min-height', '44px');
+    await expect(page.getByRole('button', { name: 'View drawing' })).toHaveCSS('min-height', '44px');
+    await page.getByRole('button', { name: 'View drawing' }).click();
+    await expect(page.locator('#design-drawing')).toBeInViewport();
   }
 });

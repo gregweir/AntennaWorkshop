@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-export type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'phased-collinear' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
+export type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'g5rv' | 'phased-collinear' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
 export type AntennaDesignCategory = 'wire' | 'vertical' | 'directional' | 'loop' | 'broadband' | 'receive';
 export type GuidedIntent = 'transmit' | 'receive';
 export type GuidedGoal = 'simple-wire' | 'multiband' | 'limited-space' | 'vertical-footprint' | 'directional' | 'broadband' | 'compact-receive' | 'long-route' | 'surface-installation' | 'direction-control' | 'all';
@@ -24,6 +24,7 @@ export const ANTENNA_DESIGNS: Record<AntennaType, AntennaDesignDefinition> = {
   dipole: { name: 'Centre-fed half-wave dipole', short: 'Dipole', description: 'Two straight legs', category: 'wire', receiveOnly: false, tags: ['simple', 'single band', 'balanced'], guidedGoals: ['simple-wire'] },
   'fan-dipole': { name: 'Multiband fan dipole', short: 'Fan dipole', description: 'Parallel resonant wire pairs', category: 'wire', receiveOnly: false, tags: ['multiband', 'balanced'], guidedGoals: ['multiband'] },
   doublet: { name: 'Balanced-line multiband doublet', short: 'Doublet', description: 'Equal legs · balanced line · tuner', category: 'wire', receiveOnly: false, tags: ['multiband', 'tuner', 'balanced line'], guidedGoals: ['multiband', 'broadband'] },
+  g5rv: { name: 'G5RV family antenna system', short: 'G5RV family', description: 'G5RV · half-size · ZS6BKW', category: 'wire', receiveOnly: false, tags: ['multiband', 'tuner', 'balanced line', 'matching section', 'zs6bkw', 'g0gsf', 'louis varney'], guidedGoals: ['multiband'] },
   'phased-collinear': { name: 'Phased wire collinear array', short: 'Collinear', description: 'Equal half waves · phasing stubs', category: 'directional', receiveOnly: false, tags: ['array', 'wire', 'phasing'], guidedGoals: ['directional'] },
   'loaded-dipole': { name: 'Inductively loaded dipole', short: 'Loaded dipole', description: 'Shortened span · two series coils', category: 'wire', receiveOnly: false, tags: ['shortened', 'limited space', 'coil'], guidedGoals: ['limited-space'] },
   'trap-dipole': { name: 'Two-band parallel-LC trap dipole', short: 'Trap dipole', description: 'Two bands · matched parallel traps', category: 'wire', receiveOnly: false, tags: ['two band', 'multiband', 'trap'], guidedGoals: ['multiband'] },

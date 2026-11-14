@@ -117,7 +117,7 @@ Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon
 
 ## Initial calculator roadmap
 
-The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
+The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, classic and half-size G5RV plus ZS6BKW family presets, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
 Advanced families later include other multiband designs, detailed small-loop loss and component modelling, detailed collinear-array, cubical-quad, helical, discone, log-periodic, and Beverage modelling, additional receive antennas, detailed trap and capacitor construction, and matching networks.
 
