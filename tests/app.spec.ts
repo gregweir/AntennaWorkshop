@@ -114,20 +114,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 36 designs')).toBeVisible();
+  await expect(page.getByText('2 of 37 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 36 designs')).toBeVisible();
+  await expect(page.getByText('5 of 37 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('36 of 36 designs')).toBeVisible();
+  await expect(page.getByText('37 of 37 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -150,6 +150,27 @@ test('plans an equal-conductor folded dipole without presenting nominal impedanc
   await expect(page.locator('.caution-card').filter({ hasText: 'Folded-dipole feed system' })).toContainText('A nominal ratio is not a transformer design');
   await page.getByRole('button', { name: 'Imperial' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Parallel conductor spacing' })).toHaveValue('0.492');
+});
+
+test('plans a Countryman T2FD without promising broadband efficiency or match', async ({ page }) => {
+  await page.getByRole('button', { name: /T2FD · W3HH/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.000');
+  await expect(page.getByRole('heading', { name: 'Tilted terminated folded dipole (T2FD)' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned tilted terminated folded dipole/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build two equal terminated folded-dipole conductors');
+  await expect(page.locator('.result-summary')).toContainText('14.643 m cut length each');
+  await expect(page.locator('.result-summary')).toContainText('42.9 cm');
+  await expect(page.locator('.result-summary')).toContainText('7.000–35.000 MHz · 5:1');
+  await expect(page.locator('.result-summary')).toContainText('Historical 35% minimum resistor rating');
+  await expect(page.locator('.result-summary')).toContainText('Installed impedance, SWR, loss, efficiency');
+  await expect(page.getByText('Place feed and termination at opposite centres')).toBeHidden();
+  await page.getByText('Plan a Countryman T2FD starting geometry').click();
+  await expect(page.getByText('Place feed and termination at opposite centres')).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'T2FD termination' }).fill('800');
+  await page.getByRole('spinbutton', { name: 'T2FD feed-system impedance' }).fill('50');
+  await expect(page.locator('.result-summary')).toContainText('16.00:1 / 4.00:1');
+  await expect(page.getByRole('complementary', { name: 'T2FD design advisories' })).toContainText('not a transformer design');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Historical rating rule' })).toContainText('not a finished thermal design');
 });
 
 test('plans a crossed-dipole turnstile without treating a quarter-wave line as a complete feed network', async ({ page }) => {

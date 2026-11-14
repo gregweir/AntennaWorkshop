@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-export type AntennaType = 'dipole' | 'folded-dipole' | 'fan-dipole' | 'doublet' | 'g5rv' | 'phased-collinear' | 'turnstile' | 'halo' | 'skywire' | 'hex-beam' | 'v-beam' | 'rhombic' | 'vertical-half-rhombic' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
+export type AntennaType = 'dipole' | 'folded-dipole' | 't2fd' | 'fan-dipole' | 'doublet' | 'g5rv' | 'phased-collinear' | 'turnstile' | 'halo' | 'skywire' | 'hex-beam' | 'v-beam' | 'rhombic' | 'vertical-half-rhombic' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
 export type AntennaDesignCategory = 'wire' | 'vertical' | 'directional' | 'loop' | 'broadband' | 'receive';
 export type GuidedIntent = 'transmit' | 'receive';
 export type GuidedGoal = 'simple-wire' | 'multiband' | 'limited-space' | 'vertical-footprint' | 'directional' | 'broadband' | 'compact-receive' | 'long-route' | 'surface-installation' | 'direction-control' | 'all';
@@ -23,6 +23,7 @@ export interface AntennaDesignDefinition {
 export const ANTENNA_DESIGNS: Record<AntennaType, AntennaDesignDefinition> = {
   dipole: { name: 'Centre-fed half-wave dipole', short: 'Dipole', description: 'Two straight legs', category: 'wire', receiveOnly: false, tags: ['simple', 'single band', 'balanced'], guidedGoals: ['simple-wire'] },
   'folded-dipole': { name: 'Equal-conductor folded dipole', short: 'Folded dipole', description: 'Parallel half-wave conductors · end joins', category: 'wire', receiveOnly: false, tags: ['simple', 'single band', 'balanced', '300 ohm', 'folded'], guidedGoals: ['simple-wire'] },
+  t2fd: { name: 'Tilted terminated folded dipole (T2FD)', short: 'T2FD · W3HH', description: 'Broadband folded wire · resistive termination', category: 'broadband', receiveOnly: false, tags: ['multiband', 'broadband', 'terminated', 'folded', 'w3hh', 'countryman', 't2fd'], guidedGoals: ['multiband', 'broadband'] },
   'fan-dipole': { name: 'Multiband fan dipole', short: 'Fan dipole', description: 'Parallel resonant wire pairs', category: 'wire', receiveOnly: false, tags: ['multiband', 'balanced'], guidedGoals: ['multiband'] },
   doublet: { name: 'Balanced-line multiband doublet', short: 'Doublet', description: 'Equal legs · balanced line · tuner', category: 'wire', receiveOnly: false, tags: ['multiband', 'tuner', 'balanced line'], guidedGoals: ['multiband', 'broadband'] },
   g5rv: { name: 'G5RV family antenna system', short: 'G5RV family', description: 'G5RV · half-size · ZS6BKW', category: 'wire', receiveOnly: false, tags: ['multiband', 'tuner', 'balanced line', 'matching section', 'zs6bkw', 'g0gsf', 'louis varney'], guidedGoals: ['multiband'] },
