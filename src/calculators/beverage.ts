@@ -19,12 +19,17 @@ export interface BeverageInput {
   assumedAntennaImpedanceOhms: number;
   feedlineImpedanceOhms: number;
   wireCutAllowancePercent: number;
+  feedDropMetres: number;
+  farEndDropMetres: number;
+  maximumSupportSpanMetres: number;
+  antennaWindingTurns: number;
+  feedlineWindingTurns: number;
 }
 
 export const BEVERAGE_MODEL = {
   id: 'beverage-wave-antenna-planner',
-  version: '1.0.0',
-  reviewedOn: '2026-11-13',
+  version: '2.0.0',
+  reviewedOn: '2026-11-14',
   sources: [
     {
       title: 'Beverage — Radio Receiving System, US Patent 1,487,308',
@@ -41,6 +46,11 @@ function finiteRange(value: number, minimum: number, maximum: number, label: str
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
     throw new RangeError(`${label} must be between ${minimum} and ${maximum}.`);
   }
+}
+
+function wholeNumber(value: number, minimum: number, maximum: number, label: string) {
+  finiteRange(value, minimum, maximum, label);
+  if (!Number.isInteger(value)) throw new RangeError(`${label} must be a whole number.`);
 }
 
 function compassPoint(bearingDegrees: number) {
@@ -60,16 +70,30 @@ export function calculateBeverage(input: BeverageInput) {
   finiteRange(input.assumedAntennaImpedanceOhms, 1, 10_000, 'Assumed antenna impedance');
   finiteRange(input.feedlineImpedanceOhms, 1, 1_000, 'Feedline impedance');
   finiteRange(input.wireCutAllowancePercent, 0, 25, 'Wire cut allowance');
+  finiteRange(input.feedDropMetres, 0, 30, 'Feed drop');
+  finiteRange(input.farEndDropMetres, 0, 30, 'Far-end drop');
+  finiteRange(input.maximumSupportSpanMetres, 0.1, 500, 'Maximum support span');
+  wholeNumber(input.antennaWindingTurns, 1, 100, 'Antenna winding turns');
+  wholeNumber(input.feedlineWindingTurns, 1, 100, 'Feedline winding turns');
 
   const wavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (input.frequencyMHz * 1_000_000);
   const designWireLengthMetres = wavelengthMetres * input.wireLengthWavelengths;
   const cutWireLengthMetres = designWireLengthMetres * (1 + input.wireCutAllowancePercent / 100);
+  const totalDesignWirePathMetres = designWireLengthMetres + input.feedDropMetres + input.farEndDropMetres;
+  const totalCutWireLengthMetres = totalDesignWirePathMetres * (1 + input.wireCutAllowancePercent / 100);
+  const supportSpanCount = Math.ceil(designWireLengthMetres / input.maximumSupportSpanMetres);
+  const intermediateSupportCount = Math.max(0, supportSpanCount - 1);
+  const nominalSupportSpanMetres = designWireLengthMetres / supportSpanCount;
   const bearingRadians = input.targetBearingDegrees * Math.PI / 180;
   const eastOffsetMetres = designWireLengthMetres * Math.sin(bearingRadians);
   const northOffsetMetres = designWireLengthMetres * Math.cos(bearingRadians);
   const reverseBearingDegrees = (input.targetBearingDegrees + 180) % 360;
   const impedanceTransformationRatio = input.assumedAntennaImpedanceOhms / input.feedlineImpedanceOhms;
   const transformerTurnsRatio = Math.sqrt(impedanceTransformationRatio);
+  const enteredTransformerTurnsRatio = input.antennaWindingTurns / input.feedlineWindingTurns;
+  const enteredTransformerImpedanceRatio = enteredTransformerTurnsRatio ** 2;
+  const enteredReferredAntennaImpedanceOhms = input.feedlineImpedanceOhms * enteredTransformerImpedanceRatio;
+  const enteredReferredImpedanceDifferencePercent = Math.abs(enteredReferredAntennaImpedanceOhms - input.assumedAntennaImpedanceOhms) / input.assumedAntennaImpedanceOhms * 100;
   const terminationDifferencePercent = Math.abs(input.terminationResistanceOhms - input.assumedAntennaImpedanceOhms) / input.assumedAntennaImpedanceOhms * 100;
   const warnings: string[] = [];
 
@@ -78,12 +102,18 @@ export function calculateBeverage(input: BeverageInput) {
   if (input.receptionMode === 'terminated' && terminationDifferencePercent > 25) warnings.push('The entered termination differs by more than 25% from the assumed antenna impedance; measure and adjust the complete ground-return system.');
   if (input.receptionMode === 'unterminated') warnings.push('An open far end permits reflections; a bidirectional tendency is not a predicted pattern or match.');
   if (input.wireCutAllowancePercent === 0) warnings.push('No wire routing, connection, or sag allowance is included.');
+  if (enteredReferredImpedanceDifferencePercent > 25) warnings.push('The entered transformer turns refer an impedance more than 25% from the antenna-side planning assumption; verify the winding choice and complete receive system.');
 
   return {
     ...input,
     wavelengthMetres,
     designWireLengthMetres,
     cutWireLengthMetres,
+    totalDesignWirePathMetres,
+    totalCutWireLengthMetres,
+    supportSpanCount,
+    intermediateSupportCount,
+    nominalSupportSpanMetres,
     wireHeightWavelengths: input.wireHeightMetres / wavelengthMetres,
     electricalLengthDegrees: input.wireLengthWavelengths * 360,
     eastOffsetMetres,
@@ -93,6 +123,10 @@ export function calculateBeverage(input: BeverageInput) {
     reverseCompassPoint: compassPoint(reverseBearingDegrees),
     impedanceTransformationRatio,
     transformerTurnsRatio,
+    enteredTransformerTurnsRatio,
+    enteredTransformerImpedanceRatio,
+    enteredReferredAntennaImpedanceOhms,
+    enteredReferredImpedanceDifferencePercent,
     terminationDifferencePercent,
     primaryResponseDescription: input.receptionMode === 'terminated'
       ? `Toward the terminated end at ${input.targetBearingDegrees.toFixed(0)}° ${compassPoint(input.targetBearingDegrees)}`

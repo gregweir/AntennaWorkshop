@@ -5,8 +5,10 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { formatLength, type UnitSystem } from '../lib/units';
-import type { BeverageReceptionMode } from '../calculators/beverage';
+import { useId, type ReactNode } from 'react';
+import { formatLength, feetToMetres, metresToFeet, type UnitSystem } from '../lib/units';
+import type { BeverageReceptionMode, calculateBeverage } from '../calculators/beverage';
+import { HelpTip } from './ContextHelp';
 import { DiagramDefinitions, DiagramGrid, SvgDimension } from './diagram/DiagramPrimitives';
 
 interface Props {
@@ -20,6 +22,40 @@ interface Props {
   terminationResistanceOhms: number;
   transformerTurnsRatio: number;
   unitSystem: UnitSystem;
+}
+
+type BeverageResult = ReturnType<typeof calculateBeverage>;
+
+interface ControlsProps {
+  unitSystem: UnitSystem;
+  feedDropMetres: number;
+  setFeedDropMetres: (value: number) => void;
+  farEndDropMetres: number;
+  setFarEndDropMetres: (value: number) => void;
+  maximumSupportSpanMetres: number;
+  setMaximumSupportSpanMetres: (value: number) => void;
+  antennaWindingTurns: number;
+  setAntennaWindingTurns: (value: number) => void;
+  feedlineWindingTurns: number;
+  setFeedlineWindingTurns: (value: number) => void;
+}
+
+function BeverageNumberField({ label, value, min, max, step, unit, help, tooltip, onChange }: { label: string; value: number; min: number; max: number; step: number; unit: string; help: string; tooltip: ReactNode; onChange: (value: number) => void }) {
+  const inputId = useId();
+  return <div className="field"><span className="field-label-with-help"><label htmlFor={inputId}>{label}</label><HelpTip label={label}>{tooltip}</HelpTip></span><span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span><small>{help}</small></div>;
+}
+
+export function BeverageConstructionControls(props: ControlsProps) {
+  const imperial = props.unitSystem === 'imperial';
+  const shownLength = (metres: number) => Number((imperial ? metresToFeet(metres) : metres).toFixed(3));
+  const setLength = (setter: (value: number) => void) => (value: number) => setter(imperial ? feetToMetres(value) : value);
+  return <>
+    <BeverageNumberField label="Feed-end vertical drop" tooltip="Record the conductor path from the horizontal wire to the feed transformer or ground-return junction. This is real wire to purchase and model; it is not part of the selected horizontal electrical length." value={shownLength(props.feedDropMetres)} min={0} max={imperial ? 98.425 : 30} step={imperial ? 0.25 : 0.1} unit={imperial ? 'ft' : 'm'} help="Added to the complete conductor schedule without changing the surveyed horizontal endpoint distance." onChange={setLength(props.setFeedDropMetres)} />
+    <BeverageNumberField label="Far-end vertical drop" tooltip="For a terminated Beverage, record the conductor path from the horizontal wire through the non-inductive termination to the far-end ground return. For an open comparison, record only any physical descent before the insulated end." value={shownLength(props.farEndDropMetres)} min={0} max={imperial ? 98.425 : 30} step={imperial ? 0.25 : 0.1} unit={imperial ? 'ft' : 'm'} help="Include the exact far-end hardware and conductor route in modelling and inspection." onChange={setLength(props.setFarEndDropMetres)} />
+    <BeverageNumberField label="Maximum planned support span" tooltip="Sets a structural layout interval only. The worksheet rounds up to enough equal horizontal spans and reports the resulting intermediate support count. Sag, loading, terrain, conductor strength, and local rules still require engineering." value={shownLength(props.maximumSupportSpanMetres)} min={imperial ? 0.328 : 0.1} max={imperial ? 1640.42 : 500} step={imperial ? 1 : 0.5} unit={imperial ? 'ft' : 'm'} help="A layout aid, not a safe-span rating or structural approval." onChange={setLength(props.setMaximumSupportSpanMetres)} />
+    <BeverageNumberField label="Antenna-side transformer turns" tooltip="Enter the actual whole-number turns planned on the antenna-side winding. The ratio check is ideal only and does not predict core permeability, bandwidth, loss, isolation, saturation, or winding capacitance." value={props.antennaWindingTurns} min={1} max={100} step={1} unit="turns" help="Default 9 turns with 3 feedline turns reproduces the 3:1 turns-ratio planning target." onChange={props.setAntennaWindingTurns} />
+    <BeverageNumberField label="Feedline-side transformer turns" tooltip="Enter the actual whole-number turns planned on the receiver-feedline winding. Keep winding isolation and common-mode control explicit in the complete receive-system design." value={props.feedlineWindingTurns} min={1} max={100} step={1} unit="turns" help="The squared turns ratio supplies impedance context only." onChange={props.setFeedlineWindingTurns} />
+  </>;
 }
 
 export function BeverageDiagram({ designWireLengthMetres, wireHeightMetres, targetBearingDegrees, targetCompassPoint, reverseBearingDegrees, reverseCompassPoint, receptionMode, terminationResistanceOhms, transformerTurnsRatio, unitSystem }: Props) {
@@ -68,4 +104,14 @@ export function BeverageDiagram({ designWireLengthMetres, wireHeightMetres, targ
     </svg>
     <figcaption>Plan and elevation views, not to scale · The target bearing runs from the feed end toward the far end. A terminated Beverage’s primary response is expected toward the termination; the actual pattern depends on the complete wire, ground, feed, terrain, and surroundings.</figcaption>
   </figure>;
+}
+
+export function BeverageConstructionPanel({ result, unitSystem }: { result: BeverageResult; unitSystem: UnitSystem }) {
+  return <section className="beverage-construction-panel" aria-labelledby="beverage-construction-title">
+    <div className="beverage-construction-heading"><div><p className="eyebrow">Construction and field worksheet</p><h3 id="beverage-construction-title">Build the route, ground returns, and transformer as one receive system</h3><p>The horizontal wavelength length remains the surveyed endpoint distance. Vertical drops, supports, winding choices, grounds, termination, feedline isolation, and receiver protection are recorded separately so they cannot disappear inside one number.</p></div><dl><div><dt>Complete design wire path</dt><dd>{formatLength(result.totalDesignWirePathMetres, unitSystem)}</dd></div><div><dt>Complete wire to cut</dt><dd>{formatLength(result.totalCutWireLengthMetres, unitSystem)}</dd></div><div><dt>Support layout</dt><dd>{result.supportSpanCount} spans · {result.intermediateSupportCount} intermediate supports</dd></div><div><dt>Equal-span reference</dt><dd>{formatLength(result.nominalSupportSpanMetres, unitSystem)}</dd></div></dl></div>
+    <div className="beverage-construction-grid">
+      <article className="beverage-system-check"><h4>End-to-end construction record</h4><table><tbody><tr><th scope="row">Horizontal conductor</th><td>{formatLength(result.designWireLengthMetres, unitSystem)}</td></tr><tr><th scope="row">Feed-end drop</th><td>{formatLength(result.feedDropMetres, unitSystem)}</td></tr><tr><th scope="row">Far-end drop</th><td>{formatLength(result.farEndDropMetres, unitSystem)}</td></tr><tr><th scope="row">Cut allowance</th><td>{result.wireCutAllowancePercent.toFixed(1)}%</td></tr><tr><th scope="row">Far-end state</th><td>{result.receptionMode === 'terminated' ? `${result.terminationResistanceOhms.toFixed(0)} Ω planning value plus ground return` : 'Insulated open end · no far-end ground'}</td></tr></tbody></table><ol><li>Survey support coordinates, heights, access, visibility, and power-line clearance before installing conductor.</li><li>Document feed and far-end electrode construction, soil condition, moisture, bonding, and seasonal changes; the planner does not calculate ground impedance.</li><li>Provide static and lightning protection, receiver overload protection, disconnect procedures, and suitable physical marking.</li><li>Keep feedline routing and common-mode isolation in the receive-system model rather than treating coax as electrically invisible.</li></ol></article>
+      <article className="beverage-transformer-check"><p className="eyebrow">Ideal winding-ratio check</p><h4>Compare the planned winding with the impedance assumption</h4><dl><div><dt>Calculated ideal turns ratio</dt><dd>{result.transformerTurnsRatio.toFixed(2)} : 1</dd></div><div><dt>Entered winding</dt><dd>{result.antennaWindingTurns}:{result.feedlineWindingTurns} turns · {result.enteredTransformerTurnsRatio.toFixed(2)} : 1</dd></div><div><dt>Entered impedance ratio</dt><dd>{result.enteredTransformerImpedanceRatio.toFixed(2)} : 1</dd></div><div><dt>Ideal referred impedance</dt><dd>{result.enteredReferredAntennaImpedanceOhms.toFixed(1)} Ω · {result.enteredReferredImpedanceDifferencePercent.toFixed(1)}% from assumption</dd></div></dl><ol><li>Measure winding continuity and isolation before connection.</li><li>Sweep transformer insertion loss and impedance transformation across every intended receive band with representative terminations.</li><li>Install the complete antenna, then compare signal-to-noise and directionality toward the target, reverse, and side bearings.</li><li>Adjust termination only from repeatable measurements; record frequency, soil and weather conditions, receiver settings, and comparison antenna.</li></ol><p className="beverage-transformer-limit"><strong>The ratio is not a transformer design.</strong> Core material, winding layout, leakage, capacitance, loss, common-mode isolation, electrostatic discharge, and receiver protection remain outside this arithmetic.</p></article>
+    </div>
+  </section>;
 }

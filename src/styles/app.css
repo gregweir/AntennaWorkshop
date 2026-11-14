@@ -6624,7 +6624,8 @@ path.loading-coil {
 
 .helix-construction-panel,
 .discone-construction-panel,
-.lpda-construction-panel {
+.lpda-construction-panel,
+.beverage-construction-panel {
   width: 100%;
   min-width: 0;
   margin-top: 1rem;
@@ -6639,7 +6640,9 @@ path.loading-coil {
 .discone-construction-heading,
 .discone-construction-grid,
 .lpda-construction-heading,
-.lpda-construction-grid {
+.lpda-construction-grid,
+.beverage-construction-heading,
+.beverage-construction-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -6662,12 +6665,19 @@ path.loading-coil {
 .lpda-polarity-check h4,
 .lpda-polarity-check p,
 .lpda-feed-check h4,
-.lpda-feed-check p { margin: 0; }
+.lpda-feed-check p,
+.beverage-construction-heading h3,
+.beverage-construction-heading p,
+.beverage-system-check h4,
+.beverage-transformer-check h4,
+.beverage-transformer-check p { margin: 0; }
 
 .helix-construction-heading dl,
 .helix-feed-workflow dl,
 .discone-construction-heading dl,
-.lpda-construction-heading dl {
+.lpda-construction-heading dl,
+.beverage-construction-heading dl,
+.beverage-transformer-check dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
@@ -6677,17 +6687,19 @@ path.loading-coil {
 .helix-construction-heading dl div,
 .helix-feed-workflow dl div,
 .discone-construction-heading dl div,
-.lpda-construction-heading dl div {
+.lpda-construction-heading dl div,
+.beverage-construction-heading dl div,
+.beverage-transformer-check dl div {
   padding: 0.65rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
 }
 
-.helix-construction-panel dt, .discone-construction-panel dt, .lpda-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-.helix-construction-panel dd, .discone-construction-panel dd, .lpda-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
-.helix-construction-grid, .discone-construction-grid, .lpda-construction-grid { margin-top: 1rem; }
-.helix-turn-schedule, .helix-feed-workflow, .discone-radial-schedule, .discone-feed-workflow, .lpda-polarity-check, .lpda-feed-check { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
+.helix-construction-panel dt, .discone-construction-panel dt, .lpda-construction-panel dt, .beverage-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.helix-construction-panel dd, .discone-construction-panel dd, .lpda-construction-panel dd, .beverage-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
+.helix-construction-grid, .discone-construction-grid, .lpda-construction-grid, .beverage-construction-grid { margin-top: 1rem; }
+.helix-turn-schedule, .helix-feed-workflow, .discone-radial-schedule, .discone-feed-workflow, .lpda-polarity-check, .lpda-feed-check, .beverage-system-check, .beverage-transformer-check { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
 .helix-turn-schedule .table-scroll, .discone-radial-schedule .table-scroll { min-width: 0; margin: 0.7rem 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .helix-turn-schedule table, .discone-radial-schedule table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 0.72rem; }
 .helix-turn-schedule th, .helix-turn-schedule td, .discone-radial-schedule th, .discone-radial-schedule td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
@@ -6729,6 +6741,13 @@ path.loading-coil {
 .lpda-feed-arrow { fill: var(--tl-gold); stroke: var(--tl-gold); stroke-width: 4; }
 .lpda-feed-check svg text { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; }
 .lpda-feed-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
+.beverage-system-check, .beverage-transformer-check { display: grid; gap: 0.75rem; }
+.beverage-system-check table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+.beverage-system-check th, .beverage-system-check td { padding: 0.5rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.beverage-system-check th { color: var(--text-secondary); }
+.beverage-system-check ol, .beverage-transformer-check ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
+.beverage-system-check li + li, .beverage-transformer-check li + li { margin-top: 0.35rem; }
+.beverage-transformer-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
 
 .helix-advisory ul,
 .discone-advisory ul,
@@ -10152,7 +10171,9 @@ path.loading-coil {
   .discone-construction-heading,
   .discone-construction-grid,
   .lpda-construction-heading,
-  .lpda-construction-grid {
+  .lpda-construction-grid,
+  .beverage-construction-heading,
+  .beverage-construction-grid {
     grid-template-columns: 1fr;
   }
 

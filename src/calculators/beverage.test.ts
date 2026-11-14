@@ -17,7 +17,12 @@ const referenceInput = {
   terminationResistanceOhms: 470,
   assumedAntennaImpedanceOhms: 450,
   feedlineImpedanceOhms: 50,
-  wireCutAllowancePercent: 2.5
+  wireCutAllowancePercent: 2.5,
+  feedDropMetres: 2,
+  farEndDropMetres: 2,
+  maximumSupportSpanMetres: 20,
+  antennaWindingTurns: 9,
+  feedlineWindingTurns: 3
 };
 
 describe('calculateBeverage', () => {
@@ -32,6 +37,14 @@ describe('calculateBeverage', () => {
     expect(result.electricalLengthDegrees).toBe(360);
     expect(result.impedanceTransformationRatio).toBe(9);
     expect(result.transformerTurnsRatio).toBe(3);
+    expect(result.totalDesignWirePathMetres).toBeCloseTo(result.designWireLengthMetres + 4, 12);
+    expect(result.totalCutWireLengthMetres).toBeCloseTo((result.designWireLengthMetres + 4) * 1.025, 12);
+    expect(result.supportSpanCount).toBe(9);
+    expect(result.intermediateSupportCount).toBe(8);
+    expect(result.nominalSupportSpanMetres).toBeCloseTo(result.designWireLengthMetres / 9, 12);
+    expect(result.enteredTransformerTurnsRatio).toBe(3);
+    expect(result.enteredTransformerImpedanceRatio).toBe(9);
+    expect(result.enteredReferredAntennaImpedanceOhms).toBe(450);
     expect(result.targetCompassPoint).toBe('NE');
     expect(result.primaryResponseDescription).toContain('terminated end at 45° NE');
     expect(result.warnings).toEqual([]);
@@ -75,10 +88,20 @@ describe('calculateBeverage', () => {
     expect(() => calculateBeverage({ ...referenceInput, targetBearingDegrees: 360 })).toThrow(/less than 360/);
     expect(() => calculateBeverage({ ...referenceInput, feedlineImpedanceOhms: 0 })).toThrow(/Feedline/);
     expect(() => calculateBeverage({ ...referenceInput, receptionMode: 'invalid' as never })).toThrow(/mode/);
+    expect(() => calculateBeverage({ ...referenceInput, feedDropMetres: -1 })).toThrow(/Feed drop/);
+    expect(() => calculateBeverage({ ...referenceInput, maximumSupportSpanMetres: 0 })).toThrow(/support span/);
+    expect(() => calculateBeverage({ ...referenceInput, antennaWindingTurns: 9.5 })).toThrow(/whole number/);
+  });
+
+  it('warns when the entered winding ratio departs from the impedance assumption', () => {
+    const result = calculateBeverage({ ...referenceInput, antennaWindingTurns: 4, feedlineWindingTurns: 3 });
+
+    expect(result.enteredReferredAntennaImpedanceOhms).toBeCloseTo(88.8889, 4);
+    expect(result.warnings.join(' ')).toContain('transformer turns');
   });
 
   it('carries versioned source provenance', () => {
-    expect(BEVERAGE_MODEL).toMatchObject({ id: 'beverage-wave-antenna-planner', version: '1.0.0', reviewedOn: '2026-11-13' });
+    expect(BEVERAGE_MODEL).toMatchObject({ id: 'beverage-wave-antenna-planner', version: '2.0.0', reviewedOn: '2026-11-14' });
     expect(BEVERAGE_MODEL.sources).toHaveLength(2);
   });
 });

@@ -942,14 +942,23 @@ test('plans a receive-only Beverage route with explicit direction and impedance 
   await expect(page.getByRole('spinbutton', { name: 'Wire height above ground' })).toHaveValue('2');
   await expect(page.getByRole('spinbutton', { name: 'Target bearing from feed' })).toHaveValue('45');
   await expect(page.getByLabel('Beverage far-end configuration', { exact: true })).toHaveValue('terminated');
+  await expect(page.getByRole('spinbutton', { name: 'Feed-end vertical drop' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Far-end vertical drop' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum planned support span' })).toHaveValue('20');
+  await expect(page.getByRole('spinbutton', { name: 'Antenna-side transformer turns' })).toHaveValue('9');
+  await expect(page.getByRole('spinbutton', { name: 'Feedline-side transformer turns' })).toHaveValue('3');
   await expect(page.getByRole('img', { name: /Beverage receiving-antenna route and elevation/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Build the route, ground returns, and transformer as one receive system' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Compare the planned winding with the impedance assumption' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Survey a terminated one-way receive route');
   await expect(page.locator('.result-summary')).toContainText('157.786 m horizontal endpoint distance');
   await expect(page.locator('.result-summary')).toContainText('Horizontal wire to cut161.730 m');
+  await expect(page.locator('.result-summary')).toContainText('Complete wire path with vertical drops161.786 m');
+  await expect(page.locator('.result-summary')).toContainText('Support layout8 spans · 7 intermediate supports');
   await expect(page.locator('.result-summary')).toContainText('Target axis from feed45° NE');
   await expect(page.locator('.result-summary')).toContainText('111.571 m east');
   await expect(page.locator('.result-summary')).toContainText('111.571 m north');
-  await expect(page.locator('.result-summary')).toContainText('Nominal transformer turns ratio3.00 : 1');
+  await expect(page.locator('.result-summary')).toContainText('Calculated ideal transformer turns ratio3.00 : 1');
   await expect(page.locator('.result-summary')).toContainText('Predicted gain, pattern, and front-to-back ratioNot inferred · measure the installed antenna');
   await expect(page.getByRole('complementary', { name: 'Beverage design advisories' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
@@ -968,6 +977,9 @@ test('plans a receive-only Beverage route with explicit direction and impedance 
   await expect(page.getByRole('spinbutton', { name: 'Far-end termination resistance' })).toHaveCount(0);
   await expect(page.locator('.result-summary')).toContainText('225° SW and 45° NE');
   await expect(page.getByRole('complementary', { name: 'Beverage design advisories' })).toContainText('bidirectional tendency');
+  await page.getByRole('spinbutton', { name: 'Antenna-side transformer turns' }).fill('4');
+  await expect(page.getByRole('complementary', { name: 'Beverage design advisories' })).toContainText('transformer turns');
+  await page.getByRole('spinbutton', { name: 'Antenna-side transformer turns' }).fill('9');
 
   await page.getByRole('button', { name: 'Show advanced' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Assumed antenna-side impedance' })).toHaveValue('450');
