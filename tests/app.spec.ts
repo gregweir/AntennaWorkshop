@@ -887,7 +887,14 @@ test('plans a log-periodic element schedule without predicting finished performa
   await expect(page.getByRole('heading', { name: 'Log-periodic dipole array' })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Tau length scale' })).toHaveValue('0.92');
   await expect(page.getByRole('spinbutton', { name: 'Sigma spacing factor' })).toHaveValue('0.12');
+  await expect(page.getByRole('spinbutton', { name: 'Element conductor diameter' })).toHaveValue('6.35');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum element length error' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum boom-position error' })).toHaveValue('1');
+  await expect(page.getByRole('spinbutton', { name: 'Boom-conductor centre spacing' })).toHaveValue('25');
   await expect(page.getByRole('img', { name: /Dimensioned log-periodic dipole array/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Log-periodic balanced boom feed concept/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hold the geometry, polarity, and feed system together' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose and verify one balanced-feed implementation' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Build and alternately connect 6 scaled dipoles');
   await expect(page.locator('.result-summary')).toContainText('1.065 m element-centre span');
   await expect(page.locator('.result-summary')).toContainText('Included apex angle18.9°');
@@ -910,6 +917,9 @@ test('plans a log-periodic element schedule without predicting finished performa
 
   await page.getByRole('spinbutton', { name: 'Sigma spacing factor' }).fill('0.04');
   await expect(page.getByRole('complementary', { name: 'Log-periodic design advisories' })).toContainText('below σ = 0.05');
+  await page.getByRole('spinbutton', { name: 'Boom-conductor centre spacing' }).fill('5');
+  await expect(page.getByRole('complementary', { name: 'Log-periodic design advisories' })).toContainText('must exceed');
+  await page.getByRole('spinbutton', { name: 'Boom-conductor centre spacing' }).fill('25');
 
   await page.getByRole('button', { name: 'Show advanced' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Active-region bandwidth factor' })).toHaveValue('1.46');

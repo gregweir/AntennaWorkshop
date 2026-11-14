@@ -6623,7 +6623,8 @@ path.loading-coil {
 }
 
 .helix-construction-panel,
-.discone-construction-panel {
+.discone-construction-panel,
+.lpda-construction-panel {
   width: 100%;
   min-width: 0;
   margin-top: 1rem;
@@ -6636,7 +6637,9 @@ path.loading-coil {
 .helix-construction-heading,
 .helix-construction-grid,
 .discone-construction-heading,
-.discone-construction-grid {
+.discone-construction-grid,
+.lpda-construction-heading,
+.lpda-construction-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -6653,11 +6656,18 @@ path.loading-coil {
 .discone-radial-schedule h4,
 .discone-radial-schedule p,
 .discone-feed-workflow h4,
-.discone-feed-workflow p { margin: 0; }
+.discone-feed-workflow p,
+.lpda-construction-heading h3,
+.lpda-construction-heading p,
+.lpda-polarity-check h4,
+.lpda-polarity-check p,
+.lpda-feed-check h4,
+.lpda-feed-check p { margin: 0; }
 
 .helix-construction-heading dl,
 .helix-feed-workflow dl,
-.discone-construction-heading dl {
+.discone-construction-heading dl,
+.lpda-construction-heading dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
@@ -6666,17 +6676,18 @@ path.loading-coil {
 
 .helix-construction-heading dl div,
 .helix-feed-workflow dl div,
-.discone-construction-heading dl div {
+.discone-construction-heading dl div,
+.lpda-construction-heading dl div {
   padding: 0.65rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
 }
 
-.helix-construction-panel dt, .discone-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-.helix-construction-panel dd, .discone-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
-.helix-construction-grid, .discone-construction-grid { margin-top: 1rem; }
-.helix-turn-schedule, .helix-feed-workflow, .discone-radial-schedule, .discone-feed-workflow { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
+.helix-construction-panel dt, .discone-construction-panel dt, .lpda-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.helix-construction-panel dd, .discone-construction-panel dd, .lpda-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
+.helix-construction-grid, .discone-construction-grid, .lpda-construction-grid { margin-top: 1rem; }
+.helix-turn-schedule, .helix-feed-workflow, .discone-radial-schedule, .discone-feed-workflow, .lpda-polarity-check, .lpda-feed-check { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
 .helix-turn-schedule .table-scroll, .discone-radial-schedule .table-scroll { min-width: 0; margin: 0.7rem 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .helix-turn-schedule table, .discone-radial-schedule table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 0.72rem; }
 .helix-turn-schedule th, .helix-turn-schedule td, .discone-radial-schedule th, .discone-radial-schedule td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
@@ -6707,6 +6718,17 @@ path.loading-coil {
 .discone-feed-workflow ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
 .discone-feed-workflow li + li { margin-top: 0.35rem; }
 .discone-feed-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
+.lpda-polarity-check, .lpda-feed-check { display: grid; gap: 0.75rem; }
+.lpda-polarity-check ol, .lpda-feed-check ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
+.lpda-polarity-check li + li, .lpda-feed-check li + li { margin-top: 0.35rem; }
+.lpda-polarity-check > p { color: var(--text-secondary); font-size: 0.76rem; }
+.lpda-feed-check svg { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--bg-elevated) 75%, var(--bg-surface)); }
+.lpda-feed-boom-a, .lpda-feed-boom-b { stroke: var(--accent-technical); stroke-linecap: round; stroke-width: 8; }
+.lpda-feed-boom-b { stroke: var(--tl-gold); }
+.lpda-feed-elements line { stroke: var(--tl-coral); stroke-width: 5; }
+.lpda-feed-arrow { fill: var(--tl-gold); stroke: var(--tl-gold); stroke-width: 4; }
+.lpda-feed-check svg text { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; }
+.lpda-feed-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
 
 .helix-advisory ul,
 .discone-advisory ul,
@@ -10128,7 +10150,9 @@ path.loading-coil {
   .helix-construction-heading,
   .helix-construction-grid,
   .discone-construction-heading,
-  .discone-construction-grid {
+  .discone-construction-grid,
+  .lpda-construction-heading,
+  .lpda-construction-grid {
     grid-template-columns: 1fr;
   }
 
