@@ -727,14 +727,22 @@ test('plans a two-element cubical quad without inventing directional performance
 
   await expect(page.getByRole('heading', { name: 'Two-element cubical quad' })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Driven-to-reflector spacing' })).toHaveValue('0.2');
+  await expect(page.getByRole('spinbutton', { name: 'Forward bearing' })).toHaveValue('0');
+  await expect(page.getByRole('spinbutton', { name: 'Boom centre height' })).toHaveValue('10');
+  await expect(page.getByLabel('Cubical quad mast reference', { exact: true })).toHaveValue('boom-midpoint');
   await expect(page.getByLabel('Cubical quad polarization', { exact: true })).toHaveValue('horizontal');
   await expect(page.getByRole('img', { name: /Dimensioned two-element diamond cubical quad/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Build one driven loop and one 5% larger reflector');
   await expect(page.locator('.result-summary')).toContainText('22.111 m + 23.217 m');
-  await expect(page.locator('.result-summary')).toContainText('Driven-loop side5.528 m');
+  await expect(page.locator('.result-summary')).toContainText('Driven finished side5.393 m');
+  await expect(page.locator('.result-summary')).toContainText('Driven cut allocation per side5.528 m');
   await expect(page.locator('.result-summary')).toContainText('Driven-to-reflector boom spacing4.222 m');
   await expect(page.locator('.quad-feedpoint')).toContainText('horizontal feedpoint');
   await expect(page.locator('.quad-forward')).toContainText('Forward direction');
+  await expect(page.getByRole('heading', { name: 'Quad orientation and clearance' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Top-view cubical-quad site plan' })).toBeVisible();
+  await expect(page.locator('.quad-survey-panel')).toContainText('0° true · N');
+  await expect(page.locator('.quad-survey-panel')).toContainText('5.996 m');
 
   await expect(page.getByText('Choose and model element spacing')).toBeHidden();
   await page.getByText('Build and commission a two-element cubical quad').click();
@@ -744,6 +752,12 @@ test('plans a two-element cubical quad without inventing directional performance
 
   await page.getByRole('spinbutton', { name: 'Driven-to-reflector spacing' }).fill('0.25');
   await expect(page.locator('.result-summary')).toContainText('5.278 m');
+  await page.getByRole('spinbutton', { name: 'Forward bearing' }).fill('90');
+  await page.getByLabel('Cubical quad mast reference', { exact: true }).selectOption('driven-centre');
+  await expect(page.locator('.quad-survey-panel')).toContainText('90° true · E');
+  await expect(page.locator('.quad-survey-panel')).toContainText('the mast is centred on the driven element');
+  await page.getByRole('spinbutton', { name: 'Boom centre height' }).fill('5');
+  await expect(page.getByLabel('Cubical quad design advisories')).toContainText('lower reflector corner is below 2.5 metres');
   await page.getByLabel('Cubical quad polarization', { exact: true }).selectOption('vertical');
   await expect(page.locator('.quad-feedpoint')).toContainText('vertical feedpoint');
 

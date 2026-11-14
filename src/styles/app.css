@@ -9036,6 +9036,62 @@ path.loading-coil {
 
 .v-beam-survey tbody tr:last-child > * { border-bottom: 0; }
 
+.quad-survey-panel {
+  width: 100%;
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.quad-survey-intro,
+.quad-survey-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+}
+
+.quad-survey-intro h3,
+.quad-survey-intro p,
+.quad-survey-schedule h4,
+.quad-survey-note { margin: 0; }
+
+.quad-survey-intro dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.quad-survey-intro dl div {
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.quad-survey-intro dt { color: var(--text-secondary); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+.quad-survey-intro dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
+.quad-plan-figure { min-width: 0; margin: 1rem 0 0; }
+.quad-plan-figure svg { width: 100%; max-height: 30rem; }
+.quad-plan-figure figcaption { color: var(--text-secondary); font-size: 0.75rem; }
+.quad-plan-ring { fill: color-mix(in srgb, var(--bg-surface) 80%, transparent); stroke: var(--border); stroke-dasharray: 5 5; }
+.quad-plan-north, .quad-plan-forward { stroke: var(--accent-technical); stroke-width: 3; }
+.quad-plan-boom { stroke: var(--border-strong); stroke-width: 7; stroke-linecap: round; }
+.quad-plan-driven { stroke: var(--tl-coral); stroke-width: 9; stroke-linecap: round; }
+.quad-plan-reflector { stroke: var(--accent-technical); stroke-width: 9; stroke-linecap: round; }
+.quad-plan-mast { fill: var(--tl-navy); stroke: var(--tl-cream); stroke-width: 2; }
+.quad-plan-figure text { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; }
+.quad-survey-schedule { min-width: 0; margin-top: 1rem; }
+.quad-survey-schedule .table-scroll { min-width: 0; margin-top: 0.65rem; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.quad-survey-schedule table { width: 100%; min-width: 530px; border-collapse: collapse; background: var(--bg-surface); font-size: 0.72rem; }
+.quad-survey-schedule th, .quad-survey-schedule td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.quad-survey-schedule thead th { background: var(--tl-navy); color: var(--tl-cream); font-family: var(--font-mono); }
+.quad-survey-schedule tbody tr:last-child > * { border-bottom: 0; }
+.quad-survey-note { padding: 0.8rem; border-left: 3px solid var(--accent-technical); background: var(--bg-surface); color: var(--text-secondary); font-size: 0.78rem; }
+
 .antenna-print-diagram:has(.v-beam-figure) {
   width: 100%;
   min-width: 0;
@@ -9978,6 +10034,11 @@ path.loading-coil {
   .k9ay-editor,
   .loop-on-ground-editor,
   .active-receive-loop-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .quad-survey-intro,
+  .quad-survey-layout {
     grid-template-columns: 1fr;
   }
 

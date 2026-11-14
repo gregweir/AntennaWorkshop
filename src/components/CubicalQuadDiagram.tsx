@@ -11,12 +11,14 @@ import { DiagramDefinitions, DiagramGrid, SvgDimension } from './diagram/Diagram
 interface Props {
   drivenSideMetres: number;
   reflectorSideMetres: number;
+  drivenCutSideMetres: number;
+  reflectorCutSideMetres: number;
   elementSpacingMetres: number;
   polarization: 'horizontal' | 'vertical';
   unitSystem: UnitSystem;
 }
 
-export function CubicalQuadDiagram({ drivenSideMetres, reflectorSideMetres, elementSpacingMetres, polarization, unitSystem }: Props) {
+export function CubicalQuadDiagram({ drivenSideMetres, reflectorSideMetres, drivenCutSideMetres, reflectorCutSideMetres, elementSpacingMetres, polarization, unitSystem }: Props) {
   const feedpoint = polarization === 'horizontal' ? { x: 285, y: 370 } : { x: 135, y: 220 };
 
   return <figure className="antenna-figure">
@@ -31,11 +33,11 @@ export function CubicalQuadDiagram({ drivenSideMetres, reflectorSideMetres, elem
       <g className="quad-driven"><path d="M285 70 L435 220 L285 370 L135 220 Z" /></g>
       <g className="quad-spreaders quad-driven-spreaders"><line x1="135" y1="220" x2="435" y2="220" /><line x1="285" y1="70" x2="285" y2="370" /></g>
       <g className="quad-feedpoint"><circle cx={feedpoint.x} cy={feedpoint.y} r="8" /><text x={polarization === 'horizontal' ? 285 : 126} y={polarization === 'horizontal' ? 351 : 201} textAnchor={polarization === 'horizontal' ? 'middle' : 'end'}>{polarization} feedpoint</text></g>
-      <text className="diagram-caption" x="255" y="48" textAnchor="middle">Driven loop · side {formatLength(drivenSideMetres, unitSystem)}</text>
-      <text className="diagram-caption" x="500" y="25" textAnchor="middle">Reflector +5% · side {formatLength(reflectorSideMetres, unitSystem)}</text>
+      <text className="diagram-caption" x="255" y="48" textAnchor="middle">Driven finished target · side {formatLength(drivenSideMetres, unitSystem)}</text>
+      <text className="diagram-caption" x="500" y="25" textAnchor="middle">Reflector finished target · side {formatLength(reflectorSideMetres, unitSystem)}</text>
       <SvgDimension prefix="quad-spacing" x1={325} y1={405} x2={510} y2={405} label={`Boom spacing · ${formatLength(elementSpacingMetres, unitSystem)}`} labelX={417} labelY={389} />
       <g className="quad-forward"><line x1="120" y1="105" x2="62" y2="132" /><path d="M62 132 l7 -12 6 13 Z" /><text x="52" y="151">Forward direction</text></g>
     </svg>
-    <figcaption>Perspective diamond-support view, not to scale · Loop and boom dimensions are construction starting points. Spreader flex, wire sag, conductor size, feed arrangement, boom interaction, matching, and the installed pattern require modelling and measurement.</figcaption>
+    <figcaption>Perspective diamond-support view, not to scale · The complete-loop cuts allocate {formatLength(drivenCutSideMetres, unitSystem)} per driven side and {formatLength(reflectorCutSideMetres, unitSystem)} per reflector side before trimming toward the finished targets shown. Spreader flex, wire sag, conductor size, feed arrangement, boom interaction, matching, and the installed pattern require modelling and measurement.</figcaption>
   </figure>;
 }
