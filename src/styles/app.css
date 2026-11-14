@@ -5655,6 +5655,69 @@ select {
   font-weight: 750;
 }
 
+.line-transform-terminal rect {
+  fill: var(--bg-elevated);
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.line-transform-terminal.load rect {
+  stroke: var(--tl-coral);
+}
+
+.line-transform-terminal text,
+.line-transform-line text,
+.line-transform-legend text,
+.line-transform-chart-label {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.line-transform-terminal text:first-of-type,
+.line-transform-terminal text:last-of-type,
+.line-transform-chart-label {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.line-transform-line path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 5;
+}
+
+.line-transform-line .line-transform-centre {
+  stroke: var(--tl-coral);
+  stroke-width: 3;
+}
+
+.line-transform-load-vector,
+.line-transform-input-vector {
+  stroke-width: 2.5;
+}
+
+.line-transform-load-vector {
+  stroke: var(--tl-coral);
+}
+
+.line-transform-input-vector {
+  stroke: var(--accent-technical);
+}
+
+.line-transform-load-point {
+  fill: var(--tl-coral);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.line-transform-input-point {
+  fill: var(--accent-technical);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
 .stub-coax path {
   fill: none;
   stroke: var(--accent-technical);

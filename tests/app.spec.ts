@@ -1059,6 +1059,32 @@ test('calculates feedline loss and preserves physical values across unit changes
   await page.getByLabel('Measured resistance for chart', { exact: true }).fill('100');
   await page.getByLabel('Measured reactance for chart', { exact: true }).fill('-50');
 
+  await page.getByRole('button', { name: /Line transformation/ }).click();
+  await expect(page.getByRole('heading', { name: 'Transmission-line transformation' })).toBeVisible();
+  await page.getByRole('button', { name: 'Metric' }).click();
+  await page.getByLabel('Operating frequency').fill('100');
+  await expect(page.getByLabel('Line characteristic impedance', { exact: true })).toHaveValue('50');
+  await page.getByLabel('Physical line length', { exact: true }).fill('0.4946575557');
+  await page.getByLabel('Line velocity factor', { exact: true }).fill('0.66');
+  await page.getByLabel('Load resistance at far end', { exact: true }).fill('100');
+  await page.getByLabel('Load reactance at far end', { exact: true }).fill('0');
+  await expect(page.getByRole('img', { name: /Lossless transmission-line impedance transformation/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('25.00');
+  await expect(page.locator('.result-summary')).toContainText('90.00°');
+  await expect(page.locator('.result-summary')).toContainText('2.000 : 1');
+  await expect(page.getByText('Distinguish transformation from matching', { exact: true })).toBeHidden();
+  await page.getByText('Transform a load through a transmission line').click();
+  await expect(page.getByText('Distinguish transformation from matching', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Line velocity factor').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Line velocity factor' })).toContainText('actual cable or balanced-line construction');
+  await page.getByLabel('Physical line length', { exact: true }).fill('0');
+  await expect(page.locator('.result-summary')).toContainText('100.00 + j0.00 Ω');
+  await page.getByLabel('Line velocity factor', { exact: true }).fill('0');
+  await expect(page.getByRole('alert')).toContainText('line transformation');
+  await page.getByLabel('Line velocity factor', { exact: true }).fill('0.66');
+  await page.getByLabel('Operating frequency').fill('14.1');
+  await page.getByLabel('Load reactance at far end', { exact: true }).fill('-50');
+
   await page.getByRole('button', { name: /L-network/ }).click();
   await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
   await expect(page.getByLabel('System resistance', { exact: true })).toHaveValue('50');
