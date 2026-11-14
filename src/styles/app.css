@@ -8172,6 +8172,33 @@ path.loading-coil {
   stroke-width: 3;
 }
 
+.folded-dipole-wire path {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 8;
+}
+
+.folded-dipole-feed circle {
+  fill: var(--tl-navy);
+  stroke: var(--tl-coral);
+  stroke-width: 3;
+}
+
+.folded-dipole-feed path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.folded-dipole-feed text,
+.folded-dipole-labels text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
 .antenna-loop rect,
 .antenna-loop path,
 .antenna-loop ellipse {
@@ -9417,8 +9444,16 @@ path.loading-coil {
 
   .dimension-lines text,
   .feedpoint text,
-  .end-labels text {
+  .end-labels text,
+  .folded-dipole-feed text,
+  .folded-dipole-labels text {
     font-size: 11px;
+  }
+
+  .folded-dipole-figure .dimension-lines text,
+  .folded-dipole-feed text,
+  .folded-dipole-labels text {
+    font-size: 24px;
   }
 }
 

@@ -10,6 +10,7 @@ import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJ
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
 import { calculateHalfWaveDipole, HALF_WAVE_DIPOLE_MODEL } from '../calculators/dipole';
+import { calculateFoldedDipole, FOLDED_DIPOLE_MODEL } from '../calculators/foldedDipole';
 import { calculateDoublet, DOUBLET_MODEL } from '../calculators/doublet';
 import { calculateG5rv, G5RV_MODEL, type G5rvPreset } from '../calculators/g5rv';
 import { calculateLoadedDipole, calculateLoadedVertical, LOADED_ANTENNA_MODEL } from '../calculators/loadedAntennas';
@@ -33,6 +34,7 @@ import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/cata
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { DipoleDiagram } from './DipoleDiagram';
+import { FoldedDipoleDiagram } from './FoldedDipoleDiagram';
 import { EfhwDiagram } from './EfhwDiagram';
 import { GroundPlaneDiagram } from './GroundPlaneDiagram';
 import { InvertedVDiagram } from './InvertedVDiagram';
@@ -80,6 +82,9 @@ interface Props {
 export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAdvancedOpen, onContinueToSystem }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>('dipole');
   const [frequencyText, setFrequencyText] = useState('14.200');
+  const [foldedDipoleSpacingMetres, setFoldedDipoleSpacingMetres] = useState(0.15);
+  const [foldedDipoleReferenceResistanceOhms, setFoldedDipoleReferenceResistanceOhms] = useState(73);
+  const [foldedDipoleFeedlineImpedanceOhms, setFoldedDipoleFeedlineImpedanceOhms] = useState(50);
   const [fanAdditionalFrequencyTexts, setFanAdditionalFrequencyTexts] = useState(['21.200', '28.400']);
   const [doubletLineLengthMetres, setDoubletLineLengthMetres] = useState(12);
   const [doubletLineVelocityFactor, setDoubletLineVelocityFactor] = useState(0.95);
@@ -180,6 +185,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
   const frequencyMHz = Number(frequencyText);
   const shownDoubletLineLength = unitSystem === 'metric' ? doubletLineLengthMetres : metresToFeet(doubletLineLengthMetres);
+  const shownFoldedDipoleSpacing = unitSystem === 'metric' ? foldedDipoleSpacingMetres : metresToFeet(foldedDipoleSpacingMetres);
   const shownG5rvCustomRadiator = unitSystem === 'metric' ? g5rvCustomRadiatorMetres : metresToFeet(g5rvCustomRadiatorMetres);
   const shownG5rvCustomElectricalLine = unitSystem === 'metric' ? g5rvCustomElectricalLineMetres : metresToFeet(g5rvCustomElectricalLineMetres);
   const shownLoadedDipoleSpan = unitSystem === 'metric' ? loadedDipoleSpanMetres : metresToFeet(loadedDipoleSpanMetres);
@@ -216,6 +222,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     try {
       const common = { frequencyMHz, lengthCorrectionFactor, trimAllowancePercent };
       if (antennaType === 'dipole') return { type: antennaType, value: calculateHalfWaveDipole(common) } as const;
+      if (antennaType === 'folded-dipole') return { type: antennaType, value: calculateFoldedDipole({ ...common, conductorSpacingMetres: foldedDipoleSpacingMetres, assumedSingleDipoleResistanceOhms: foldedDipoleReferenceResistanceOhms, plannedFeedlineImpedanceOhms: foldedDipoleFeedlineImpedanceOhms }) } as const;
       if (antennaType === 'fan-dipole') return { type: antennaType, value: calculateFanDipole({ frequenciesMHz: [frequencyMHz, ...fanAdditionalFrequencyTexts.map(Number)], lengthCorrectionFactor, trimAllowancePercent }) } as const;
       if (antennaType === 'doublet') return { type: antennaType, value: calculateDoublet({ lowestFrequencyMHz: frequencyMHz, lengthCorrectionFactor, trimAllowancePercent, balancedLineLengthMetres: doubletLineLengthMetres, balancedLineVelocityFactor: doubletLineVelocityFactor, balancedLineImpedanceOhms: doubletLineImpedanceOhms, lineCheckFrequencyMHz: Number(doubletCheckFrequencyText) }) } as const;
       if (antennaType === 'g5rv') return { type: antennaType, value: calculateG5rv({ preset: g5rvPreset, inspectionFrequencyMHz: frequencyMHz, matchingSectionVelocityFactor: g5rvLineVelocityFactor, matchingSectionImpedanceOhms: g5rvLineImpedanceOhms, customRadiatorLengthMetres: g5rvCustomRadiatorMetres, customMatchingSectionElectricalLengthMetres: g5rvCustomElectricalLineMetres }) } as const;
@@ -246,10 +253,12 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     } catch {
       return null;
     }
-  }, [antennaType, beverageAssumedImpedanceOhms, beverageFeedlineImpedanceOhms, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearPhasingVelocityFactor, collinearStubTrimAllowancePercent, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, disconeConeRadialCount, disconeDiscRadialCount, disconeHalfAngleDegrees, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, helixCircumferenceWavelengths, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, includedAngleDegrees, jpoleTapPercent, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadElementSpacingWavelengths, radialCount, radialSlopeDegrees, slimJimGapPercent, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
+  }, [antennaType, beverageAssumedImpedanceOhms, beverageFeedlineImpedanceOhms, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearPhasingVelocityFactor, collinearStubTrimAllowancePercent, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, disconeConeRadialCount, disconeDiscRadialCount, disconeHalfAngleDegrees, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, helixCircumferenceWavelengths, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, includedAngleDegrees, jpoleTapPercent, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadElementSpacingWavelengths, radialCount, radialSlopeDegrees, slimJimGapPercent, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
 
   const model = antennaType === 'dipole'
     ? HALF_WAVE_DIPOLE_MODEL
+    : antennaType === 'folded-dipole'
+      ? FOLDED_DIPOLE_MODEL
     : antennaType === 'fan-dipole'
       ? ANTENNA_MODELS.fanDipole
       : antennaType === 'doublet'
@@ -320,7 +329,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             ? 'This factor scales the elevated radiator and radial lengths together. Conductor size, radial slope, support hardware, feed arrangement, height, and surroundings still affect the installed antenna.'
             : antennaType === 'phased-collinear'
               ? 'This factor scales each free-space half-wave radiator section. Establish the electrical half-wave length with a test element made from the actual wire and insulators, then enter the measured ratio here.'
-            : antennaType === 'dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v'
+            : antennaType === 'dipole' || antennaType === 'folded-dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v'
               ? 'This factor scales the free-space half-wave estimate before it is divided into equal legs. Conductor insulation, diameter, support geometry, height, and surroundings still shift the installed resonance.'
               : antennaType === 'full-wave-loop'
                 ? 'This factor scales the complete free-space wavelength into a practical starting perimeter. The selected shape changes the displayed side or diameter, not the total perimeter.'
@@ -339,7 +348,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             ? 'This allowance is added to both the radiator and elevated radials. Keep the radials equal and symmetrical while tuning the installed antenna.'
             : antennaType === 'phased-collinear'
               ? 'This percentage is added to every equal radiator section. Tune a representative section first, preserve equality, and keep phasing-stub adjustment separate.'
-            : antennaType === 'dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v'
+            : antennaType === 'dipole' || antennaType === 'folded-dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v'
               ? 'This percentage is added to the total corrected length before it is divided into equal legs. Install first, then trim both legs equally in small steps.'
               : antennaType === 'full-wave-loop'
                 ? 'This percentage is added to the complete loop perimeter. Install the closed loop before trimming and preserve the intended shape and symmetry while making small changes.'
@@ -425,6 +434,15 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Install before measuring', detail: 'Raise the antenna in its intended position with both legs straight, equal, and clear of conductive or lossy objects.' },
         { title: 'Tune symmetrically', detail: 'Use low analyser power and remove equal small amounts from both ends, then remeasure after every change in the final geometry.' }
       ]} limit="This calculator does not predict installed feedpoint impedance, bandwidth, common-mode current, losses, support coupling, or radiation pattern." />}
+
+      {antennaType === 'folded-dipole' && <StepByStepHelp title="Build and tune a folded dipole" intro="Use this sequence to turn two equal parallel conductors into a mechanically stable, balanced antenna with a measured feed system. Experienced builders can leave the guide closed." steps={[
+        { title: 'Choose the design frequency', detail: 'Set the intended installed resonance. The parallel conductor span uses the same corrected half-wave starting length as a conventional dipole.' },
+        { title: 'Choose a stable spacing', detail: 'Keep the two long conductors parallel with uniform centre-to-centre spacing. Use insulating spreaders or a documented parallel-line material that remains stable in weather.' },
+        { title: 'Cut two equal long conductors', detail: 'Retain the trimming allowance on both conductors, mark their centres, and prepare two equal end joins without shortening one side.' },
+        { title: 'Join both ends and open one centre', detail: 'Bond the two conductors together at each end. Create the balanced feed gap at the exact centre of only one conductor; the other remains continuous.' },
+        { title: 'Plan matching and common-mode control', detail: 'Treat the four-times resistance as a nominal equal-conductor assumption. Choose a measured balanced feed or suitable transformer and choke for the actual impedance and power.' },
+        { title: 'Install, sweep, and tune symmetrically', detail: 'Raise the finished antenna at its final height and orientation, sweep the complete band, and shorten symmetrically while preserving equality, spacing, and both end joins.' }
+      ]} limit="This planner sizes equal-conductor geometry and shows a nominal four-times resistance assumption. It does not predict installed complex impedance, transformer design, bandwidth, loss, current balance, common-mode behaviour, power rating, or radiation pattern." />}
 
       {antennaType === 'fan-dipole' && <StepByStepHelp title="Build and tune a fan dipole" intro="Use this sequence to build several resonant dipoles on one feedpoint while controlling interaction between the wire pairs. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose each operating frequency', detail: 'Set one intended resonance in every required band. The displayed lengths are independent starting points, not a prediction of the combined antenna.' },
@@ -699,6 +717,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             <small>{antennaType === 'small-loop' ? 'Lowest frequency the variable capacitor must reach with the measured loop inductance.' : antennaType === 'log-periodic' ? 'Sets the longest half-wave reference element and the low end of the requested operating range.' : antennaType === 'active-receive-loop' ? 'Sets the low edge of the untuned receive range; physical loop dimensions remain independent.' : antennaType === 'g5rv' ? 'Shows radiator and matching-section electrical length at one band; it does not rescale a named preset.' : antennaType === 'beverage' ? 'Converts the selected physical length ratio into metres; it does not imply resonance or a single-band antenna.' : antennaType === 'compact-receive' || antennaType === 'k9ay' || antennaType === 'loop-on-ground' ? 'Provides wavelength context for the entered physical geometry; it does not rescale the sourced preset or predict a single-band response.' : antennaType === 'discone' ? 'Sets the sourced cone and disc starting dimensions; it is not a guaranteed cutoff.' : 'Use the frequency where you want resonance, not just the band name.'}</small>
           </label>
 
+          {antennaType === 'folded-dipole' && <NumberField label="Parallel conductor spacing" tooltip="Enter the centre-to-centre spacing between the two long conductors. The calculator uses it for construction dimensions and wire inventory only; actual spacing, diameter, insulation, and end geometry affect impedance and resonance." value={Number(shownFoldedDipoleSpacing.toFixed(3))} min={unitSystem === 'metric' ? 0.001 : 0.003} max={unitSystem === 'metric' ? 100 : 328.084} step={unitSystem === 'metric' ? 0.01 : 0.05} unit={unitSystem === 'metric' ? 'm' : 'ft'} help="Maintain this spacing uniformly with stable insulating supports; electrically wide spacing requires full modelling." onChange={(value) => setFoldedDipoleSpacingMetres(unitSystem === 'metric' ? value : feetToMetres(value))} />}
+
           {antennaType === 'fan-dipole' && <fieldset className="fan-frequency-editor">
             <legend>Additional resonant wire pairs</legend>
             <p>The primary design frequency above is the first pair. Add a distinct frequency for every additional pair.</p>
@@ -895,6 +915,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {advancedOpen && antennaType !== 'moxon' && antennaType !== 'yagi' && antennaType !== 'small-loop' && antennaType !== 'g5rv' && antennaType !== 'cubical-quad' && antennaType !== 'axial-helix' && antennaType !== 'discone' && antennaType !== 'log-periodic' && antennaType !== 'beverage' && antennaType !== 'compact-receive' && antennaType !== 'k9ay' && antennaType !== 'loop-on-ground' && antennaType !== 'active-receive-loop' && <div className="advanced-fields">
             {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" tooltip="This value is a planning assumption used only to show nominal transformed resistance. A real feedpoint also has reactance and changes with height, wire shape, ground, nearby objects, return path, frequency, and loss." value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}
             {antennaType === 'ocfd' && <NumberField label="Estimated OCFD feedpoint impedance" tooltip="This value is a resistance assumption used only for the nominal transformed-impedance display. The real feedpoint has resistance and reactance that vary with frequency, split, height, ground, wire geometry, and nearby conductors." value={estimatedOcfdImpedanceOhms} min={20} max={5000} step={10} unit="Ω" help="A nominal planning value; height, split, ground, and frequency change both resistance and reactance." onChange={setEstimatedOcfdImpedanceOhms} />}
+            {antennaType === 'folded-dipole' && <><NumberField label="Reference single-dipole resistance" tooltip="The nominal folded resistance is four times this entered real-resistance assumption for two equal conductors. It is not calculated from installation height, conductor geometry, ground, or measured reactance." value={foldedDipoleReferenceResistanceOhms} min={1} max={10_000} step={1} unit="Ω" help="Default 73 Ω gives a nominal 292 Ω folded value; replace it only with a deliberate modelled or measured assumption." onChange={setFoldedDipoleReferenceResistanceOhms} /><NumberField label="Planned feedline impedance" tooltip="Used only to compare the nominal folded resistance with the intended line and show an ideal ratio. The calculator does not design or rate a balun or matching network." value={foldedDipoleFeedlineImpedanceOhms} min={1} max={10_000} step={1} unit="Ω" help="Common examples include 50 Ω coax, 75 Ω coax, and 300 Ω balanced line; verify the installed complex impedance." onChange={setFoldedDipoleFeedlineImpedanceOhms} /></>}
             <NumberField label="Length correction factor" tooltip={lengthCorrectionTooltip} value={lengthCorrectionFactor} min={0.5} max={1.2} step={0.01} unit="ratio" help={`${recommendedFactor.toFixed(2)} is the default practical starting factor for this design; measure and tune after installation.`} onChange={setLengthCorrectionFactor} />
             {antennaType !== 'loaded-dipole' && antennaType !== 'loaded-vertical' && antennaType !== 'trap-dipole' && <NumberField label="Extra length for trimming" tooltip={trimAllowanceTooltip} value={trimAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Added after the resonant estimate so wire can be shortened during tuning." onChange={setTrimAllowancePercent} />}
           </div>}
@@ -949,11 +970,13 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {calculation?.type === 'k9ay' && calculation.value.warnings.length > 0 && <aside className="model-note k9ay-advisory" aria-label="K9AY design advisories"><strong>Review these geometry and circuit choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'loop-on-ground' && calculation.value.warnings.length > 0 && <aside className="model-note loop-on-ground-advisory" aria-label="Loop-on-Ground design advisories"><strong>Review these geometry and transformer choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'active-receive-loop' && calculation.value.warnings.length > 0 && <aside className="model-note active-receive-loop-advisory" aria-label="Active receive loop design advisories"><strong>Review these geometry and range choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
+          {calculation?.type === 'folded-dipole' && calculation.value.warnings.length > 0 && <aside className="model-note folded-dipole-advisory" aria-label="Folded dipole design advisories"><strong>Review these construction assumptions</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
         </form>
 
         <div className="visual-panel" id="design-drawing">
           <div className="antenna-print-diagram">
           {calculation?.type === 'dipole' && <DipoleDiagram totalMetres={calculation.value.cutTotalMetres} legMetres={calculation.value.cutLegMetres} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
+          {calculation?.type === 'folded-dipole' && <FoldedDipoleDiagram spanMetres={calculation.value.cutSpanMetres} spacingMetres={calculation.value.conductorSpacingMetres} unitSystem={unitSystem} />}
           {calculation?.type === 'fan-dipole' && <FanDipoleDiagram elements={calculation.value.elements} unitSystem={unitSystem} />}
           {calculation?.type === 'doublet' && <DoubletDiagram legMetres={calculation.value.cutLegMetres} totalMetres={calculation.value.cutTotalMetres} feedlineMetres={calculation.value.balancedLineLengthMetres} feedlineImpedanceOhms={calculation.value.balancedLineImpedanceOhms} unitSystem={unitSystem} />}
           {calculation?.type === 'g5rv' && <G5rvDiagram presetLabel={calculation.value.presetLabel} radiatorMetres={calculation.value.radiatorLengthMetres} legMetres={calculation.value.legLengthMetres} matchingSectionMetres={calculation.value.matchingSectionPhysicalLengthMetres} matchingSectionImpedanceOhms={calculation.value.matchingSectionImpedanceOhms} unitSystem={unitSystem} />}
@@ -1070,10 +1093,21 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
                 ? <p>The radiator includes a {trimAllowancePercent}% trimming allowance. Ground-radial lengths use the corrected quarter-wave baseline and the selected multiplier without added trim.</p>
               : <p>The displayed cut dimensions include a {trimAllowancePercent}% construction allowance. Geometry values describe the idealized shape, not required support heights.</p>}
         </article>
+        {calculation.type === 'folded-dipole' && <article>
+          <p className="eyebrow">Equal-conductor assumption</p>
+          <h3>Four times is a planning reference</h3>
+          <p className="formula">Zfolded ≈ 4 × Zdipole</p>
+          <p>Equal current division in two equal conductors gives the familiar four-times resistance relationship. With the entered {calculation.value.assumedSingleDipoleResistanceOhms.toFixed(1)} Ω reference, the nominal folded value is {calculation.value.nominalFoldedResistanceOhms.toFixed(1)} Ω. Real spacing, diameter, insulation, end connections, feed gap, height, ground, surroundings, and reactance require modelling or measurement.</p>
+        </article>}
         {calculation.type === 'efhw' && <article className="caution-card">
           <p className="eyebrow">EFHW safety and installation</p>
           <h3>High voltage does not mean no return current</h3>
           <p>The feedpoint and far end are high-voltage points: keep them out of reach and away from combustible material and power lines. The system still needs an intentional RF return path and common-mode-current plan. Transformer loss, heating, core saturation, and voltage rating must be checked at the intended power.</p>
+        </article>}
+        {calculation.type === 'folded-dipole' && <article className="caution-card">
+          <p className="eyebrow">Folded-dipole feed system</p>
+          <h3>A nominal ratio is not a transformer design</h3>
+          <p>The displayed impedance and turns ratios compare real-resistance assumptions only. Select a documented balanced transformer or balanced line for the measured complex impedance, frequency range, power, voltage, current, loss, and environment. Provide suitable common-mode control and verify heating and SWR across the complete operating band.</p>
         </article>}
         {calculation.type === 'ocfd' && <article className="caution-card">
           <p className="eyebrow">OCFD matching and balance</p>
@@ -1208,6 +1242,7 @@ function NumberField({ label, value, min, max, step, unit, help, tooltip, onChan
 
 type Calculation = NonNullable<
   | { type: 'dipole'; value: ReturnType<typeof calculateHalfWaveDipole> }
+  | { type: 'folded-dipole'; value: ReturnType<typeof calculateFoldedDipole> }
   | { type: 'fan-dipole'; value: ReturnType<typeof calculateFanDipole> }
   | { type: 'doublet'; value: ReturnType<typeof calculateDoublet> }
   | { type: 'g5rv'; value: ReturnType<typeof calculateG5rv> }
@@ -1240,6 +1275,7 @@ type Calculation = NonNullable<
 
 function largestAntennaDimension(calculation: Calculation, loopShape: LoopShape): number {
   if (calculation.type === 'dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutTotalMetres });
+  if (calculation.type === 'folded-dipole') return calculateLargestAntennaDimension({ shape: 'rectangle', widthMetres: calculation.value.cutSpanMetres, depthMetres: calculation.value.conductorSpacingMetres });
   if (calculation.type === 'fan-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.longestSpanMetres });
   if (calculation.type === 'doublet') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutTotalMetres });
   if (calculation.type === 'g5rv') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.radiatorLengthMetres });
@@ -1276,6 +1312,9 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape, onPrin
   if (calculation.type === 'dipole') {
     headline = 'Cut two equal legs'; primary = `${formatLength(calculation.value.cutLegMetres, unitSystem)} each`;
     details = [['Total cut length', formatLength(calculation.value.cutTotalMetres, unitSystem)], ['Resonant estimate', formatLength(calculation.value.resonantTotalMetres, unitSystem)]];
+  } else if (calculation.type === 'folded-dipole') {
+    headline = 'Cut two equal parallel conductors'; primary = `${formatLength(calculation.value.eachParallelConductorMetres, unitSystem)} each`;
+    details = [['End-join spacing', formatLength(calculation.value.conductorSpacingMetres, unitSystem)], ['Each half from centre', formatLength(calculation.value.eachHalfFromCentreMetres, unitSystem)], ['Approximate total conductor', formatLength(calculation.value.approximateTotalConductorMetres, unitSystem)], ['Nominal equal-conductor resistance', `${calculation.value.nominalFoldedResistanceOhms.toFixed(1)} Ω · 4 × entered reference`], ['Compared with planned feedline', `${calculation.value.assumedDirectSWR.toFixed(2)} : 1 assumed direct SWR`], ['Ideal ratio context only', `${calculation.value.assumedImpedanceRatioToFeedline.toFixed(2)}:1 impedance · ${calculation.value.assumedTurnsRatioToFeedline.toFixed(2)}:1 turns`], ['Installed impedance and match', 'Measure complex impedance · not inferred']];
   } else if (calculation.type === 'fan-dipole') {
     headline = `Cut ${calculation.value.elements.length} equal wire pairs`; primary = formatLength(calculation.value.totalWireMetres, unitSystem);
     details = calculation.value.elements.map((element) => [`${element.frequencyMHz.toFixed(3)} MHz · each leg`, formatLength(element.cutLegMetres, unitSystem)]);

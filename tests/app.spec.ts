@@ -74,20 +74,42 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 28 designs')).toBeVisible();
+  await expect(page.getByText('2 of 29 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 28 designs')).toBeVisible();
+  await expect(page.getByText('5 of 29 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('28 of 28 designs')).toBeVisible();
+  await expect(page.getByText('29 of 29 designs')).toBeVisible();
+});
+
+test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
+  await page.getByRole('button', { name: /Folded dipole/ }).click();
+  await expect(page.getByRole('heading', { name: 'Equal-conductor folded dipole' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Equal-conductor folded dipole construction diagram/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Cut two equal parallel conductors');
+  await expect(page.locator('.result-summary')).toContainText('10.279 m each');
+  await expect(page.locator('.result-summary')).toContainText('292.0 Ω · 4 × entered reference');
+  await expect(page.locator('.result-summary')).toContainText('5.84 : 1 assumed direct SWR');
+  await expect(page.locator('.result-summary')).toContainText('2.42:1 turns');
+  await expect(page.locator('.result-summary')).toContainText('Measure complex impedance · not inferred');
+  await expect(page.getByText('Join both ends and open one centre')).toBeHidden();
+  await page.getByText('Build and tune a folded dipole').click();
+  await expect(page.getByText('Join both ends and open one centre')).toBeVisible();
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Reference single-dipole resistance' })).toHaveValue('73');
+  await page.getByRole('spinbutton', { name: 'Planned feedline impedance' }).fill('292');
+  await expect(page.locator('.result-summary')).toContainText('1.00 : 1 assumed direct SWR');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Folded-dipole feed system' })).toContainText('A nominal ratio is not a transformer design');
+  await page.getByRole('button', { name: 'Imperial' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Parallel conductor spacing' })).toHaveValue('0.492');
 });
 
 test('compares three antenna systems without ranking unmodelled performance', async ({ page }) => {

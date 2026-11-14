@@ -60,6 +60,8 @@ The OCFD guide must explain how the selected split changes both leg lengths and 
 
 The fan-dipole guide must calculate each equal wire pair from its own design frequency, present total material and the longest span, and keep all pairs on one balanced feedpoint. It must require stable non-conductive spacing, symmetrical construction, highest-frequency-first tuning, and a complete band sweep after every adjustment. It must not combine ideal element impedances, predict mutual coupling, guarantee a tuner-free match, or claim a finished bandwidth or pattern.
 
+The equal-conductor folded-dipole guide must size two equal corrected half-wave conductors, show their parallel spacing, end joins, centre feed gap, per-side dimensions, and total conductor estimate. It may present the familiar four-times resistance relationship only as a user-visible planning assumption derived from an entered single-dipole reference. It must not infer installed complex impedance, bandwidth, transformer construction, power handling, or pattern; matching and common-mode control must be selected from measured installed impedance.
+
 The multiband-doublet guide must size two equal radiator legs from the lowest intended frequency and treat the radiator, balanced feedline, tuner interface, and short coax transition as one system. It may calculate physical and electrical line length and the documented eighth-wavelength adjustment increment, but must not infer complex load impedance, line SWR, mismatch loss, tuner range, balun stress, efficiency, bandwidth, or pattern. Guidance must require line clearance and balance, low-power commissioning on every band, and verification of tuner and balun heating at the intended power.
 
 The single-band loaded-dipole and loaded-vertical guides may calculate the ideal series reactance and inductance that replace omitted radiator length using the documented single-wire transmission-line method. They must expose physical length, conductor diameter, correction factor, and loading position; the dipole must also expose model height above ground. A loaded dipole uses two equal coils, while a loaded vertical supports base or elevated loading and requires an explicit RF return-system plan. Results must be described as starting targets and must not infer physical turns, coil Q, self-capacitance, loss, heating, voltage, current, impedance, matching, bandwidth, efficiency, or pattern. Guidance must require measurement of the installed antenna and verification at intended power.
@@ -127,11 +129,11 @@ Visuals are functional rather than decorative:
 - **Calculated estimate:** derived from a documented formula.
 - **Simulated result:** produced by an identified model and configuration.
 
-Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon or Yagi, feedline path, tuning plot, and RF exposure side view. Colour reinforces meaning but never carries it alone.
+Initial visuals cover a dipole, folded dipole or inverted-V, vertical with radials, loop, Moxon or Yagi, feedline path, tuning plot, and RF exposure side view. Colour reinforces meaning but never carries it alone.
 
 ## Initial calculator roadmap
 
-The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, classic and half-size G5RV plus ZS6BKW family presets, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, complex-impedance and Smith-chart exploration, uniform lossy-line transformation, velocity factor, coaxial stubs, L-networks, quarter-wave transformers, ideal balun/unun ratios, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
+The first useful release includes wavelength, dipole, equal-conductor folded dipole, fan dipole, balanced-line doublet, classic and half-size G5RV plus ZS6BKW family presets, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, complex-impedance and Smith-chart exploration, uniform lossy-line transformation, velocity factor, coaxial stubs, L-networks, quarter-wave transformers, ideal balun/unun ratios, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
 Advanced families later include other multiband designs, detailed small-loop loss and component modelling, detailed collinear-array, cubical-quad, helical, discone, log-periodic, and Beverage modelling, additional receive antennas, detailed trap and capacitor construction, and matching networks.
 
