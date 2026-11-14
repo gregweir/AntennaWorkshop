@@ -16,6 +16,8 @@ The horizontal loop skywire workflow converts a corrected full-wave perimeter in
 
 The G3TXQ broadband hex-beam workflow reproduces the current KIO PVC-insulated wire schedule for selectable 20, 17, 15, 12, 10, and 6 metre bands. It provides labelled driver, reflector, tip-spacer, wire-inventory, feed-sequence, and six-spreader envelope references without inventing arbitrary frequency scaling or installed performance.
 
+The long-wire tools now include both V-beam and four-support rhombic site planners. They apply cited physical-length starting formulas, rotate stakeout coordinates to a true bearing, distinguish open and terminated direction context, and keep angle choice, termination, feed, height, performance, structure, and RF exposure explicit for modelling and measurement.
+
 The long-wire V-beam workflow converts the published one-to-ten-wavelength leg and apex-angle combinations into a true-bearing site survey. It provides endpoint coordinates, span, depth, wire inventory, open bidirectional or separately terminated forward context, and balanced-feed guidance without predicting impedance, match, gain, pattern, termination heating, ground quality, or structure.
 
 Every valid antenna result can be printed as a focused build sheet containing the selected design, prioritized dimensions, installed-verification items, supporting calculations and assumptions, and the dimensioned drawing. Navigation, selectors, and unrelated workspaces are excluded from the print packet.

@@ -8494,6 +8494,14 @@ path.loading-coil {
   stroke-linecap: round;
 }
 
+.rhombic-wire path {
+  fill: color-mix(in srgb, var(--tl-coral) 9%, transparent);
+  stroke: var(--tl-coral);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .v-beam-feed circle,
 .v-beam-endpoints circle {
   fill: var(--tl-navy);
@@ -8519,7 +8527,8 @@ path.loading-coil {
   stroke-width: 3;
 }
 
-#v-beam-arrow path { fill: var(--accent-technical); }
+#v-beam-arrow path,
+#rhombic-arrow path { fill: var(--accent-technical); }
 
 .v-beam-angle path {
   fill: none;

@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 34 designs')).toBeVisible();
+  await expect(page.getByText('2 of 35 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 34 designs')).toBeVisible();
+  await expect(page.getByText('5 of 35 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('34 of 34 designs')).toBeVisible();
+  await expect(page.getByText('35 of 35 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -228,6 +228,37 @@ test('surveys an open or terminated V-beam without predicting directional perfor
   await page.getByLabel('Help: V-beam leg electrical length').click();
   await expect(page.getByRole('note').filter({ hasText: 'V-beam leg electrical length' })).toContainText('1λ/90°');
   await expect(page.locator('.provenance-card')).toContainText('atp-6-02-53-v-beam-site-planner');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+  expect(dimensions.content).toBe(dimensions.viewport);
+});
+
+test('surveys a four-support rhombic without inventing an optimum angle or termination', async ({ page }) => {
+  await page.getByRole('button', { name: /Rhombic/ }).click();
+  await expect(page.getByRole('heading', { name: 'Four-support rhombic' })).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('14.2');
+  await expect(page.getByRole('img', { name: /Dimensioned four-support rhombic antenna site plan/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Survey four 2-wavelength sides at a 60° feed apex');
+  await expect(page.locator('.result-summary')).toContainText('42.768 m wire per side');
+  await expect(page.locator('.result-summary')).toContainText('Bidirectional along the long diagonal');
+  await expect(page.getByRole('row', { name: /B Left side support/ })).toContainText('330.0°');
+  await expect(page.getByRole('row', { name: /C Far apex/ })).toContainText('0.0°');
+
+  await page.getByRole('spinbutton', { name: 'Rhombic included angle' }).fill('70');
+  await page.getByRole('spinbutton', { name: 'Rhombic forward true bearing' }).fill('90');
+  await expect(page.getByRole('row', { name: /C Far apex/ })).toContainText('90.0°');
+  await page.getByLabel('Rhombic far-apex configuration', { exact: true }).selectOption('terminated');
+  await page.getByRole('spinbutton', { name: 'Rhombic far-apex termination' }).fill('750');
+  await expect(page.locator('.result-summary')).toContainText('750 Ω entered non-inductive far-apex termination');
+  await expect(page.getByRole('complementary', { name: 'Rhombic design advisories' })).toContainText('planning assumption');
+
+  await expect(page.getByText('Choose an included angle deliberately')).toBeHidden();
+  await page.getByText('Survey, build, and commission a rhombic').click();
+  await expect(page.getByText('Choose an included angle deliberately')).toBeVisible();
+  await page.getByLabel('Help: Rhombic included angle').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Rhombic included angle' })).toContainText('does not claim');
+  await expect(page.locator('.provenance-card')).toContainText('tc-9-64-four-support-rhombic-site-planner');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
