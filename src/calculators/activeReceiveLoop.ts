@@ -18,7 +18,7 @@ export interface ActiveReceiveLoopInput {
 
 export const ACTIVE_RECEIVE_LOOP_MODEL = {
   id: 'untuned-active-receive-loop-planner',
-  version: '1.0.0',
+  version: '2.0.0',
   reviewedOn: '2026-11-14',
   sources: [
     {
@@ -64,7 +64,9 @@ export function calculateActiveReceiveLoop(input: ActiveReceiveLoopInput) {
   const upperWavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (input.upperFrequencyMHz * 1_000_000);
   const circumferenceMetres = Math.PI * input.loopDiameterMetres;
   const cutConductorLengthMetres = circumferenceMetres * (1 + input.conductorCutAllowancePercent / 100);
+  const conductorAllowanceMetres = cutConductorLengthMetres - circumferenceMetres;
   const enclosedAreaSquareMetres = Math.PI * (input.loopDiameterMetres / 2) ** 2;
+  const centreHeightMetres = input.baseHeightMetres + input.loopDiameterMetres / 2;
   const topHeightMetres = input.baseHeightMetres + input.loopDiameterMetres;
   const lowerEdgeCircumferenceWavelengths = circumferenceMetres / lowerWavelengthMetres;
   const upperEdgeCircumferenceWavelengths = circumferenceMetres / upperWavelengthMetres;
@@ -72,6 +74,23 @@ export function calculateActiveReceiveLoop(input: ActiveReceiveLoopInput) {
   const reverseNullBearingDegrees = (input.nullAxisBearingDegrees + 180) % 360;
   const loopPlaneBearingDegrees = (input.nullAxisBearingDegrees + 90) % 360;
   const reverseLoopPlaneBearingDegrees = (loopPlaneBearingDegrees + 180) % 360;
+  const orientationAxes = [
+    { label: 'Expected null axis A', bearingDegrees: input.nullAxisBearingDegrees, compassPoint: compassPoint(input.nullAxisBearingDegrees), context: 'Expected null direction' },
+    { label: 'Expected null axis B', bearingDegrees: reverseNullBearingDegrees, compassPoint: compassPoint(reverseNullBearingDegrees), context: 'Opposite expected null direction' },
+    { label: 'Loop plane A', bearingDegrees: loopPlaneBearingDegrees, compassPoint: compassPoint(loopPlaneBearingDegrees), context: 'In-plane comparison reference' },
+    { label: 'Loop plane B', bearingDegrees: reverseLoopPlaneBearingDegrees, compassPoint: compassPoint(reverseLoopPlaneBearingDegrees), context: 'Opposite in-plane reference' }
+  ];
+  const logarithmicMidpointFrequencyMHz = Math.sqrt(input.lowerFrequencyMHz * input.upperFrequencyMHz);
+  const electricalSizeChecks = [input.lowerFrequencyMHz, logarithmicMidpointFrequencyMHz, input.upperFrequencyMHz].map((frequencyMHz, index) => {
+    const wavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (frequencyMHz * 1_000_000);
+    return {
+      label: index === 0 ? 'Lower edge' : index === 1 ? 'Log midpoint' : 'Upper edge',
+      frequencyMHz,
+      wavelengthMetres,
+      circumferenceWavelengths: circumferenceMetres / wavelengthMetres,
+      diameterWavelengths: input.loopDiameterMetres / wavelengthMetres
+    };
+  });
   const warnings: string[] = [];
 
   if (upperEdgeCircumferenceWavelengths >= 0.1) {
@@ -94,7 +113,9 @@ export function calculateActiveReceiveLoop(input: ActiveReceiveLoopInput) {
     upperWavelengthMetres,
     circumferenceMetres,
     cutConductorLengthMetres,
+    conductorAllowanceMetres,
     enclosedAreaSquareMetres,
+    centreHeightMetres,
     topHeightMetres,
     lowerEdgeCircumferenceWavelengths,
     upperEdgeCircumferenceWavelengths,
@@ -106,6 +127,9 @@ export function calculateActiveReceiveLoop(input: ActiveReceiveLoopInput) {
     loopPlaneCompassPoint: compassPoint(loopPlaneBearingDegrees),
     reverseLoopPlaneBearingDegrees,
     reverseLoopPlaneCompassPoint: compassPoint(reverseLoopPlaneBearingDegrees),
+    orientationAxes,
+    logarithmicMidpointFrequencyMHz,
+    electricalSizeChecks,
     orientationDescription: `Expected bidirectional null axis at ${input.nullAxisBearingDegrees.toFixed(0)}° ${compassPoint(input.nullAxisBearingDegrees)} and ${reverseNullBearingDegrees.toFixed(0)}° ${compassPoint(reverseNullBearingDegrees)}; loop plane runs ${loopPlaneBearingDegrees.toFixed(0)}° ${compassPoint(loopPlaneBearingDegrees)} to ${reverseLoopPlaneBearingDegrees.toFixed(0)}° ${compassPoint(reverseLoopPlaneBearingDegrees)}`,
     warnings
   };

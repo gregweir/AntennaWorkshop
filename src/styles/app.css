@@ -6628,7 +6628,8 @@ path.loading-coil {
 .beverage-construction-panel,
 .compact-construction-panel,
 .k9ay-construction-panel,
-.log-construction-panel {
+.log-construction-panel,
+.active-loop-construction-panel {
   width: 100%;
   min-width: 0;
   margin-top: 1rem;
@@ -6651,7 +6652,9 @@ path.loading-coil {
 .k9ay-construction-heading,
 .k9ay-construction-grid,
 .log-construction-heading,
-.log-construction-grid {
+.log-construction-grid,
+.active-loop-construction-heading,
+.active-loop-construction-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -6699,7 +6702,15 @@ path.loading-coil {
 .log-material-check h4,
 .log-material-check p,
 .log-isolation-check h4,
-.log-isolation-check p { margin: 0; }
+.log-isolation-check p,
+.active-loop-construction-heading h3,
+.active-loop-construction-heading p,
+.active-loop-size-check h4,
+.active-loop-size-check p,
+.active-loop-orientation-check h4,
+.active-loop-orientation-check p,
+.active-loop-integration-check h4,
+.active-loop-integration-check p { margin: 0; }
 
 .helix-construction-heading dl,
 .helix-feed-workflow dl,
@@ -6713,7 +6724,8 @@ path.loading-coil {
 .k9ay-transformer-check dl,
 .log-construction-heading dl,
 .log-material-check dl,
-.log-isolation-check dl {
+.log-isolation-check dl,
+.active-loop-construction-heading dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
@@ -6732,7 +6744,8 @@ path.loading-coil {
 .k9ay-transformer-check dl div,
 .log-construction-heading dl div,
 .log-material-check dl div,
-.log-isolation-check dl div {
+.log-isolation-check dl div,
+.active-loop-construction-heading dl div {
   padding: 0.65rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -6825,6 +6838,20 @@ path.loading-coil {
 .log-survey-check ol, .log-material-check ol, .log-isolation-check ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
 .log-survey-check li + li, .log-material-check li + li, .log-isolation-check li + li { margin-top: 0.35rem; }
 .log-performance-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
+.active-loop-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.active-loop-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
+.active-loop-construction-grid { margin-top: 1rem; }
+.active-loop-size-check, .active-loop-orientation-check, .active-loop-integration-check { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); display: grid; align-content: start; gap: 0.75rem; }
+.active-loop-size-check, .active-loop-orientation-check, .active-loop-integration-check { grid-column: 1 / -1; }
+.active-loop-size-check .table-scroll, .active-loop-orientation-check .table-scroll { min-width: 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.active-loop-size-check table, .active-loop-orientation-check table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 0.72rem; }
+.active-loop-size-check th, .active-loop-size-check td, .active-loop-orientation-check th, .active-loop-orientation-check td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.active-loop-size-check thead th, .active-loop-orientation-check thead th { background: var(--tl-navy); color: var(--tl-cream); font-family: var(--font-mono); }
+.active-loop-size-check tbody tr:last-child > *, .active-loop-orientation-check tbody tr:last-child > * { border-bottom: 0; }
+.active-loop-orientation-check ol, .active-loop-integration-check ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
+.active-loop-orientation-check li + li, .active-loop-integration-check li + li { margin-top: 0.35rem; }
+.active-loop-size-check > p:last-child { color: var(--text-secondary); font-size: 0.76rem; }
+.active-loop-performance-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
 
 .helix-advisory ul,
 .discone-advisory ul,
@@ -10260,7 +10287,9 @@ path.loading-coil {
   .k9ay-construction-heading,
   .k9ay-construction-grid,
   .log-construction-heading,
-  .log-construction-grid {
+  .log-construction-grid,
+  .active-loop-construction-heading,
+  .active-loop-construction-grid {
     grid-template-columns: 1fr;
   }
 

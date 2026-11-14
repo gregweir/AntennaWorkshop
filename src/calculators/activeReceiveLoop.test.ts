@@ -23,7 +23,9 @@ describe('calculateActiveReceiveLoop', () => {
 
     expect(result.circumferenceMetres).toBeCloseTo(Math.PI, 9);
     expect(result.cutConductorLengthMetres).toBeCloseTo(Math.PI * 1.025, 9);
+    expect(result.conductorAllowanceMetres).toBeCloseTo(Math.PI * 0.025, 9);
     expect(result.enclosedAreaSquareMetres).toBeCloseTo(Math.PI / 4, 9);
+    expect(result.centreHeightMetres).toBe(2);
     expect(result.topHeightMetres).toBe(2.5);
     expect(result.lowerEdgeCircumferenceWavelengths).toBeCloseTo(0.01886, 4);
     expect(result.upperEdgeCircumferenceWavelengths).toBeCloseTo(0.31438, 4);
@@ -31,6 +33,10 @@ describe('calculateActiveReceiveLoop', () => {
     expect(result.loopPlaneBearingDegrees).toBe(135);
     expect(result.reverseLoopPlaneBearingDegrees).toBe(315);
     expect(result.orientationDescription).toContain('45° NE and 225° SW');
+    expect(result.orientationAxes.map(({ bearingDegrees, compassPoint }) => `${bearingDegrees} ${compassPoint}`)).toEqual(['45 NE', '225 SW', '135 SE', '315 NW']);
+    expect(result.logarithmicMidpointFrequencyMHz).toBeCloseTo(Math.sqrt(54), 10);
+    expect(result.electricalSizeChecks.map(({ label }) => label)).toEqual(['Lower edge', 'Log midpoint', 'Upper edge']);
+    expect(result.electricalSizeChecks[2].circumferenceWavelengths).toBeCloseTo(result.upperEdgeCircumferenceWavelengths, 10);
   });
 
   it('keeps a 30-inch loop small through 14.35 MHz', () => {
@@ -67,6 +73,7 @@ describe('calculateActiveReceiveLoop', () => {
   });
 
   it('retains source provenance and review date', () => {
+    expect(ACTIVE_RECEIVE_LOOP_MODEL.version).toBe('2.0.0');
     expect(ACTIVE_RECEIVE_LOOP_MODEL.reviewedOn).toBe('2026-11-14');
     expect(ACTIVE_RECEIVE_LOOP_MODEL.sources).toHaveLength(3);
     expect(ACTIVE_RECEIVE_LOOP_MODEL.sources.map((source) => source.url)).toContain('https://www.lz1aq.signacor.com/docs/active-wideband-directional-antenna.php');

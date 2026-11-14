@@ -1167,8 +1167,19 @@ test('plans an untuned active receiving loop without inventing amplifier perform
   await expect(page.getByRole('img', { name: /Untuned active receiving-loop elevation and orientation/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Build one untuned circular receive loop');
   await expect(page.locator('.result-summary')).toContainText('76.2 cm diameter');
+  await expect(page.locator('.result-summary')).toContainText('Separate conductor allowance6.0 cm');
+  await expect(page.locator('.result-summary')).toContainText('Centre height1.905 m');
   await expect(page.locator('.result-summary')).toContainText('Expected null axis45° NE ↔ 225° SW');
   await expect(page.locator('.result-summary')).toContainText('Amplifier circuit and performanceNot inferred');
+  await expect(page.getByRole('heading', { name: 'Treat the loop, amplifier, power path, and receiver protection as one system' })).toBeVisible();
+  await expect(page.locator('.active-loop-size-check tbody tr')).toHaveCount(3);
+  await expect(page.locator('.active-loop-size-check tbody tr').nth(0)).toContainText('Lower edge');
+  await expect(page.locator('.active-loop-size-check tbody tr').nth(1)).toContainText('Log midpoint');
+  await expect(page.locator('.active-loop-size-check tbody tr').nth(2)).toContainText('Upper edge');
+  await expect(page.locator('.active-loop-orientation-check tbody tr')).toHaveCount(4);
+  await expect(page.locator('.active-loop-orientation-check')).toContainText('45° NE');
+  await expect(page.locator('.active-loop-orientation-check')).toContainText('315° NW');
+  await expect(page.locator('.active-loop-integration-check')).toContainText('Transmit isolation');
   await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
 
   const comparison = page.getByRole('region', { name: 'Choose by site and directional need' });
@@ -1183,6 +1194,7 @@ test('plans an untuned active receiving loop without inventing amplifier perform
   await expect(page.getByRole('spinbutton', { name: 'Active-loop extra conductor for feed gap' })).toHaveValue('2.5');
   await expect(page.locator('.caution-card').filter({ hasText: 'A broadband amplifier can overload before the receiver does' })).toBeVisible();
   await expect(page.locator('.provenance-card')).toContainText('untuned-active-receive-loop-planner');
+  await expect(page.locator('.provenance-card')).toContainText('Model 2.0.0');
 
   await page.getByRole('spinbutton', { name: 'Active-loop upper operating frequency' }).fill('30');
   await expect(page.getByRole('complementary', { name: 'Active receive loop design advisories' })).toContainText('0.10 wavelength');
