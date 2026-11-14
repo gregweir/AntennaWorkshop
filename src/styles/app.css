@@ -4874,7 +4874,8 @@ select {
 .beverage-layout,
 .compact-receive-layout,
 .k9ay-layout,
-.loop-on-ground-layout {
+.loop-on-ground-layout,
+.active-receive-loop-layout {
   grid-template-columns: 1fr;
 }
 
@@ -4887,7 +4888,8 @@ select {
 .beverage-layout .input-panel,
 .compact-receive-layout .input-panel,
 .k9ay-layout .input-panel,
-.loop-on-ground-layout .input-panel {
+.loop-on-ground-layout .input-panel,
+.active-receive-loop-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4912,7 +4914,9 @@ select {
 .k9ay-layout .input-panel > .field,
 .k9ay-layout .k9ay-editor,
 .loop-on-ground-layout .input-panel > .field,
-.loop-on-ground-layout .loop-on-ground-editor {
+.loop-on-ground-layout .loop-on-ground-editor,
+.active-receive-loop-layout .input-panel > .field,
+.active-receive-loop-layout .active-receive-loop-editor {
   margin: 0;
 }
 
@@ -4960,7 +4964,12 @@ select {
 .loop-on-ground-layout .advanced-fields,
 .loop-on-ground-layout .result-summary,
 .loop-on-ground-layout .loop-on-ground-advisory,
-.loop-on-ground-layout .validation-message {
+.loop-on-ground-layout .validation-message,
+.active-receive-loop-layout .active-receive-loop-editor,
+.active-receive-loop-layout .advanced-fields,
+.active-receive-loop-layout .result-summary,
+.active-receive-loop-layout .active-receive-loop-advisory,
+.active-receive-loop-layout .validation-message {
   grid-column: 1 / -1;
 }
 
@@ -4973,7 +4982,8 @@ select {
 .beverage-layout .beverage-editor,
 .compact-receive-layout .compact-receive-editor,
 .k9ay-layout .k9ay-editor,
-.loop-on-ground-layout .loop-on-ground-editor {
+.loop-on-ground-layout .loop-on-ground-editor,
+.active-receive-loop-layout .active-receive-loop-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5200,7 +5210,8 @@ select {
 .beverage-editor,
 .compact-receive-editor,
 .k9ay-editor,
-.loop-on-ground-editor {
+.loop-on-ground-editor,
+.active-receive-loop-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5221,7 +5232,8 @@ select {
 .beverage-editor legend,
 .compact-receive-editor legend,
 .k9ay-editor legend,
-.loop-on-ground-editor legend {
+.loop-on-ground-editor legend,
+.active-receive-loop-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5253,7 +5265,8 @@ select {
 .beverage-editor,
 .compact-receive-editor,
 .k9ay-editor,
-.loop-on-ground-editor {
+.loop-on-ground-editor,
+.active-receive-loop-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5276,7 +5289,8 @@ select {
 .beverage-editor > .field,
 .compact-receive-editor > .field,
 .k9ay-editor > .field,
-.loop-on-ground-editor > .field {
+.loop-on-ground-editor > .field,
+.active-receive-loop-editor > .field {
   margin: 0;
 }
 
@@ -6043,6 +6057,69 @@ path.loading-coil {
 
 .log-isolation-note {
   align-self: stretch;
+  margin: 0;
+}
+
+.active-loop-compass {
+  fill: color-mix(in srgb, var(--accent-technical) 5%, transparent);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.active-loop-plan text,
+.active-loop-elevation text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.active-loop-plane {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 7;
+}
+
+.active-loop-null {
+  fill: none;
+  marker-end: url('#active-rx-loop-arrow-end');
+  stroke: var(--tl-gold);
+  stroke-width: 5;
+}
+
+.active-loop-centre {
+  fill: var(--accent-technical);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.active-loop-plan-label {
+  font-size: 12px !important;
+}
+
+.active-loop-ground {
+  stroke: var(--text-secondary);
+  stroke-width: 5;
+}
+
+.active-loop-wire {
+  fill: color-mix(in srgb, var(--tl-coral) 4%, transparent);
+  stroke: var(--tl-coral);
+  stroke-width: 7;
+}
+
+.active-loop-amplifier {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.active-loop-coax {
+  stroke: var(--accent-technical);
+  stroke-width: 4;
+}
+
+.active-loop-system-note {
   margin: 0;
 }
 
@@ -7245,7 +7322,9 @@ path.loading-coil {
   .k9ay-layout .input-panel,
   .k9ay-layout .k9ay-editor,
   .loop-on-ground-layout .input-panel,
-  .loop-on-ground-layout .loop-on-ground-editor {
+  .loop-on-ground-layout .loop-on-ground-editor,
+  .active-receive-loop-layout .input-panel,
+  .active-receive-loop-layout .active-receive-loop-editor {
     grid-template-columns: 1fr;
   }
 
@@ -7533,7 +7612,8 @@ path.loading-coil {
   .beverage-editor,
   .compact-receive-editor,
   .k9ay-editor,
-  .loop-on-ground-editor {
+  .loop-on-ground-editor,
+  .active-receive-loop-editor {
     grid-template-columns: 1fr;
   }
 

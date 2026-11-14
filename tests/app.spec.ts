@@ -612,6 +612,41 @@ test('plans an isolated Loop-on-Ground antenna and compares receive families', a
   await expect(page.getByRole('complementary', { name: 'Loop-on-Ground design advisories' })).toContainText('at least one wavelength');
 });
 
+test('plans an untuned active receiving loop without inventing amplifier performance', async ({ page }) => {
+  await page.getByRole('button', { name: /Active receive loop/ }).click();
+  await page.locator('select.band-select').selectOption('40m');
+
+  await expect(page.getByRole('heading', { name: 'Untuned active receiving loop' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Lower operating frequency' })).toHaveValue('7.000');
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop upper operating frequency' })).toHaveValue('7.300');
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop diameter' })).toHaveValue('0.762');
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop base height' })).toHaveValue('1.524');
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop null-axis bearing' })).toHaveValue('45');
+  await expect(page.getByRole('img', { name: /Untuned active receiving-loop elevation and orientation/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build one untuned circular receive loop');
+  await expect(page.locator('.result-summary')).toContainText('76.2 cm diameter');
+  await expect(page.locator('.result-summary')).toContainText('Expected null axis45° NE ↔ 225° SW');
+  await expect(page.locator('.result-summary')).toContainText('Amplifier circuit and performanceNot inferred');
+  await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
+
+  const comparison = page.getByRole('region', { name: 'Choose by site and directional need' });
+  await expect(comparison).toContainText('Active small loop');
+  await expect(page.getByText('Place the balanced amplifier at the loop')).toBeHidden();
+  await page.getByText('Build and commission an untuned active receiving loop').click();
+  await expect(page.getByText('Place the balanced amplifier at the loop')).toBeVisible();
+  await page.getByLabel('Help: Active-loop amplifier requirements').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Active-loop amplifier requirements' })).toContainText('strong-signal performance');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop extra conductor for feed gap' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'A broadband amplifier can overload before the receiver does' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('untuned-active-receive-loop-planner');
+
+  await page.getByRole('spinbutton', { name: 'Active-loop upper operating frequency' }).fill('30');
+  await expect(page.getByRole('complementary', { name: 'Active receive loop design advisories' })).toContainText('0.10 wavelength');
+  await expect(page.getByRole('complementary', { name: 'Active receive loop design advisories' })).toContainText('one-sixteenth wavelength');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
