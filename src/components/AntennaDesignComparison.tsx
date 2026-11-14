@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ANTENNA_COMPARISON, type AntennaComparisonProfile } from '../lib/antennaDesignComparison';
 import { ANTENNA_DESIGNS, type AntennaType } from '../lib/antennaDesignCatalog';
 
@@ -28,11 +28,23 @@ function comparisonSet(activeType: AntennaType, current: AntennaType[] = []) {
 interface Props {
   activeType: AntennaType;
   onOpenPlanner: (type: AntennaType) => void;
+  requestedTypes: AntennaType[] | null;
 }
 
-export function AntennaDesignComparison({ activeType, onOpenPlanner }: Props) {
+export function AntennaDesignComparison({ activeType, onOpenPlanner, requestedTypes }: Props) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [types, setTypes] = useState<AntennaType[]>(() => comparisonSet(activeType));
   useEffect(() => setTypes((current) => comparisonSet(activeType, current)), [activeType]);
+  useEffect(() => {
+    if (!requestedTypes || requestedTypes.length < 3) return;
+    setTypes(requestedTypes.slice(0, 3));
+    if (detailsRef.current) detailsRef.current.open = true;
+    globalThis.requestAnimationFrame?.(() => {
+      detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      headingRef.current?.focus({ preventScroll: true });
+    });
+  }, [requestedTypes]);
   const selections = useMemo(() => types.map((type) => ({ type, design: ANTENNA_DESIGNS[type], profile: ANTENNA_COMPARISON[type] })), [types]);
   const replaceType = (index: number, type: AntennaType) => setTypes((current) => {
     const next = [...current];
@@ -42,10 +54,10 @@ export function AntennaDesignComparison({ activeType, onOpenPlanner }: Props) {
     return next;
   });
 
-  return <details className="antenna-comparison">
+  return <details className="antenna-comparison" ref={detailsRef}>
     <summary><span><strong>Compare antenna designs</strong><small>Space, bands, feed system, direction, complexity, and field verification</small></span></summary>
     <div className="antenna-comparison-body">
-      <div className="comparison-intro"><div><p className="eyebrow">Decision aid</p><h3>Compare construction systems—not advertised performance</h3></div><p>Choose three planners. These distinctions help identify practical fit; they do not rank gain, efficiency, signal strength, or suitability at your site.</p></div>
+      <div className="comparison-intro"><div><p className="eyebrow">Decision aid</p><h3 ref={headingRef} tabIndex={-1}>Compare construction systems—not advertised performance</h3></div><p>Choose three planners. These distinctions help identify practical fit; they do not rank gain, efficiency, signal strength, or suitability at your site.</p></div>
       <div className="comparison-selectors">
         {selections.map(({ type }, index) => <label key={index}><span>Design {index + 1}</span><select aria-label={`Comparison design ${index + 1}`} value={type} onChange={(event) => replaceType(index, event.target.value as AntennaType)}>{allTypes.map((candidate) => <option key={candidate} value={candidate}>{ANTENNA_DESIGNS[candidate].name}</option>)}</select></label>)}
       </div>

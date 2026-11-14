@@ -148,6 +148,7 @@ function planBinding<T extends AntennaPlanValue>(value: T, setter: (value: T) =>
 
 export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, onContinueToSystem }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>('dipole');
+  const [comparisonRequest, setComparisonRequest] = useState<AntennaType[] | null>(null);
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [foldedDipoleSpacingMetres, setFoldedDipoleSpacingMetres] = useState(0.15);
   const [foldedDipoleReferenceResistanceOhms, setFoldedDipoleReferenceResistanceOhms] = useState(73);
@@ -761,10 +762,10 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />
 
       <Suspense fallback={<div className="antenna-comparison comparison-loading" role="status">Loading design comparison…</div>}>
-        <AntennaDesignComparison activeType={antennaType} onOpenPlanner={openComparedPlanner} />
+        <AntennaDesignComparison activeType={antennaType} onOpenPlanner={openComparedPlanner} requestedTypes={comparisonRequest} />
       </Suspense>
 
-      <AntennaDesignPicker activeType={antennaType} onSelect={selectDesign} />
+      <AntennaDesignPicker activeType={antennaType} onSelect={selectDesign} onCompare={(types) => setComparisonRequest([...types])} />
 
       {antennaType === 'dipole' && <StepByStepHelp title="Build and tune a centre-fed dipole" intro="Use this sequence to turn two equal calculated legs into a measured antenna in its final support geometry. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the design frequency', detail: 'Select the frequency where you want the installed antenna to resonate, rather than relying only on the conventional band name.' },

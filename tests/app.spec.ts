@@ -128,6 +128,12 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('button', { name: 'Back to site or goal' }).click();
   await page.getByRole('button', { name: /Control noise direction/ }).click();
   await expect(page.getByRole('heading', { name: '4 construction planners to review' })).toBeVisible();
+  await page.getByRole('button', { name: 'Compare first three matches' }).click();
+  await expect(page.getByRole('heading', { name: 'Compare construction systems—not advertised performance' })).toBeFocused();
+  await expect(page.locator('.comparison-card')).toHaveCount(3);
+  await expect(page.locator('.comparison-card').nth(0)).toContainText('Beverage');
+  await expect(page.locator('.comparison-card').nth(1)).toContainText('Flag · Pennant · EWE');
+  await expect(page.locator('.comparison-card').nth(2)).toContainText('K9AY loops');
 
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
@@ -139,9 +145,10 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only', exact: true }).click();
   await expect(page.getByText('5 of 37 designs')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Beverage/ })).toContainText('Receive family');
-  await expect(page.getByRole('button', { name: /Beverage/ })).toContainText('Receive only');
+  const beverageCard = page.locator('.design-picker').getByRole('button', { name: /Beverage/ });
+  await expect(beverageCard).toBeVisible();
+  await expect(beverageCard).toContainText('Receive family');
+  await expect(beverageCard).toContainText('Receive only');
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
