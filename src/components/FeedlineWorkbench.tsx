@@ -16,6 +16,7 @@ import { FeedlineDiagram } from './FeedlineDiagram';
 import { CoaxialStubDiagram } from './CoaxialStubDiagram';
 import { RadiatedPowerDiagram } from './RadiatedPowerDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
+import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -92,6 +93,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
       <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
       <button type="button" aria-pressed={mode === 'radiated'} onClick={() => setMode('radiated')}><strong>ERP / EIRP</strong><small>Loss, gain, and reference power</small></button>
     </div>
+    <ResultEvidenceKey />
     {mode === 'power' && <StepByStepHelp title="Plan and verify a feedline budget" intro="Use this sequence to turn cable and accessory specifications into a traceable first-order power estimate. Experienced operators can leave the guide closed." steps={[
       { title: 'Fix the operating frequency', detail: 'Choose the actual frequency because cable attenuation changes with frequency and the calculator does not interpolate a data sheet.' },
       { title: 'Trace the complete cable path', detail: 'Measure every indoor, outdoor, mast, jumper, and service-loop section that contributes to the feedline length.' },
@@ -155,17 +157,27 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
           </>}
         </>}
         {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : 'radiated power'}.</p>}
-        {mode === 'power' && powerResult && <div className="result-summary" aria-live="polite">
-          <p>Forward power at antenna feedpoint</p><strong>{powerResult.forwardPowerAtAntennaWatts.toFixed(2)} W</strong>
-          <dl>
-            <div><dt>Accepted by load</dt><dd>{powerResult.acceptedPowerWatts.toFixed(2)} W</dd></div>
-            <div><dt>Cable loss</dt><dd>{powerResult.cableLossDb.toFixed(2)} dB</dd></div>
-            <div><dt>Return loss</dt><dd>{Number.isFinite(powerResult.returnLossDb) ? `${powerResult.returnLossDb.toFixed(2)} dB` : '∞ dB'}</dd></div>
-            <div><dt>Reflected power</dt><dd>{powerResult.reflectedPowerPercent.toFixed(1)}%</dd></div>
-          </dl>
-        </div>}
-        {mode === 'stub' && stubResult && <div className="result-summary" aria-live="polite"><p>Start with this cut length</p><strong>{formatLength(stubResult.cutLengthMetres, unitSystem)}</strong><dl><div><dt>Ideal physical length</dt><dd>{formatLength(stubResult.physicalLengthMetres, unitSystem)}</dd></div><div><dt>Guided wavelength</dt><dd>{formatLength(stubResult.guidedWavelengthMetres, unitSystem)}</dd></div><div><dt>Electrical length</dt><dd>{stubResult.electricalLengthDegrees}°</dd></div><div><dt>One-way delay</dt><dd>{stubResult.oneWayDelayNanoseconds.toFixed(3)} ns</dd></div><div><dt>Ideal input behaviour</dt><dd>{stubResult.inputImpedanceBehavior === 'high' ? 'High impedance' : 'Low impedance'}</dd></div></dl></div>}
-        {mode === 'radiated' && radiatedResult && <div className="result-summary" aria-live="polite"><p>Equivalent isotropically radiated power</p><strong>{formatWatts(radiatedResult.eirpWatts)}</strong><dl><div><dt>Effective radiated power</dt><dd>{formatWatts(radiatedResult.erpWatts)}</dd></div><div><dt>Power supplied to antenna</dt><dd>{formatWatts(radiatedResult.antennaInputPowerWatts)}</dd></div><div><dt>Converted antenna gain</dt><dd>{radiatedResult.antennaGainDbi.toFixed(2)} dBi · {radiatedResult.antennaGainDbd.toFixed(2)} dBd</dd></div><div><dt>EIRP</dt><dd>{radiatedResult.eirpDbw.toFixed(2)} dBW · {radiatedResult.eirpDbm.toFixed(2)} dBm</dd></div><div><dt>Feed-system efficiency</dt><dd>{radiatedResult.feedSystemEfficiencyPercent.toFixed(1)}%</dd></div></dl></div>}
+        {mode === 'power' && powerResult && <EvidenceResultSummary headline="Forward power at antenna feedpoint" primary={`${powerResult.forwardPowerAtAntennaWatts.toFixed(2)} W`} primaryKind="calculated" items={[
+          { term: 'Accepted by load', value: `${powerResult.acceptedPowerWatts.toFixed(2)} W`, kind: 'calculated' },
+          { term: 'Cable loss', value: `${powerResult.cableLossDb.toFixed(2)} dB`, kind: 'calculated' },
+          { term: 'Return loss', value: Number.isFinite(powerResult.returnLossDb) ? `${powerResult.returnLossDb.toFixed(2)} dB` : '∞ dB', kind: 'calculated' },
+          { term: 'Reflected power', value: `${powerResult.reflectedPowerPercent.toFixed(1)}%`, kind: 'calculated' }
+        ]} />}
+        {mode === 'stub' && stubResult && <EvidenceResultSummary headline="Start with this cut length" primary={formatLength(stubResult.cutLengthMetres, unitSystem)} primaryKind="calculated" items={[
+          { term: 'Ideal physical length', value: formatLength(stubResult.physicalLengthMetres, unitSystem), kind: 'calculated' },
+          { term: 'Guided wavelength', value: formatLength(stubResult.guidedWavelengthMetres, unitSystem), kind: 'calculated' },
+          { term: 'Electrical length', value: `${stubResult.electricalLengthDegrees}°`, kind: 'calculated' },
+          { term: 'One-way delay', value: `${stubResult.oneWayDelayNanoseconds.toFixed(3)} ns`, kind: 'calculated' },
+          { term: 'Ideal input behaviour', value: stubResult.inputImpedanceBehavior === 'high' ? 'High impedance' : 'Low impedance', kind: 'calculated' },
+          { term: 'Finished resonant length', value: 'Verify with final connectors and termination attached', kind: 'measure' }
+        ]} />}
+        {mode === 'radiated' && radiatedResult && <EvidenceResultSummary headline="Equivalent isotropically radiated power" primary={formatWatts(radiatedResult.eirpWatts)} primaryKind="calculated" items={[
+          { term: 'Effective radiated power', value: formatWatts(radiatedResult.erpWatts), kind: 'calculated' },
+          { term: 'Power supplied to antenna', value: formatWatts(radiatedResult.antennaInputPowerWatts), kind: 'calculated' },
+          { term: 'Converted antenna gain', value: `${radiatedResult.antennaGainDbi.toFixed(2)} dBi · ${radiatedResult.antennaGainDbd.toFixed(2)} dBd`, kind: 'calculated' },
+          { term: 'EIRP', value: `${radiatedResult.eirpDbw.toFixed(2)} dBW · ${radiatedResult.eirpDbm.toFixed(2)} dBm`, kind: 'calculated' },
+          { term: 'Feed-system efficiency', value: `${radiatedResult.feedSystemEfficiencyPercent.toFixed(1)}%`, kind: 'calculated' }
+        ]} />}
         {mode === 'radiated' && radiatedResult && antennaHandoff && <div className="workflow-submit"><p><strong>Ready to add this source</strong><span>The station project receives the source power, loss, gain, duty cycle, and installed geometry as separate inputs and marks its source inventory incomplete.</span></p><button type="button" onClick={() => onAddToExposure(createStationSourceTransfer(
           globalThis.crypto?.randomUUID?.() ?? `source-transfer-${Date.now()}`,
           antennaHandoff,

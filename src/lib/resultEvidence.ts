@@ -14,11 +14,11 @@ export const RESULT_EVIDENCE = {
   },
   source: {
     label: 'Published starting point',
-    explanation: 'Taken from, or closely tied to, a cited design reference.'
+    explanation: 'Taken from, or closely tied to, a cited technical or regulatory source.'
   },
   assumption: {
     label: 'Entered assumption',
-    explanation: 'A selected or entered value that must match the intended build.'
+    explanation: 'A selected or entered value that must match the intended build or assessment.'
   },
   measure: {
     label: 'Must measure',

@@ -7200,6 +7200,34 @@ path.loading-coil {
   margin: 0;
 }
 
+.result-evidence-key {
+  margin: 1rem 0 0;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.result-evidence-key > summary {
+  padding: 0.8rem 1rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.result-evidence-key[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.result-evidence-key .result-evidence-guide {
+  margin: 0;
+  border: 0;
+  border-left: 4px solid var(--accent-technical);
+}
+
+.evidence-result-summary > dl {
+  margin-top: 0.35rem;
+}
+
 .result-evidence-guide dd {
   color: var(--text-secondary);
   font-size: 0.82rem;

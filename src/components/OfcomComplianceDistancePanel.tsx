@@ -11,6 +11,7 @@ import type { OfcomPowerBasis } from '../calculators/ofcomAssessment';
 import { feetToMetres, metresToFeet, type UnitSystem } from '../lib/units';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { OfcomDistanceDiagram } from './OfcomDistanceDiagram';
+import { EvidenceResultSummary } from './ResultEvidenceGuide';
 
 interface Props { frequencyMHz: number; unitSystem: UnitSystem }
 
@@ -59,7 +60,14 @@ export function OfcomComplianceDistancePanel({ frequencyMHz, unitSystem }: Props
     {!result && <p className="validation-message" role="alert">Use 1–300,000 MHz, positive power and antenna size, and no more than 360 transmit seconds.</p>}
     {result && outcome && <>
       <div className={`screen-outcome ${result.status === 'method-limitation' ? 'screen-outcome-further-analysis-required' : result.status === 'no-further-assessment-required' ? 'screen-outcome-screening-inconclusive' : ''}`} role="status"><p className="eyebrow">Ofcom distance outcome</p><h4>{outcome[0]}</h4><p>{outcome[1]}</p></div>
-      <div className="screen-results-layout"><div className="result-summary"><p>Compliance distance</p><strong>{shownDistance(result.complianceDistanceMetres).toFixed(2)} {distanceUnit}</strong><dl><div><dt>Average EIRP</dt><dd>{result.averageEirpWatts.toFixed(2)} W</dd></div><div><dt>Six-minute duty cycle</dt><dd>{result.dutyCyclePercent.toFixed(1)}%</dd></div><div><dt>Reflection coefficient</dt><dd>{result.reflectionCoefficient.toFixed(1)}</dd></div><div><dt>Half wavelength</dt><dd>{shownDistance(result.wavelengthMetres / 2).toFixed(2)} {distanceUnit}</dd></div><div><dt>Antenna short enough</dt><dd>{result.electricallyShortAntenna ? 'Yes' : 'No'}</dd></div><div><dt>Reactive boundary λ/(2π)</dt><dd>{shownDistance(result.reactiveNearFieldBoundaryMetres).toFixed(2)} {distanceUnit}</dd></div></dl></div><OfcomDistanceDiagram result={result} /></div>
+      <div className="screen-results-layout"><EvidenceResultSummary headline="Compliance distance" primary={`${shownDistance(result.complianceDistanceMetres).toFixed(2)} ${distanceUnit}`} primaryKind="calculated" items={[
+        { term: 'Average EIRP', value: `${result.averageEirpWatts.toFixed(2)} W`, kind: 'calculated' },
+        { term: 'Six-minute duty cycle', value: `${result.dutyCyclePercent.toFixed(1)}%`, kind: 'calculated' },
+        { term: 'Reflection coefficient', value: result.reflectionCoefficient.toFixed(1), kind: 'source' },
+        { term: 'Half wavelength', value: `${shownDistance(result.wavelengthMetres / 2).toFixed(2)} ${distanceUnit}`, kind: 'calculated' },
+        { term: 'Antenna short enough', value: result.electricallyShortAntenna ? 'Yes' : 'No', kind: 'calculated' },
+        { term: 'Reactive boundary λ/(2π)', value: `${shownDistance(result.reactiveNearFieldBoundaryMetres).toFixed(2)} ${distanceUnit}`, kind: 'calculated' }
+      ]} /><OfcomDistanceDiagram result={result} /></div>
       {result.limitations.length > 0 && <div className="screen-limitations"><p className="eyebrow">Method limitations triggered</p><ul>{result.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></div>}
       <div className="ofcom-intermediates"><article><span>E-field reference</span><strong>{result.electricFieldReferenceVoltsPerMetre.toFixed(3)} V/m</strong></article><article><span>H-field reference</span><strong>{result.magneticFieldReferenceAmpsPerMetre.toFixed(4)} A/m</strong></article><article><span>Power-density reference</span><strong>{result.powerDensityReferenceWattsPerSquareMetre === null ? 'Not used below 10 MHz' : `${result.powerDensityReferenceWattsPerSquareMetre.toFixed(3)} W/m²`}</strong></article></div>
       <div className="screen-limitations"><p className="eyebrow">Meaning and responsibility</p><p><strong>A calculated distance does not itself demonstrate compliance.</strong> Ensure no member of the general public is present within that distance while transmitting. A smaller separation does not necessarily prove non-compliance; a more detailed applicable assessment may produce a less conservative result.</p></div>

@@ -27,6 +27,7 @@ import { AcmaAssessmentRecordPanel } from './AcmaAssessmentRecordPanel';
 import { AcmaExclusionDistancePanel } from './AcmaExclusionDistancePanel';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import type { AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
+import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -82,6 +83,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || (isAustralia && (view === 'arpansa-reference' || view === 'acma-distance'));
   const needsEnvironment = (!isUk && !isAustralia && view !== 'fcc-exemption' && view !== 'fcc-multiple') || (isAustralia && view === 'arpansa-reference');
   const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' || view === 'acma-assessment' || view === 'acma-record' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
+  const showsEvidenceLabels = view === 'reference' || view === 'ofcom-distance' || view === 'acma-distance';
 
   const levels = useMemo(() => {
     if (exposureJurisdiction !== 'CA' && exposureJurisdiction !== 'US') return null;
@@ -108,6 +110,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
   return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title">
     <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div><span className="model-badge">Preliminary beta</span></div>
     <div className="exposure-status" role="note"><strong>Preliminary tools only</strong><span>Reference lookup, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
+    {showsEvidenceLabels && <ResultEvidenceKey />}
     <div className={`exposure-mode-picker ${isUk ? 'exposure-mode-picker-uk' : ''} ${isAustralia ? 'exposure-mode-picker-au' : ''}`} aria-label="RF exposure workflow">
       {availableViews.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}
     </div>
@@ -132,7 +135,12 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
         { title: 'Record the source and revision', detail: 'Retain the displayed authority, source revision, model identifier, assumptions, and date used for later review.' }
       ]} limit="This lookup returns a power-density reference level only. Other quantities, localized exposure, near-field conditions, induced or contact currents, multiple sources, spatial averaging, and applicable regulatory procedures may still need assessment." />
       <div className="reference-results-layout">
-        <div>{!selected && <p className="validation-message" role="alert">This power-density reference model is not applicable at the selected frequency or jurisdiction. No result is produced.</p>}{selected && <div className="result-summary" aria-live="polite"><p>{environment} power-density reference level</p><strong>{selected.powerDensityWattsPerSquareMetre.toFixed(3)} W/m²</strong><dl><div><dt>Equivalent units</dt><dd>{(selected.powerDensityWattsPerSquareMetre / 10).toFixed(4)} mW/cm²</dd></div><div><dt>Averaging period</dt><dd>{selected.averagingMinutes.toFixed(selected.averagingMinutes < 10 ? 2 : 0)} min</dd></div><div><dt>Jurisdiction</dt><dd>{profile?.name}</dd></div><div><dt>Quantity</dt><dd>Reference level</dd></div></dl></div>}</div>
+        <div>{!selected && <p className="validation-message" role="alert">This power-density reference model is not applicable at the selected frequency or jurisdiction. No result is produced.</p>}{selected && <EvidenceResultSummary headline={`${environment} power-density reference level`} primary={`${selected.powerDensityWattsPerSquareMetre.toFixed(3)} W/m²`} primaryKind="source" items={[
+          { term: 'Equivalent units', value: `${(selected.powerDensityWattsPerSquareMetre / 10).toFixed(4)} mW/cm²`, kind: 'calculated' },
+          { term: 'Averaging period', value: `${selected.averagingMinutes.toFixed(selected.averagingMinutes < 10 ? 2 : 0)} min`, kind: 'source' },
+          { term: 'Jurisdiction', value: profile?.name ?? jurisdiction, kind: 'assumption' },
+          { term: 'Quantity', value: 'Reference level', kind: 'source' }
+        ]} />}</div>
         <div className="visual-panel">{levels ? <ExposureLimitDiagram levels={levels} selected={environment} /> : <div className="diagram-placeholder">No power-density comparison is available for this frequency.</div>}</div>
       </div>
       <BandIndicator band={activeBand} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />

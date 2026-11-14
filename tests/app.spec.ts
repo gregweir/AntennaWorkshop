@@ -950,6 +950,33 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.locator('.result-summary')).toContainText('412.10 W');
 });
 
+test('uses consistent evidence labels for feedline and regulatory result cards', async ({ page }) => {
+  await page.getByRole('button', { name: /Feedline & matching/ }).click();
+  await expect(page.locator('.result-evidence-key')).not.toHaveAttribute('open');
+  await page.locator('.result-evidence-key summary').click();
+  await expect(page.locator('.result-evidence-key')).toContainText('Published starting point');
+  await expect(page.locator('.evidence-result-summary > .result-evidence-calculated')).toHaveText('Calculated');
+  await expect(page.locator('[data-evidence="calculated"]').filter({ hasText: 'Accepted by load' })).toBeVisible();
+
+  await page.getByRole('button', { name: /Coaxial stub/ }).click();
+  await expect(page.locator('[data-evidence="measure"]').filter({ hasText: 'Finished resonant length' })).toContainText('Must measure');
+
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
+  await expect(page.locator('.evidence-result-summary > .result-evidence-source')).toHaveText('Published starting point');
+  await expect(page.locator('[data-evidence="assumption"]').filter({ hasText: 'Jurisdiction' })).toContainText('Entered assumption');
+
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('GB');
+  await page.getByRole('button', { name: /Compliance distance/ }).click();
+  await expect(page.locator('[data-evidence="source"]').filter({ hasText: 'Reflection coefficient' })).toContainText('Published starting point');
+
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
+  await page.getByRole('button', { name: /Exclusion distance/ }).click();
+  await page.getByLabel('Evaluation frequency').fill('146.520');
+  await expect(page.locator('[data-evidence="source"]').filter({ hasText: 'Public power-density level' })).toContainText('Published starting point');
+  await expect(page.locator('[data-evidence="assumption"]').filter({ hasText: 'Gain used' })).toContainText('Entered assumption');
+});
+
 test('carries an antenna and feed-system source into a station project', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Centre-fed half-wave dipole' })).toBeVisible();
   await page.getByRole('button', { name: 'Continue to feedline and exposure' }).click();

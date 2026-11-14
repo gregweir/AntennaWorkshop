@@ -10,6 +10,7 @@ import { ACMA_EXCLUSION_DISTANCE_MODEL, calculateAcmaExclusionDistance, type Acm
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { AcmaExclusionDiagram } from './AcmaExclusionDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
+import { EvidenceResultSummary } from './ResultEvidenceGuide';
 
 interface Props { frequencyMHz: number; unitSystem: UnitSystem; }
 
@@ -47,7 +48,14 @@ export function AcmaExclusionDistancePanel({ frequencyMHz, unitSystem }: Props) 
     {!result && <p className="validation-message" role="alert">Use a frequency above 30 MHz through 300,000 MHz, positive power and antenna size, and gain from −100 to 100 dB.</p>}
     {result && <>
       <div className={`screen-outcome ${result.exclusionDistanceIsFarField ? '' : 'screen-outcome-further-analysis-required'}`} role="status"><p className="eyebrow">Simple exclusion-distance outcome</p><h4>{result.exclusionDistanceIsFarField ? 'Official simple far-field distance available' : 'The calculated distance is inside the far-field boundary'}</h4><p>{result.exclusionDistanceIsFarField ? `The workbook reproduction gives ${formatLength(result.exclusionDistanceMetres, unitSystem)} from the antenna phase centre. Apply its maximum-gain assumptions in every direction.` : `The workbook number is ${formatLength(result.exclusionDistanceMetres, unitSystem)}, but the Class Licence far-field boundary is ${formatLength(result.farFieldBoundaryMetres, unitSystem)}. Use an applicable near-field assessment or measurement.`}</p></div>
-      <div className="screen-results-layout"><div className="result-summary"><p>Simple exclusion distance</p><strong>{formatLength(result.exclusionDistanceMetres, unitSystem)}</strong><dl><div><dt>Public power-density level</dt><dd>{result.referenceLevelWattsPerSquareMetre.toFixed(3)} W/m²</dd></div><div><dt>Gain used</dt><dd>{result.antennaGainDbi.toFixed(2)} dBi</dd></div><div><dt>Linear gain</dt><dd>{result.antennaGainLinear.toFixed(4)}</dd></div><div><dt>Wavelength</dt><dd>{formatLength(result.wavelengthMetres, unitSystem)}</dd></div><div><dt>Far-field boundary</dt><dd>{formatLength(result.farFieldBoundaryMetres, unitSystem)}</dd></div><div><dt>Far-field check</dt><dd>{result.exclusionDistanceIsFarField ? 'Reached' : 'Not reached'}</dd></div></dl></div><AcmaExclusionDiagram result={result} unitSystem={unitSystem} /></div>
+      <div className="screen-results-layout"><EvidenceResultSummary headline="Simple exclusion distance" primary={formatLength(result.exclusionDistanceMetres, unitSystem)} primaryKind="calculated" items={[
+        { term: 'Public power-density level', value: `${result.referenceLevelWattsPerSquareMetre.toFixed(3)} W/m²`, kind: 'source' },
+        { term: 'Gain used', value: `${result.antennaGainDbi.toFixed(2)} dBi`, kind: 'assumption' },
+        { term: 'Linear gain', value: result.antennaGainLinear.toFixed(4), kind: 'calculated' },
+        { term: 'Wavelength', value: formatLength(result.wavelengthMetres, unitSystem), kind: 'calculated' },
+        { term: 'Far-field boundary', value: formatLength(result.farFieldBoundaryMetres, unitSystem), kind: 'calculated' },
+        { term: 'Far-field check', value: result.exclusionDistanceIsFarField ? 'Reached' : 'Not reached', kind: 'calculated' }
+      ]} /><AcmaExclusionDiagram result={result} unitSystem={unitSystem} /></div>
       <div className="screen-limitations"><p className="eyebrow">Meaning and limits</p><p><strong>This is a maximum-gain simple exclusion-zone calculation, not a declaration of compliance.</strong> It does not include duty-cycle reduction, system loss, environmental effects, antenna pattern, multiple transmitters, simultaneous frequencies, other site sources, uncertainty, terrain, buildings, or access-control validation.</p></div>
       <div className="screen-sources"><p className="eyebrow">Official implementation and licence boundary</p><h4>{ACMA_EXCLUSION_DISTANCE_MODEL.sourceRevision}</h4><ul><li><a href={ACMA_EXCLUSION_DISTANCE_MODEL.source.url} target="_blank" rel="noreferrer">{ACMA_EXCLUSION_DISTANCE_MODEL.source.title}</a></li><li><a href={ACMA_EXCLUSION_DISTANCE_MODEL.workbook.url} target="_blank" rel="noreferrer">{ACMA_EXCLUSION_DISTANCE_MODEL.workbook.title}</a></li><li><a href={ACMA_EXCLUSION_DISTANCE_MODEL.licence.url} target="_blank" rel="noreferrer">{ACMA_EXCLUSION_DISTANCE_MODEL.licence.title}</a></li></ul><small>Model ID: {ACMA_EXCLUSION_DISTANCE_MODEL.id} · Reviewed {ACMA_EXCLUSION_DISTANCE_MODEL.reviewedOn}</small></div>
     </>}
