@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 32 designs')).toBeVisible();
+  await expect(page.getByText('2 of 33 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 32 designs')).toBeVisible();
+  await expect(page.getByText('5 of 33 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('32 of 32 designs')).toBeVisible();
+  await expect(page.getByText('33 of 33 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -171,6 +171,36 @@ test('plans a four-support loop skywire without treating rigging reserve as tune
   await expect(page.getByText('Separate active wire from rigging reserve')).toBeVisible();
   await page.getByLabel('Help: Skywire rigging reserve').click();
   await expect(page.getByRole('note').filter({ hasText: 'Skywire rigging reserve' })).toContainText('not a catenary calculation');
+});
+
+test('reproduces the published G3TXQ broadband hex-beam wire schedule without arbitrary scaling', async ({ page }) => {
+  await page.getByRole('button', { name: /Hex beam/ }).click();
+  await expect(page.getByRole('heading', { name: 'G3TXQ broadband hex beam' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency' })).toHaveCount(0);
+  await expect(page.getByRole('img', { name: /G3TXQ broadband hex-beam six-spreader and wire-layer diagram/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Cut and label 5 complete band wire sets');
+  await expect(page.locator('.result-summary')).toContainText('73.942 m radiating wire');
+  await expect(page.locator('.result-summary')).toContainText('6 spreaders');
+  await expect(page.locator('.result-summary')).toContainText('Not inferred · model and measure');
+  await expect(page.getByRole('row', { name: /20m/ })).toContainText('5.436 m');
+
+  await page.getByRole('checkbox', { name: '6m' }).check();
+  await expect(page.locator('.result-summary')).toContainText('Cut and label 6 complete band wire sets');
+  await expect(page.getByRole('row', { name: /6m/ })).toBeVisible();
+  await page.getByLabel('Hex-beam wire gauge schedule').selectOption('12');
+  await expect(page.getByRole('row', { name: /20m/ })).toContainText('5.457 m');
+  await expect(page.getByRole('complementary', { name: 'Hex-beam design advisories' })).toContainText('published K4KIO adjustment');
+
+  await expect(page.getByText('Stack and connect the bands consistently')).toBeHidden();
+  await page.getByText('Build and commission a broadband hex beam').click();
+  await expect(page.getByText('Stack and connect the bands consistently')).toBeVisible();
+  await page.getByLabel('Help: Hex-beam included bands').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Hex-beam included bands' })).toContainText('lowest-frequency selected band belongs at the top');
+  await expect(page.locator('.provenance-card')).toContainText('k4kio-g3txq-broadband-hex-beam');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+  expect(dimensions.content).toBe(dimensions.viewport);
 });
 
 test('compares three antenna systems without ranking unmodelled performance', async ({ page }) => {

@@ -8343,6 +8343,146 @@ path.loading-coil {
   stroke-width: 2;
 }
 
+.hex-band-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.hex-beam-editor {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hex-beam-editor select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hex-band-grid label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+}
+
+.hex-spreaders line {
+  stroke: var(--border-strong);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.hex-spreaders circle,
+.hex-feed circle {
+  fill: var(--tl-navy);
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.hex-layer path,
+.hex-legend line {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hex-layer-1 path,
+.hex-legend .hex-layer-1 { stroke: var(--tl-coral); }
+.hex-layer-2 path,
+.hex-legend .hex-layer-2 { stroke: var(--accent-technical); }
+.hex-layer-3 path,
+.hex-legend .hex-layer-3 { stroke: #8b6f47; }
+.hex-layer-4 path,
+.hex-legend .hex-layer-4 { stroke: #765a8f; }
+.hex-layer-5 path,
+.hex-legend .hex-layer-5 { stroke: #3f739c; }
+.hex-layer-6 path,
+.hex-legend .hex-layer-6 { stroke: #5e7d45; }
+
+.hex-layer .hex-reflector { stroke-dasharray: 13 5; }
+
+.hex-layer .hex-tip-spacer {
+  stroke: var(--text-secondary);
+  stroke-width: 3;
+  stroke-dasharray: 4 4;
+}
+
+.hex-feed text,
+.hex-direction text,
+.hex-legend text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.hex-direction line {
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+}
+
+.hex-direction marker path { fill: var(--tl-coral); }
+
+.hex-beam-schedule {
+  width: 100%;
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.hex-beam-schedule h3,
+.hex-beam-schedule p { margin: 0; }
+
+.hex-beam-schedule .table-scroll {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.hex-beam-schedule table {
+  width: 100%;
+  min-width: 690px;
+  border-collapse: collapse;
+  background: var(--bg-surface);
+  font-size: 0.72rem;
+}
+
+.hex-beam-schedule th,
+.hex-beam-schedule td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hex-beam-schedule thead th {
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  font-family: var(--font-mono);
+}
+
+.hex-beam-schedule tbody tr:last-child > * { border-bottom: 0; }
+
+.antenna-print-diagram:has(.hex-beam-figure) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .feedpoint rect {
   fill: var(--tl-navy);
   stroke: var(--tl-coral);
@@ -9623,6 +9763,13 @@ path.loading-coil {
   .skywire-height-grid {
     grid-template-columns: 1fr;
   }
+
+  .hex-band-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .hex-beam-figure .dimension-lines text,
+  .hex-feed text,
+  .hex-direction text,
+  .hex-legend text { font-size: 18px; }
 }
 
 @media print {
@@ -9789,11 +9936,13 @@ path.loading-coil {
     max-height: 175mm;
   }
 
-  body.antenna-build-print .lpda-schedule .table-scroll {
+  body.antenna-build-print .lpda-schedule .table-scroll,
+  body.antenna-build-print .hex-beam-schedule .table-scroll {
     overflow: visible;
   }
 
-  body.antenna-build-print .lpda-schedule table {
+  body.antenna-build-print .lpda-schedule table,
+  body.antenna-build-print .hex-beam-schedule table {
     width: 100%;
     min-width: 0;
     table-layout: fixed;
@@ -9801,7 +9950,9 @@ path.loading-coil {
   }
 
   body.antenna-build-print .lpda-schedule th,
-  body.antenna-build-print .lpda-schedule td {
+  body.antenna-build-print .lpda-schedule td,
+  body.antenna-build-print .hex-beam-schedule th,
+  body.antenna-build-print .hex-beam-schedule td {
     padding: 1.5mm 1mm;
     overflow-wrap: anywhere;
     white-space: normal;
