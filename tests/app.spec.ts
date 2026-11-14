@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 31 designs')).toBeVisible();
+  await expect(page.getByText('2 of 32 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 31 designs')).toBeVisible();
+  await expect(page.getByText('5 of 32 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('31 of 31 designs')).toBeVisible();
+  await expect(page.getByText('32 of 32 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -150,6 +150,27 @@ test('plans circular halo and square squalo geometry without claiming an install
   await expect(page.getByText('Set both construction openings')).toBeVisible();
   await page.getByLabel('Help: Halo shape').click();
   await expect(page.getByRole('note').filter({ hasText: 'Halo shape' })).toContainText('commonly called a squalo');
+});
+
+test('plans a four-support loop skywire without treating rigging reserve as tuned radiator', async ({ page }) => {
+  await page.getByRole('button', { name: /Loop skywire/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
+  await expect(page.getByRole('heading', { name: 'Horizontal full-wave loop skywire' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned horizontal full-wave loop skywire support plan/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Survey four supports and budget the complete loop');
+  await expect(page.locator('.result-summary')).toContainText('13.244 m × 8.829 m footprint');
+  await expect(page.locator('.result-summary')).toContainText('Separate rigging material reserve');
+  await expect(page.locator('.result-summary')).toContainText('Not inferred · model and measure');
+  await page.getByRole('spinbutton', { name: 'Support B height' }).fill('15');
+  await expect(page.locator('.result-summary')).toContainText('83.1 cm');
+  await page.getByLabel('Skywire feedpoint side').selectOption('east');
+  await page.getByRole('spinbutton', { name: 'Feedpoint position from side start' }).fill('25');
+  await expect(page.locator('.result-summary')).toContainText('east side · 25%');
+  await expect(page.getByText('Separate active wire from rigging reserve')).toBeHidden();
+  await page.getByText('Plan and commission a loop skywire').click();
+  await expect(page.getByText('Separate active wire from rigging reserve')).toBeVisible();
+  await page.getByLabel('Help: Skywire rigging reserve').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Skywire rigging reserve' })).toContainText('not a catenary calculation');
 });
 
 test('compares three antenna systems without ranking unmodelled performance', async ({ page }) => {

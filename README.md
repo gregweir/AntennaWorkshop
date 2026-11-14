@@ -12,6 +12,8 @@ The crossed-dipole turnstile workflow sizes two equal orthogonal half-wave dipol
 
 The halo workflow bends a corrected half-wave dipole into a circular halo or square squalo. It provides equal-arm cut lengths, both construction openings, centreline diameter or side length, responsive diagrams, and guided tuning while keeping resonance, matching, bandwidth, common mode, and pattern as measured or modelled results.
 
+The horizontal loop skywire workflow converts a corrected full-wave perimeter into a four-support rectangular site plan. It records individual attachment heights, calculates plan coordinates and taut three-dimensional segment lengths, locates the feedpoint, and keeps a rigging and sag material reserve separate from the tuned active radiator.
+
 Every valid antenna result can be printed as a focused build sheet containing the selected design, prioritized dimensions, installed-verification items, supporting calculations and assumptions, and the dimensioned drawing. Navigation, selectors, and unrelated workspaces are excluded from the print packet.
 
 The two-band trap-dipole workflow solves matched ideal parallel-LC traps for two design frequencies and a constrained span, then shows component targets, trap placement, operating-frequency reactances, and the intermediate trap resonance graphically. Physical component construction, power rating, parasitics, loss, heating, matching, and installed performance remain explicit measurement and verification tasks.

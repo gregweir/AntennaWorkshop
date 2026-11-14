@@ -19,6 +19,7 @@ import { calculateSmallTransmittingLoop, SMALL_TRANSMITTING_LOOP_MODEL } from '.
 import { calculatePhasedWireCollinear, PHASED_WIRE_COLLINEAR_MODEL } from '../calculators/phasedWireCollinear';
 import { calculateTurnstile, TURNSTILE_MODEL, type TurnstileQuadratureOrder } from '../calculators/turnstile';
 import { calculateHalo, HALO_MODEL, type HaloShape } from '../calculators/halo';
+import { calculateSkywire, SKYWIRE_MODEL, type SkywireFeedSide } from '../calculators/skywire';
 import { calculateTwoElementCubicalQuad, TWO_ELEMENT_CUBICAL_QUAD_MODEL } from '../calculators/twoElementCubicalQuad';
 import { calculateAxialModeHelix, AXIAL_MODE_HELIX_MODEL } from '../calculators/axialModeHelix';
 import { calculateDiscone, DISCONE_MODEL } from '../calculators/discone';
@@ -53,9 +54,6 @@ import { LoadedVerticalDiagram } from './LoadedVerticalDiagram';
 import { TrapDipoleDiagram } from './TrapDipoleDiagram';
 import { AirCoreCoilPanel } from './AirCoreCoilPanel';
 import { TrapCommissioningPanel } from './TrapCommissioningPanel';
-import { SmallLoopDiagram } from './SmallLoopDiagram';
-import { CubicalQuadDiagram } from './CubicalQuadDiagram';
-import { AxialModeHelixDiagram } from './AxialModeHelixDiagram';
 import { DisconeDiagram } from './DisconeDiagram';
 import { LogPeriodicDiagram, LogPeriodicSchedule } from './LogPeriodicDiagram';
 import { LoopOnGroundDiagram } from './LoopOnGroundDiagram';
@@ -74,6 +72,13 @@ const HaloDiagram = lazy(() => import('./HaloDiagram').then((module) => ({ defau
 const HaloGuide = lazy(() => import('./HaloPlannerPanel').then((module) => ({ default: module.HaloGuide })));
 const HaloControls = lazy(() => import('./HaloPlannerPanel').then((module) => ({ default: module.HaloControls })));
 const HaloEducation = lazy(() => import('./HaloPlannerPanel').then((module) => ({ default: module.HaloEducation })));
+const SkywireDiagram = lazy(() => import('./SkywireDiagram').then((module) => ({ default: module.SkywireDiagram })));
+const SkywireGuide = lazy(() => import('./SkywirePlannerPanel').then((module) => ({ default: module.SkywireGuide })));
+const SkywireControls = lazy(() => import('./SkywirePlannerPanel').then((module) => ({ default: module.SkywireControls })));
+const SkywireEducation = lazy(() => import('./SkywirePlannerPanel').then((module) => ({ default: module.SkywireEducation })));
+const SmallLoopDiagram = lazy(() => import('./SmallLoopDiagram').then((module) => ({ default: module.SmallLoopDiagram })));
+const CubicalQuadDiagram = lazy(() => import('./CubicalQuadDiagram').then((module) => ({ default: module.CubicalQuadDiagram })));
+const AxialModeHelixDiagram = lazy(() => import('./AxialModeHelixDiagram').then((module) => ({ default: module.AxialModeHelixDiagram })));
 const BeverageDiagram = lazy(() => import('./BeverageDiagram').then((module) => ({ default: module.BeverageDiagram })));
 const CompactReceiveDiagram = lazy(() => import('./CompactReceiveDiagram').then((module) => ({ default: module.CompactReceiveDiagram })));
 const K9ayDiagram = lazy(() => import('./K9ayDiagram').then((module) => ({ default: module.K9ayDiagram })));
@@ -111,6 +116,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   const [haloShape, setHaloShape] = useState<HaloShape>('circular');
   const [haloFarEndGapMetres, setHaloFarEndGapMetres] = useState(0.05);
   const [haloFeedpointGapMetres, setHaloFeedpointGapMetres] = useState(0.025);
+  const [skywireAspectRatio, setSkywireAspectRatio] = useState(1.5);
+  const [skywireSupportHeightsMetres, setSkywireSupportHeightsMetres] = useState<[number, number, number, number]>([12, 12, 12, 12]);
+  const [skywireRiggingReservePercent, setSkywireRiggingReservePercent] = useState(3);
+  const [skywireFeedSide, setSkywireFeedSide] = useState<SkywireFeedSide>('north');
+  const [skywireFeedPositionPercent, setSkywireFeedPositionPercent] = useState(50);
   const [loadedDipoleSpanMetres, setLoadedDipoleSpanMetres] = useState(7.5);
   const [loadedDipoleCoilPositionMetres, setLoadedDipoleCoilPositionMetres] = useState(2.5);
   const [loadedDipoleHeightMetres, setLoadedDipoleHeightMetres] = useState(8);
@@ -243,6 +253,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       if (antennaType === 'phased-collinear') return { type: antennaType, value: calculatePhasedWireCollinear({ frequencyMHz, elementCount: collinearElementCount, radiatorCorrectionFactor: lengthCorrectionFactor, radiatorTrimAllowancePercent: trimAllowancePercent, phasingLineVelocityFactor: collinearPhasingVelocityFactor, phasingStubTrimAllowancePercent: collinearStubTrimAllowancePercent }) } as const;
       if (antennaType === 'turnstile') return { type: antennaType, value: calculateTurnstile({ ...common, phasingLineVelocityFactor: turnstilePhasingVelocityFactor, quadratureOrder: turnstileQuadratureOrder }) } as const;
       if (antennaType === 'halo') return { type: antennaType, value: calculateHalo({ ...common, shape: haloShape, farEndGapMetres: haloFarEndGapMetres, feedpointGapMetres: haloFeedpointGapMetres }) } as const;
+      if (antennaType === 'skywire') return { type: antennaType, value: calculateSkywire({ ...common, longToShortAspectRatio: skywireAspectRatio, supportHeightsMetres: skywireSupportHeightsMetres, riggingReservePercent: skywireRiggingReservePercent, feedSide: skywireFeedSide, feedPositionPercent: skywireFeedPositionPercent }) } as const;
       if (antennaType === 'loaded-dipole') return { type: antennaType, value: calculateLoadedDipole({ frequencyMHz, lengthCorrectionFactor, totalSpanMetres: loadedDipoleSpanMetres, loadingPointFromCentreMetres: loadedDipoleCoilPositionMetres, heightAboveGroundMetres: loadedDipoleHeightMetres, conductorDiameterMillimetres: loadedDipoleConductorDiameterMillimetres }) } as const;
       if (antennaType === 'trap-dipole') return { type: antennaType, value: calculateTrapDipole({ lowerFrequencyMHz: frequencyMHz, upperFrequencyMHz: Number(trapUpperFrequencyText), lengthCorrectionFactor, totalSpanMetres: trapDipoleSpanMetres, trapPositionFromCentreMetres: trapPositionMetres, heightAboveGroundMetres: trapDipoleHeightMetres, conductorDiameterMillimetres: trapDipoleConductorDiameterMillimetres }) } as const;
       if (antennaType === 'small-loop') return { type: antennaType, value: calculateSmallTransmittingLoop({ lowerFrequencyMHz: frequencyMHz, upperFrequencyMHz: Number(smallLoopUpperFrequencyText), circumferenceMetres: smallLoopCircumferenceMetres, measuredInductanceMicrohenries: smallLoopMeasuredInductanceMicrohenries, strayCapacitancePicofarads: smallLoopStrayCapacitancePicofarads, capacitorMinimumPicofarads: smallLoopCapacitorMinimumPicofarads, capacitorMaximumPicofarads: smallLoopCapacitorMaximumPicofarads }) } as const;
@@ -269,7 +280,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     } catch {
       return null;
     }
-  }, [antennaType, beverageAssumedImpedanceOhms, beverageFeedlineImpedanceOhms, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearPhasingVelocityFactor, collinearStubTrimAllowancePercent, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, deltaLoopFeedMode, deltaLoopOrientation, disconeConeRadialCount, disconeDiscRadialCount, disconeHalfAngleDegrees, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, haloFarEndGapMetres, haloFeedpointGapMetres, haloShape, helixCircumferenceWavelengths, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, includedAngleDegrees, jpoleTapPercent, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadElementSpacingWavelengths, radialCount, radialSlopeDegrees, slimJimGapPercent, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, turnstilePhasingVelocityFactor, turnstileQuadratureOrder, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
+  }, [antennaType, beverageAssumedImpedanceOhms, beverageFeedlineImpedanceOhms, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearPhasingVelocityFactor, collinearStubTrimAllowancePercent, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, deltaLoopFeedMode, deltaLoopOrientation, disconeConeRadialCount, disconeDiscRadialCount, disconeHalfAngleDegrees, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, haloFarEndGapMetres, haloFeedpointGapMetres, haloShape, helixCircumferenceWavelengths, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, includedAngleDegrees, jpoleTapPercent, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadElementSpacingWavelengths, radialCount, radialSlopeDegrees, skywireAspectRatio, skywireFeedPositionPercent, skywireFeedSide, skywireRiggingReservePercent, skywireSupportHeightsMetres, slimJimGapPercent, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, turnstilePhasingVelocityFactor, turnstileQuadratureOrder, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
 
   const model = antennaType === 'dipole'
     ? HALF_WAVE_DIPOLE_MODEL
@@ -287,6 +298,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           ? TURNSTILE_MODEL
         : antennaType === 'halo'
           ? HALO_MODEL
+        : antennaType === 'skywire'
+          ? SKYWIRE_MODEL
         : antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical'
           ? LOADED_ANTENNA_MODEL
           : antennaType === 'trap-dipole'
@@ -332,7 +345,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
                 : ANTENNA_MODELS.fullWaveLoop;
   const handoffFrequencyMHz = calculation?.type === 'small-loop' ? calculation.value.centreFrequencyMHz : calculation?.type === 'log-periodic' ? Math.sqrt(calculation.value.lowerFrequencyMHz * calculation.value.upperFrequencyMHz) : frequencyMHz;
 
-  const recommendedFactor = antennaType === 'full-wave-loop' ? 1.02 : antennaType === 'jpole' || antennaType === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95;
+  const recommendedFactor = antennaType === 'full-wave-loop' || antennaType === 'skywire' ? 1.02 : antennaType === 'jpole' || antennaType === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95;
   const lengthCorrectionTooltip = antennaType === 'trap-dipole'
     ? 'This factor defines the practical quarter-wave references used at both design frequencies. The published worked example uses about 0.95. Finished traps, wire, height, ground, and nearby objects still require installed tuning on both bands.'
     : antennaType === 'loaded-dipole' || antennaType === 'loaded-vertical'
@@ -351,7 +364,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
               ? 'This factor scales each free-space half-wave radiator section. Establish the electrical half-wave length with a test element made from the actual wire and insulators, then enter the measured ratio here.'
             : antennaType === 'dipole' || antennaType === 'folded-dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v' || antennaType === 'turnstile' || antennaType === 'halo'
               ? 'This factor scales the free-space half-wave estimate before it is divided into equal legs. Conductor insulation, diameter, support geometry, height, and surroundings still shift the installed resonance.'
-              : antennaType === 'full-wave-loop'
+              : antennaType === 'full-wave-loop' || antennaType === 'skywire'
                 ? 'This factor scales the complete free-space wavelength into a practical starting perimeter. The selected shape changes the displayed side or diameter, not the total perimeter.'
       : undefined;
   const trimAllowanceTooltip = antennaType === 'efhw'
@@ -370,12 +383,12 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
               ? 'This percentage is added to every equal radiator section. Tune a representative section first, preserve equality, and keep phasing-stub adjustment separate.'
             : antennaType === 'dipole' || antennaType === 'folded-dipole' || antennaType === 'fan-dipole' || antennaType === 'doublet' || antennaType === 'inverted-v' || antennaType === 'turnstile' || antennaType === 'halo'
               ? 'This percentage is added to the total corrected length before it is divided into equal legs. Install first, then trim both legs equally in small steps.'
-              : antennaType === 'full-wave-loop'
+              : antennaType === 'full-wave-loop' || antennaType === 'skywire'
                 ? 'This percentage is added to the complete loop perimeter. Install the closed loop before trimming and preserve the intended shape and symmetry while making small changes.'
       : undefined;
   const selectDesign = (type: AntennaType) => {
     setAntennaType(type);
-    setLengthCorrectionFactor(type === 'full-wave-loop' ? 1.02 : type === 'jpole' || type === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95);
+    setLengthCorrectionFactor(type === 'full-wave-loop' || type === 'skywire' ? 1.02 : type === 'jpole' || type === 'slim-jim' ? (jpoleConstruction === 'twinlead' ? 0.83 : 0.93) : 0.95);
     if (type === 'efhw') setTransformerRatio(49);
     if (type === 'ocfd') setTransformerRatio(4);
     if (type === 'g5rv') setFrequencyText('14.150');
@@ -718,6 +731,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         { title: 'Tune the perimeter evenly', detail: 'Use low analyser power, make small distributed or symmetrical length changes, preserve the intended shape, and remeasure each intended band.' }
       ]} limit="This calculator does not predict feedpoint impedance, matching ratio, bandwidth, multiband response, losses, common-mode current, or the installed radiation pattern." />}
 
+      {antennaType === 'skywire' && <Suspense fallback={<div className="step-guide" role="status">Loading skywire guide…</div>}><SkywireGuide /></Suspense>}
+
       <div className={antennaType === 'g5rv' ? 'calculator-layout g5rv-layout' : antennaType === 'small-loop' ? 'calculator-layout small-loop-layout' : antennaType === 'phased-collinear' ? 'calculator-layout collinear-layout' : antennaType === 'cubical-quad' ? 'calculator-layout quad-layout' : antennaType === 'axial-helix' ? 'calculator-layout helix-layout' : antennaType === 'discone' ? 'calculator-layout discone-layout' : antennaType === 'log-periodic' ? 'calculator-layout lpda-layout' : antennaType === 'beverage' ? 'calculator-layout beverage-layout' : antennaType === 'compact-receive' ? 'calculator-layout compact-receive-layout' : antennaType === 'k9ay' ? 'calculator-layout k9ay-layout' : antennaType === 'loop-on-ground' ? 'calculator-layout loop-on-ground-layout' : antennaType === 'active-receive-loop' ? 'calculator-layout active-receive-loop-layout' : 'calculator-layout'}>
         <form className="input-panel" onSubmit={(event) => event.preventDefault()}>
           <label className="field">
@@ -950,6 +965,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             </select>
             <small>Perimeter stays constant; this converts it into equal sides or a diameter.</small>
           </div>}
+          {antennaType === 'skywire' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading skywire controls…</div>}><SkywireControls aspectRatio={skywireAspectRatio} setAspectRatio={setSkywireAspectRatio} supportHeightsMetres={skywireSupportHeightsMetres} setSupportHeight={(index, value) => setSkywireSupportHeightsMetres((current) => current.map((height, candidate) => candidate === index ? value : height) as [number, number, number, number])} riggingReservePercent={skywireRiggingReservePercent} setRiggingReservePercent={setSkywireRiggingReservePercent} feedSide={skywireFeedSide} setFeedSide={setSkywireFeedSide} feedPositionPercent={skywireFeedPositionPercent} setFeedPositionPercent={setSkywireFeedPositionPercent} unitSystem={unitSystem} /></Suspense>}
           {antennaType === 'full-wave-loop' && loopShape === 'triangle' && <fieldset className="delta-loop-controls">
             <legend>Delta-loop installation</legend>
             <label className="field"><span>Triangle orientation</span><select aria-label="Delta-loop orientation" value={deltaLoopOrientation} onChange={(event) => setDeltaLoopOrientation(event.target.value as DeltaLoopOrientation)}><option value="apex-up">Apex up</option><option value="apex-down">Apex down</option></select><small>Choose the support arrangement the drawing should follow; the ideal span and height remain the same.</small></label>
@@ -1017,6 +1033,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {calculation?.type === 'folded-dipole' && calculation.value.warnings.length > 0 && <aside className="model-note folded-dipole-advisory" aria-label="Folded dipole design advisories"><strong>Review these construction assumptions</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'turnstile' && calculation.value.warnings.length > 0 && <aside className="model-note turnstile-advisory" aria-label="Turnstile design advisories"><strong>Review these crossed-dipole assumptions</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'halo' && calculation.value.warnings.length > 0 && <aside className="model-note halo-advisory" aria-label="Halo design advisories"><strong>Review these open-ring assumptions</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
+          {calculation?.type === 'skywire' && calculation.value.warnings.length > 0 && <aside className="model-note skywire-advisory" aria-label="Skywire design advisories"><strong>Review this support and rigging plan</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
         </form>
 
         <div className="visual-panel" id="design-drawing">
@@ -1029,17 +1046,18 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {calculation?.type === 'phased-collinear' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading collinear drawing…</div>}><PhasedWireCollinearDiagram elementCount={calculation.value.elementCount} radiatingSpanMetres={calculation.value.radiatingSpanMetres} radiatorSectionMetres={calculation.value.cutRadiatorSectionMetres} phasingStubMetres={calculation.value.cutPhasingStubPhysicalLengthMetres} feedModeReference={calculation.value.feedModeReference} unitSystem={unitSystem} /></Suspense>}
           {calculation?.type === 'turnstile' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading turnstile drawing…</div>}><TurnstileDiagram dipoleSpanMetres={calculation.value.cutDipoleSpanMetres} phaseLineMetres={calculation.value.quarterWavePhaseLinePhysicalMetres} quadratureOrder={calculation.value.quadratureOrder} unitSystem={unitSystem} /></Suspense>}
           {calculation?.type === 'halo' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading halo drawing…</div>}><HaloDiagram shape={calculation.value.shape} widthMetres={calculation.value.plannedWidthMetres} armMetres={calculation.value.eachArmMetres} farGapMetres={calculation.value.farEndGapMetres} feedGapMetres={calculation.value.feedpointGapMetres} unitSystem={unitSystem} /></Suspense>}
+          {calculation?.type === 'skywire' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading skywire drawing…</div>}><SkywireDiagram longSideMetres={calculation.value.longSideMetres} shortSideMetres={calculation.value.shortSideMetres} supportHeightsMetres={calculation.value.supportHeightsMetres} feedSide={calculation.value.feedSide} feedPositionPercent={calculation.value.feedPositionPercent} unitSystem={unitSystem} /></Suspense>}
           {calculation?.type === 'loaded-dipole' && <LoadedDipoleDiagram totalSpanMetres={calculation.value.totalSpanMetres} loadingPointFromCentreMetres={calculation.value.loadingPointFromCentreMetres} inductanceMicrohenries={calculation.value.inductanceMicrohenries} unitSystem={unitSystem} />}
           {calculation?.type === 'trap-dipole' && <TrapDipoleDiagram totalSpanMetres={calculation.value.totalSpanMetres} trapPositionFromCentreMetres={calculation.value.trapPositionFromCentreMetres} inductanceMicrohenries={calculation.value.inductanceMicrohenries} capacitancePicofarads={calculation.value.capacitancePicofarads} trapResonanceMHz={calculation.value.trapResonanceMHz} unitSystem={unitSystem} />}
-          {calculation?.type === 'small-loop' && <SmallLoopDiagram diameterMetres={calculation.value.diameterMetres} circumferenceMetres={calculation.value.circumferenceMetres} minimumCapacitancePicofarads={calculation.value.minimumRequiredVariableCapacitancePicofarads} maximumCapacitancePicofarads={calculation.value.maximumRequiredVariableCapacitancePicofarads} lowerFrequencyMHz={calculation.value.lowerFrequencyMHz} upperFrequencyMHz={calculation.value.upperFrequencyMHz} isUnderArrlSmallLoopBoundary={calculation.value.isUnderArrlSmallLoopBoundary} unitSystem={unitSystem} />}
+          {calculation?.type === 'small-loop' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading small-loop drawing…</div>}><SmallLoopDiagram diameterMetres={calculation.value.diameterMetres} circumferenceMetres={calculation.value.circumferenceMetres} minimumCapacitancePicofarads={calculation.value.minimumRequiredVariableCapacitancePicofarads} maximumCapacitancePicofarads={calculation.value.maximumRequiredVariableCapacitancePicofarads} lowerFrequencyMHz={calculation.value.lowerFrequencyMHz} upperFrequencyMHz={calculation.value.upperFrequencyMHz} isUnderArrlSmallLoopBoundary={calculation.value.isUnderArrlSmallLoopBoundary} unitSystem={unitSystem} /></Suspense>}
           {calculation?.type === 'inverted-v' && <InvertedVDiagram legMetres={calculation.value.legMetres} spanMetres={calculation.value.endpointSpanMetres} dropMetres={calculation.value.apexDropMetres} angleDegrees={includedAngleDegrees} unitSystem={unitSystem} />}
           {calculation?.type === 'efhw' && <EfhwDiagram radiatorMetres={calculation.value.radiatorMetres} transformerRatio={transformerRatio} unitSystem={unitSystem} />}
           {calculation?.type === 'ocfd' && <OcfdDiagram shortLegMetres={calculation.value.shortLegMetres} longLegMetres={calculation.value.longLegMetres} totalMetres={calculation.value.cutLengthMetres} feedpointPercent={feedpointPercentFromEnd} transformerRatio={transformerRatio} unitSystem={unitSystem} />}
           {calculation?.type === 'jpole' && <JpoleDiagram longElementMetres={calculation.value.longElementMetres} matchingStubMetres={calculation.value.matchingStubMetres} halfWaveRadiatorMetres={calculation.value.halfWaveRadiatorMetres} feedpointFromShortMetres={calculation.value.feedpointFromShortMetres} unitSystem={unitSystem} />}
           {calculation?.type === 'slim-jim' && <SlimJimDiagram overallHeightMetres={calculation.value.overallHeightMetres} matchingStubMetres={calculation.value.matchingStubMetres} upperFoldedSectionMetres={calculation.value.upperFoldedSectionMetres} gapMetres={calculation.value.interruptionGapMetres} feedpointMetres={calculation.value.feedpointFromShortMetres} unitSystem={unitSystem} />}
           {calculation?.type === 'moxon' && <MoxonDiagram aMetres={calculation.value.aMetres} bMetres={calculation.value.bMetres} cMetres={calculation.value.cMetres} dMetres={calculation.value.dMetres} eMetres={calculation.value.eMetres} unitSystem={unitSystem} />}
-          {calculation?.type === 'cubical-quad' && <CubicalQuadDiagram drivenSideMetres={calculation.value.drivenSideMetres} reflectorSideMetres={calculation.value.reflectorSideMetres} elementSpacingMetres={calculation.value.elementSpacingMetres} polarization={quadPolarization} unitSystem={unitSystem} />}
-          {calculation?.type === 'axial-helix' && <AxialModeHelixDiagram turnCount={calculation.value.turnCount} diameterMetres={calculation.value.diameterMetres} turnSpacingMetres={calculation.value.turnSpacingMetres} axialLengthMetres={calculation.value.axialLengthMetres} groundPlaneDiameterMetres={calculation.value.groundPlaneDiameterMetres} handedness={helixHandedness} unitSystem={unitSystem} />}
+          {calculation?.type === 'cubical-quad' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading quad drawing…</div>}><CubicalQuadDiagram drivenSideMetres={calculation.value.drivenSideMetres} reflectorSideMetres={calculation.value.reflectorSideMetres} elementSpacingMetres={calculation.value.elementSpacingMetres} polarization={quadPolarization} unitSystem={unitSystem} /></Suspense>}
+          {calculation?.type === 'axial-helix' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading helix drawing…</div>}><AxialModeHelixDiagram turnCount={calculation.value.turnCount} diameterMetres={calculation.value.diameterMetres} turnSpacingMetres={calculation.value.turnSpacingMetres} axialLengthMetres={calculation.value.axialLengthMetres} groundPlaneDiameterMetres={calculation.value.groundPlaneDiameterMetres} handedness={helixHandedness} unitSystem={unitSystem} /></Suspense>}
           {calculation?.type === 'discone' && <DisconeDiagram coneRadialCount={calculation.value.coneRadialCount} discRadialCount={calculation.value.discRadialCount} coneSlantLengthMetres={calculation.value.coneSlantLengthMetres} coneHeightMetres={calculation.value.coneHeightMetres} coneBaseDiameterMetres={calculation.value.coneBaseDiameterMetres} discDiameterMetres={calculation.value.discDiameterMetres} coneIncludedAngleDegrees={calculation.value.coneIncludedAngleDegrees} unitSystem={unitSystem} />}
           {calculation?.type === 'log-periodic' && <><LogPeriodicDiagram elements={calculation.value.elements} boomSpanMetres={calculation.value.boomSpanMetres} apexIncludedAngleDegrees={calculation.value.apexIncludedAngleDegrees} unitSystem={unitSystem} /><LogPeriodicSchedule elements={calculation.value.elements} unitSystem={unitSystem} /></>}
           {calculation?.type === 'beverage' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading Beverage drawing…</div>}><BeverageDiagram designWireLengthMetres={calculation.value.designWireLengthMetres} wireHeightMetres={calculation.value.wireHeightMetres} targetBearingDegrees={calculation.value.targetBearingDegrees} targetCompassPoint={calculation.value.targetCompassPoint} reverseBearingDegrees={calculation.value.reverseBearingDegrees} reverseCompassPoint={calculation.value.reverseCompassPoint} receptionMode={calculation.value.receptionMode} terminationResistanceOhms={calculation.value.terminationResistanceOhms} transformerTurnsRatio={calculation.value.transformerTurnsRatio} unitSystem={unitSystem} /></Suspense>}
@@ -1160,6 +1178,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           <p>NASA defines the turnstile using two orthogonal dipoles with equal-magnitude currents in phase quadrature. The displayed line length is only the physical path difference corresponding to one electrical quarter wavelength in the entered line.</p>
         </article>}
         {calculation.type === 'halo' && <Suspense fallback={<div className="model-note" role="status">Loading halo construction notes…</div>}><HaloEducation /></Suspense>}
+        {calculation.type === 'skywire' && <Suspense fallback={<div className="model-note" role="status">Loading skywire construction notes…</div>}><SkywireEducation /></Suspense>}
         {calculation.type === 'efhw' && <article className="caution-card">
           <p className="eyebrow">EFHW safety and installation</p>
           <h3>High voltage does not mean no return current</h3>
@@ -1320,6 +1339,7 @@ type Calculation = NonNullable<
   | { type: 'phased-collinear'; value: ReturnType<typeof calculatePhasedWireCollinear> }
   | { type: 'turnstile'; value: ReturnType<typeof calculateTurnstile> }
   | { type: 'halo'; value: ReturnType<typeof calculateHalo> }
+  | { type: 'skywire'; value: ReturnType<typeof calculateSkywire> }
   | { type: 'loaded-dipole'; value: ReturnType<typeof calculateLoadedDipole> }
   | { type: 'trap-dipole'; value: ReturnType<typeof calculateTrapDipole> }
   | { type: 'small-loop'; value: ReturnType<typeof calculateSmallTransmittingLoop> }
@@ -1355,6 +1375,7 @@ function largestAntennaDimension(calculation: Calculation, loopShape: LoopShape)
   if (calculation.type === 'phased-collinear') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.radiatingSpanMetres });
   if (calculation.type === 'turnstile') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.cutDipoleSpanMetres });
   if (calculation.type === 'halo') return calculateLargestAntennaDimension({ shape: 'loop', loopShape: calculation.value.shape === 'circular' ? 'circle' : 'square', primaryDimensionMetres: calculation.value.plannedWidthMetres });
+  if (calculation.type === 'skywire') return calculateLargestAntennaDimension({ shape: 'rectangle', widthMetres: calculation.value.longSideMetres, depthMetres: calculation.value.shortSideMetres });
   if (calculation.type === 'loaded-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.totalSpanMetres });
   if (calculation.type === 'trap-dipole') return calculateLargestAntennaDimension({ shape: 'linear', lengthMetres: calculation.value.totalSpanMetres });
   if (calculation.type === 'small-loop') return calculateLargestAntennaDimension({ shape: 'loop', loopShape: 'circle', primaryDimensionMetres: calculation.value.diameterMetres });
@@ -1412,6 +1433,10 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape, onPrin
     headline = `Bend two equal arms into a ${calculation.value.shape === 'circular' ? 'halo' : 'squalo'}`;
     primary = `${formatLength(calculation.value.eachArmMetres, unitSystem)} each`;
     details = [['Total cut radiator', formatLength(calculation.value.cutRadiatorMetres, unitSystem)], ['Reference perimeter including openings', formatLength(calculation.value.referencePerimeterMetres, unitSystem)], [calculation.value.shape === 'circular' ? 'Circular centreline diameter' : 'Square centreline side', formatLength(calculation.value.plannedWidthMetres, unitSystem)], ['Far-end opening', formatLength(calculation.value.farEndGapMetres, unitSystem)], ['Feedpoint opening', formatLength(calculation.value.feedpointGapMetres, unitSystem)], ['Combined opening fraction', `${calculation.value.totalOpeningPercent.toFixed(1)}% of reference perimeter`], ['Installed resonance, impedance, match, bandwidth, common mode, and pattern', 'Not inferred · model and measure']];
+  } else if (calculation.type === 'skywire') {
+    headline = 'Survey four supports and budget the complete loop';
+    primary = `${formatLength(calculation.value.longSideMetres, unitSystem)} × ${formatLength(calculation.value.shortSideMetres, unitSystem)} footprint`;
+    details = [['Corrected resonant perimeter', formatLength(calculation.value.resonantPerimeterMetres, unitSystem)], ['Straight plan perimeter with trim', formatLength(calculation.value.straightPlanPerimeterMetres, unitSystem)], ['Taut 3D support-to-support path', formatLength(calculation.value.tautThreeDimensionalPerimeterMetres, unitSystem)], ['Extra path from unequal heights', formatLength(calculation.value.heightGeometryExtraMetres, unitSystem)], ['Separate rigging material reserve', formatLength(calculation.value.riggingReserveMetres, unitSystem)], ['Wire purchase budget', formatLength(calculation.value.purchaseWireMetres, unitSystem)], ['Average support height', formatLength(calculation.value.averageSupportHeightMetres, unitSystem)], ['Feedpoint', `${calculation.value.feedSide} side · ${calculation.value.feedPositionPercent.toFixed(0)}% · ${formatLength(calculation.value.feedpoint.heightMetres, unitSystem)} high`], ['Installed resonance, impedance, match, multiband pattern, common mode, and sag', 'Not inferred · model and measure']];
   } else if (calculation.type === 'loaded-dipole') {
     headline = 'Build two equal series loading coils'; primary = `${calculation.value.inductanceMicrohenries.toFixed(2)} µH each`;
     details = [['Physical span', formatLength(calculation.value.totalSpanMetres, unitSystem)], ['Centre to each coil', formatLength(calculation.value.loadingPointFromCentreMetres, unitSystem)], ['Outer wire after each coil', formatLength(calculation.value.outerSectionMetres, unitSystem)], ['Required coil reactance', `${calculation.value.requiredReactanceOhms.toFixed(0)} Ω`], ['Physical shortening', `${calculation.value.shorteningPercent.toFixed(1)}% per arm`]];

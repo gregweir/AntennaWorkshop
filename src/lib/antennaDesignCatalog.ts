@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-export type AntennaType = 'dipole' | 'folded-dipole' | 'fan-dipole' | 'doublet' | 'g5rv' | 'phased-collinear' | 'turnstile' | 'halo' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
+export type AntennaType = 'dipole' | 'folded-dipole' | 'fan-dipole' | 'doublet' | 'g5rv' | 'phased-collinear' | 'turnstile' | 'halo' | 'skywire' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
 export type AntennaDesignCategory = 'wire' | 'vertical' | 'directional' | 'loop' | 'broadband' | 'receive';
 export type GuidedIntent = 'transmit' | 'receive';
 export type GuidedGoal = 'simple-wire' | 'multiband' | 'limited-space' | 'vertical-footprint' | 'directional' | 'broadband' | 'compact-receive' | 'long-route' | 'surface-installation' | 'direction-control' | 'all';
@@ -29,6 +29,7 @@ export const ANTENNA_DESIGNS: Record<AntennaType, AntennaDesignDefinition> = {
   'phased-collinear': { name: 'Phased wire collinear array', short: 'Collinear', description: 'Equal half waves · phasing stubs', category: 'directional', receiveOnly: false, tags: ['array', 'wire', 'phasing'], guidedGoals: ['directional'] },
   turnstile: { name: 'Crossed-dipole turnstile', short: 'Turnstile', description: 'Orthogonal half waves · quadrature feed', category: 'directional', receiveOnly: false, tags: ['satellite', 'circular polarization', 'crossed dipole', 'quadrature', 'phasing'], guidedGoals: ['directional'] },
   halo: { name: 'Halo and square squalo', short: 'Halo · squalo', description: 'Bent half-wave dipole · open ring', category: 'loop', receiveOnly: false, tags: ['vhf', 'uhf', 'omnidirectional', 'bent dipole', 'open ring', 'squalo'], guidedGoals: ['simple-wire'] },
+  skywire: { name: 'Horizontal full-wave loop skywire', short: 'Loop skywire', description: 'Four supports · rectangular footprint', category: 'loop', receiveOnly: false, tags: ['hf', 'full wave', 'horizontal loop', 'skywire', 'multiband', 'four supports'], guidedGoals: ['simple-wire', 'multiband'] },
   'loaded-dipole': { name: 'Inductively loaded dipole', short: 'Loaded dipole', description: 'Shortened span · two series coils', category: 'wire', receiveOnly: false, tags: ['shortened', 'limited space', 'coil'], guidedGoals: ['limited-space'] },
   'trap-dipole': { name: 'Two-band parallel-LC trap dipole', short: 'Trap dipole', description: 'Two bands · matched parallel traps', category: 'wire', receiveOnly: false, tags: ['two band', 'multiband', 'trap'], guidedGoals: ['multiband'] },
   'small-loop': { name: 'Small transmitting loop', short: 'Small loop', description: 'Circular loop · measured-L tuning', category: 'loop', receiveOnly: false, tags: ['compact', 'tuned', 'limited space'], guidedGoals: ['limited-space'] },
