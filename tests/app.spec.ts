@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 33 designs')).toBeVisible();
+  await expect(page.getByText('2 of 34 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 33 designs')).toBeVisible();
+  await expect(page.getByText('5 of 34 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('33 of 33 designs')).toBeVisible();
+  await expect(page.getByText('34 of 34 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -197,6 +197,37 @@ test('reproduces the published G3TXQ broadband hex-beam wire schedule without ar
   await page.getByLabel('Help: Hex-beam included bands').click();
   await expect(page.getByRole('note').filter({ hasText: 'Hex-beam included bands' })).toContainText('lowest-frequency selected band belongs at the top');
   await expect(page.locator('.provenance-card')).toContainText('k4kio-g3txq-broadband-hex-beam');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+  expect(dimensions.content).toBe(dimensions.viewport);
+});
+
+test('surveys an open or terminated V-beam without predicting directional performance', async ({ page }) => {
+  await page.getByRole('button', { name: /V-beam/ }).click();
+  await expect(page.getByRole('heading', { name: 'Long-wire V-beam' })).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('14.2');
+  await expect(page.getByLabel('V-beam leg electrical length', { exact: true })).toHaveValue('2');
+  await expect(page.getByRole('img', { name: /Dimensioned V-beam directional wire antenna site plan/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Survey two 2-wavelength legs at a 70° apex');
+  await expect(page.locator('.result-summary')).toContainText('42.768 m wire per leg');
+  await expect(page.locator('.result-summary')).toContainText('Bidirectional along the V bisector');
+  await expect(page.getByRole('row', { name: /Left leg endpoint/ })).toContainText('325.0°');
+
+  await page.getByRole('spinbutton', { name: 'V-beam forward true bearing' }).fill('90');
+  await expect(page.getByRole('row', { name: /Left leg endpoint/ })).toContainText('55.0°');
+  await expect(page.getByRole('row', { name: /Right leg endpoint/ })).toContainText('125.0°');
+  await page.getByLabel('V-beam far-end configuration', { exact: true }).selectOption('terminated');
+  await page.getByRole('spinbutton', { name: 'V-beam far-end termination' }).fill('500');
+  await expect(page.locator('.result-summary')).toContainText('Separate 500 Ω non-inductive far-end terminations');
+  await expect(page.getByRole('complementary', { name: 'V-beam design advisories' })).toContainText('about 300 Ω at each far end');
+
+  await expect(page.getByText('Choose a published leg length')).toBeHidden();
+  await page.getByText('Survey, build, and commission a V-beam').click();
+  await expect(page.getByText('Choose a published leg length')).toBeVisible();
+  await page.getByLabel('Help: V-beam leg electrical length').click();
+  await expect(page.getByRole('note').filter({ hasText: 'V-beam leg electrical length' })).toContainText('1λ/90°');
+  await expect(page.locator('.provenance-card')).toContainText('atp-6-02-53-v-beam-site-planner');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));

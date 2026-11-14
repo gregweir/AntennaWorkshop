@@ -8483,6 +8483,112 @@ path.loading-coil {
   max-width: 100%;
 }
 
+.v-beam-editor {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.v-beam-wire line {
+  stroke: var(--tl-coral);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.v-beam-feed circle,
+.v-beam-endpoints circle {
+  fill: var(--tl-navy);
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.v-beam-feed path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-dasharray: 6 5;
+  stroke-width: 3;
+}
+
+.v-beam-endpoints rect {
+  fill: var(--bg-elevated);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.v-beam-direction line {
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+#v-beam-arrow path { fill: var(--accent-technical); }
+
+.v-beam-angle path {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.v-beam-feed text,
+.v-beam-endpoints text,
+.v-beam-direction text,
+.v-beam-angle text,
+.v-beam-labels text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.v-beam-survey {
+  width: 100%;
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.v-beam-survey h3,
+.v-beam-survey p { margin: 0; }
+
+.v-beam-survey .table-scroll {
+  width: 100%;
+  min-width: 0;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.v-beam-survey table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: var(--bg-surface);
+  font-size: 0.72rem;
+}
+
+.v-beam-survey th,
+.v-beam-survey td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.v-beam-survey thead th {
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  font-family: var(--font-mono);
+}
+
+.v-beam-survey tbody tr:last-child > * { border-bottom: 0; }
+
+.antenna-print-diagram:has(.v-beam-figure) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .feedpoint rect {
   fill: var(--tl-navy);
   stroke: var(--tl-coral);
@@ -9770,6 +9876,12 @@ path.loading-coil {
   .hex-feed text,
   .hex-direction text,
   .hex-legend text { font-size: 18px; }
+
+  .v-beam-feed text,
+  .v-beam-endpoints text,
+  .v-beam-direction text,
+  .v-beam-angle text,
+  .v-beam-labels text { font-size: 18px; }
 }
 
 @media print {
@@ -9937,12 +10049,14 @@ path.loading-coil {
   }
 
   body.antenna-build-print .lpda-schedule .table-scroll,
-  body.antenna-build-print .hex-beam-schedule .table-scroll {
+  body.antenna-build-print .hex-beam-schedule .table-scroll,
+  body.antenna-build-print .v-beam-survey .table-scroll {
     overflow: visible;
   }
 
   body.antenna-build-print .lpda-schedule table,
-  body.antenna-build-print .hex-beam-schedule table {
+  body.antenna-build-print .hex-beam-schedule table,
+  body.antenna-build-print .v-beam-survey table {
     width: 100%;
     min-width: 0;
     table-layout: fixed;
@@ -9952,7 +10066,9 @@ path.loading-coil {
   body.antenna-build-print .lpda-schedule th,
   body.antenna-build-print .lpda-schedule td,
   body.antenna-build-print .hex-beam-schedule th,
-  body.antenna-build-print .hex-beam-schedule td {
+  body.antenna-build-print .hex-beam-schedule td,
+  body.antenna-build-print .v-beam-survey th,
+  body.antenna-build-print .v-beam-survey td {
     padding: 1.5mm 1mm;
     overflow-wrap: anywhere;
     white-space: normal;
