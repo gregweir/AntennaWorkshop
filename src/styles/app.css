@@ -5723,6 +5723,107 @@ select {
   stroke-width: 2;
 }
 
+.line-section-toggle {
+  display: grid;
+  width: 100%;
+  gap: 0.25rem;
+  margin: 0 0 1.2rem;
+  text-align: left;
+}
+
+.line-section-toggle small {
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.line-cascade-section rect,
+.line-cascade-summary rect {
+  fill: var(--bg-elevated);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.line-cascade-section:nth-of-type(even) rect {
+  stroke: var(--accent-technical);
+}
+
+.line-cascade-section text,
+.line-cascade-summary text,
+.line-cascade-direction {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.line-cascade-section text:first-of-type,
+.line-cascade-summary text:first-of-type,
+.line-cascade-direction {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.line-cascade-path {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-width: 5;
+}
+
+.line-cascade-mobile-flow {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .line-cascade-figure > svg {
+    display: none;
+  }
+
+  .line-cascade-mobile-flow {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .line-cascade-mobile-flow article,
+  .line-cascade-mobile-flow > p {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+  }
+
+  .line-cascade-mobile-flow article::after {
+    color: var(--tl-coral);
+    content: '↓ toward load';
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+  }
+
+  .line-cascade-mobile-flow article:last-of-type::after {
+    content: none;
+  }
+
+  .line-cascade-mobile-flow small {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .line-cascade-mobile-flow strong,
+  .line-cascade-mobile-flow span,
+  .line-cascade-mobile-flow p {
+    overflow-wrap: anywhere;
+  }
+}
+
 .stub-coax path {
   fill: none;
   stroke: var(--accent-technical);
