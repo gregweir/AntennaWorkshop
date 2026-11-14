@@ -553,10 +553,66 @@ select {
   margin: 0;
 }
 
-.antenna-picker-collapsed > div > p:last-child {
+.antenna-picker-collapsed .current-design-description {
   margin-top: 0.2rem;
   color: var(--text-secondary);
   font-size: 0.78rem;
+}
+
+.current-design-meta,
+.design-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.current-design-meta {
+  margin-top: 0.55rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.design-use-badge {
+  width: fit-content;
+  padding: 0.18rem 0.42rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.design-use-badge.receive-only {
+  border-color: var(--tl-coral);
+  background: color-mix(in srgb, var(--tl-coral) 9%, var(--bg-elevated));
+  color: var(--text-primary);
+}
+
+.design-use-badge.transmit-capable {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 9%, var(--bg-elevated));
+  color: var(--text-primary);
+}
+
+.current-design-safety {
+  max-width: 52rem;
+  margin: 0.55rem 0 0;
+  padding-left: 0.65rem;
+  border-left: 3px solid var(--tl-coral);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.design-use-explainer {
+  margin: -0.25rem 0 0.8rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.45;
 }
 
 .antenna-picker-collapsed > button {
@@ -695,6 +751,28 @@ select {
 .design-picker span,
 .design-picker small {
   display: block;
+}
+
+.design-picker .design-card-meta {
+  margin-top: 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.design-picker .design-card-meta > span:first-child {
+  color: var(--text-secondary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.design-picker button[aria-pressed='true'] .design-card-meta > span:first-child,
+.design-picker button[aria-pressed='true'] .design-use-badge {
+  color: var(--tl-cream);
+}
+
+.design-picker button[aria-pressed='true'] .design-use-badge {
+  background: transparent;
 }
 
 .design-picker span {
@@ -9861,6 +9939,10 @@ path.loading-coil {
   .design-search-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .design-search-row label {
+    flex: none;
   }
 
   .picker-mode-tabs {

@@ -91,6 +91,9 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
 });
 
 test('offers guided and searchable workbench antenna selection', async ({ page }) => {
+  const dipoleCard = page.getByRole('button', { name: /Dipole/ });
+  await expect(dipoleCard).toContainText('Wire');
+  await expect(dipoleCard).toContainText('Transmit-capable geometry');
   await page.getByRole('tab', { name: /Guided/ }).click();
   await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
   await expect(page.getByLabel('Guided antenna choice step 1 of 3')).toBeVisible();
@@ -104,6 +107,8 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('button', { name: /Loop on Ground/ }).click();
   await expect(page.getByRole('heading', { name: 'Loop-on-Ground receiving antenna' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Current: Loop on Ground' })).toBeVisible();
+  await expect(page.locator('.antenna-picker-collapsed')).toContainText('Receive only');
+  await expect(page.locator('.antenna-picker-collapsed')).toContainText('never connect this design or its receive electronics to a transmitter');
   await expect(page.getByRole('searchbox', { name: 'Search designs' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Change design' }).click();
 
@@ -119,15 +124,26 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
-  await page.getByRole('button', { name: 'Receive only' }).click();
+  await page.getByRole('button', { name: 'Receive only', exact: true }).click();
   await expect(page.getByText('5 of 37 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Beverage/ })).toContainText('Receive family');
+  await expect(page.getByRole('button', { name: /Beverage/ })).toContainText('Receive only');
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
   await expect(page.getByText('37 of 37 designs')).toBeVisible();
+});
+
+test('keeps the antenna search control compact on a narrow screen', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  const search = page.getByRole('searchbox', { name: 'Search designs' });
+  await expect(search).toBeVisible();
+  expect((await search.boundingBox())?.height).toBeLessThanOrEqual(52);
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {

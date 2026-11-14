@@ -34,10 +34,26 @@ interface Props {
   onSelect: (type: AntennaType) => void;
 }
 
+const categoryLabels: Record<AntennaDesignCategory, string> = {
+  wire: 'Wire',
+  vertical: 'Vertical',
+  directional: 'Directional',
+  loop: 'Loop',
+  broadband: 'Broadband',
+  receive: 'Receive family'
+};
+
+function DesignUseBadge({ receiveOnly }: { receiveOnly: boolean }) {
+  return <span className={receiveOnly ? 'design-use-badge receive-only' : 'design-use-badge transmit-capable'}>{receiveOnly ? 'Receive only' : 'Transmit-capable geometry'}</span>;
+}
+
 function DesignButtons({ types, activeType, onSelect }: { types: AntennaType[]; activeType: AntennaType; onSelect: (type: AntennaType) => void }) {
-  return <div className="design-picker" aria-label="Antenna design">{types.map((type) => <button key={type} type="button" aria-pressed={activeType === type} onClick={() => onSelect(type)}>
-    <span>{ANTENNA_DESIGNS[type].short}</span><small>{ANTENNA_DESIGNS[type].description}</small>
-  </button>)}</div>;
+  return <div className="design-picker" aria-label="Antenna design">{types.map((type) => {
+    const design = ANTENNA_DESIGNS[type];
+    return <button key={type} type="button" aria-pressed={activeType === type} onClick={() => onSelect(type)}>
+      <span className="design-card-title">{design.short}</span><small>{design.description}</small><span className="design-card-meta"><span>{categoryLabels[design.category]}</span><DesignUseBadge receiveOnly={design.receiveOnly} /></span>
+    </button>;
+  })}</div>;
 }
 
 export function AntennaDesignPicker({ activeType, onSelect }: Props) {
@@ -69,7 +85,7 @@ export function AntennaDesignPicker({ activeType, onSelect }: Props) {
   if (!expanded) {
     const activeDesign = ANTENNA_DESIGNS[activeType];
     return <section className="antenna-picker-shell antenna-picker-collapsed" aria-labelledby="selected-antenna-heading">
-      <div><p className="eyebrow">Selected design</p><h3 id="selected-antenna-heading">Current: {activeDesign.short}</h3><p>{activeDesign.description}</p></div>
+      <div><p className="eyebrow">Selected design</p><h3 id="selected-antenna-heading">Current: {activeDesign.short}</h3><p className="current-design-description">{activeDesign.description}</p><div className="current-design-meta"><span>{categoryLabels[activeDesign.category]}</span><DesignUseBadge receiveOnly={activeDesign.receiveOnly} /></div>{activeDesign.receiveOnly && <p className="current-design-safety"><strong>Receive only:</strong> never connect this design or its receive electronics to a transmitter.</p>}</div>
       <button type="button" onClick={() => {
         setExpanded(true);
         globalThis.requestAnimationFrame?.(() => pickerHeadingRef.current?.focus());
@@ -89,6 +105,7 @@ export function AntennaDesignPicker({ activeType, onSelect }: Props) {
     {mode === 'workbench' ? <div role="tabpanel" className="picker-workbench-panel">
       <div className="design-search-row"><label><span>Search designs</span><input type="search" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Try multiband, shortened, loop…" /></label><span aria-live="polite">{workbenchTypes.length} of {Object.keys(ANTENNA_DESIGNS).length} designs</span></div>
       <div className="design-category-filter" aria-label="Design category">{ANTENNA_CATEGORIES.map((candidate) => <button key={candidate.id} type="button" aria-pressed={category === candidate.id} onClick={() => setCategory(candidate.id)}>{candidate.label}</button>)}</div>
+      <p className="design-use-explainer"><strong>Use labels describe planner scope, not operating approval.</strong> Transmit-capable geometry still requires a complete feed, safety, exposure, and installed-system review.</p>
       {workbenchTypes.length > 0 ? <DesignButtons types={workbenchTypes} activeType={activeType} onSelect={chooseDesign} /> : <div className="design-empty-state"><strong>No matching designs</strong><p>Clear the search or choose another category. Searching changes only the picker, not the current calculation.</p><button type="button" onClick={() => { setSearchText(''); setCategory('all'); }}>Show all designs</button></div>}
     </div> : <div role="tabpanel" className="picker-guided-panel">
       <div className="guided-progress" aria-label={`Guided antenna choice step ${guidedStep} of 3`}><span className={guidedStep >= 1 ? 'is-complete' : ''}>1 · Purpose</span><span className={guidedStep >= 2 ? 'is-complete' : ''}>2 · Site or goal</span><span className={guidedStep >= 3 ? 'is-complete' : ''}>3 · Designs</span></div>
