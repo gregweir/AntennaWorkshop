@@ -4872,7 +4872,8 @@ select {
 .discone-layout,
 .lpda-layout,
 .beverage-layout,
-.compact-receive-layout {
+.compact-receive-layout,
+.k9ay-layout {
   grid-template-columns: 1fr;
 }
 
@@ -4883,7 +4884,8 @@ select {
 .discone-layout .input-panel,
 .lpda-layout .input-panel,
 .beverage-layout .input-panel,
-.compact-receive-layout .input-panel {
+.compact-receive-layout .input-panel,
+.k9ay-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4904,7 +4906,9 @@ select {
 .beverage-layout .input-panel > .field,
 .beverage-layout .beverage-editor,
 .compact-receive-layout .input-panel > .field,
-.compact-receive-layout .compact-receive-editor {
+.compact-receive-layout .compact-receive-editor,
+.k9ay-layout .input-panel > .field,
+.k9ay-layout .k9ay-editor {
   margin: 0;
 }
 
@@ -4942,7 +4946,12 @@ select {
 .compact-receive-layout .advanced-fields,
 .compact-receive-layout .result-summary,
 .compact-receive-layout .compact-receive-advisory,
-.compact-receive-layout .validation-message {
+.compact-receive-layout .validation-message,
+.k9ay-layout .k9ay-editor,
+.k9ay-layout .advanced-fields,
+.k9ay-layout .result-summary,
+.k9ay-layout .k9ay-advisory,
+.k9ay-layout .validation-message {
   grid-column: 1 / -1;
 }
 
@@ -4953,7 +4962,8 @@ select {
 .discone-layout .discone-editor,
 .lpda-layout .lpda-editor,
 .beverage-layout .beverage-editor,
-.compact-receive-layout .compact-receive-editor {
+.compact-receive-layout .compact-receive-editor,
+.k9ay-layout .k9ay-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5178,7 +5188,8 @@ select {
 .discone-editor,
 .lpda-editor,
 .beverage-editor,
-.compact-receive-editor {
+.compact-receive-editor,
+.k9ay-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5197,7 +5208,8 @@ select {
 .discone-editor legend,
 .lpda-editor legend,
 .beverage-editor legend,
-.compact-receive-editor legend {
+.compact-receive-editor legend,
+.k9ay-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5227,7 +5239,8 @@ select {
 }
 
 .beverage-editor,
-.compact-receive-editor {
+.compact-receive-editor,
+.k9ay-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5248,7 +5261,8 @@ select {
 .discone-editor > .field,
 .lpda-editor > .field,
 .beverage-editor > .field,
-.compact-receive-editor > .field {
+.compact-receive-editor > .field,
+.k9ay-editor > .field {
   margin: 0;
 }
 
@@ -5838,6 +5852,100 @@ path.loading-coil {
 
 .compact-geometry-label {
   font-size: 13px !important;
+}
+
+.k9ay-plan > circle {
+  fill: color-mix(in srgb, var(--accent-technical) 5%, transparent);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.k9ay-plan text,
+.k9ay-elevation text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.k9ay-loop-axis {
+  stroke-linecap: round;
+  stroke-width: 7;
+}
+
+.k9ay-loop-1 {
+  stroke: var(--tl-coral);
+}
+
+.k9ay-loop-2 {
+  stroke: var(--accent-technical);
+}
+
+.k9ay-direction circle {
+  fill: var(--bg-surface);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.k9ay-direction.selected circle {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 3;
+}
+
+.k9ay-response-arrow {
+  fill: none;
+  marker-end: url('#k9ay-arrow-end');
+  stroke: var(--tl-gold);
+  stroke-width: 5;
+}
+
+.k9ay-ground-point,
+.k9ay-apex-point {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.k9ay-selected-label {
+  font-size: 12px !important;
+}
+
+.k9ay-ground {
+  stroke: var(--text-secondary);
+  stroke-width: 4;
+}
+
+.k9ay-wire {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.k9ay-feed-point {
+  fill: var(--accent-technical);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.k9ay-termination-point {
+  fill: var(--tl-gold);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.k9ay-component {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.k9ay-ground-symbol {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 2;
 }
 
 .coil-construction-panel {
@@ -6977,7 +7085,9 @@ path.loading-coil {
   .beverage-layout .input-panel,
   .beverage-layout .beverage-editor,
   .compact-receive-layout .input-panel,
-  .compact-receive-layout .compact-receive-editor {
+  .compact-receive-layout .compact-receive-editor,
+  .k9ay-layout .input-panel,
+  .k9ay-layout .k9ay-editor {
     grid-template-columns: 1fr;
   }
 
@@ -7263,7 +7373,8 @@ path.loading-coil {
   .discone-editor,
   .lpda-editor,
   .beverage-editor,
-  .compact-receive-editor {
+  .compact-receive-editor,
+  .k9ay-editor {
     grid-template-columns: 1fr;
   }
 

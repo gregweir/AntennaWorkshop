@@ -534,6 +534,43 @@ test('plans Flag, point-fed Pennant, and EWE receive antennas with the correct d
   await expect(page.locator('.provenance-card')).toContainText('compact-terminated-receive-planner');
 });
 
+test('maps four K9AY receive directions to crossed-loop switching states', async ({ page }) => {
+  await page.getByRole('button', { name: /K9AY loops/ }).click();
+  await page.locator('select.band-select').selectOption('160m');
+
+  await expect(page.getByRole('heading', { name: 'K9AY four-direction receiving loops' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Apex height' })).toHaveValue('7.62');
+  await expect(page.getByRole('spinbutton', { name: 'Loop half-width' })).toHaveValue('4.572');
+  await expect(page.getByRole('spinbutton', { name: 'Lower corner height' })).toHaveValue('1.524');
+  await expect(page.getByRole('spinbutton', { name: 'Loop 1 reference receive bearing' })).toHaveValue('45');
+  await expect(page.getByLabel('Selected K9AY receive direction', { exact: true })).toHaveValue('0');
+  await expect(page.getByRole('img', { name: /K9AY crossed-loop geometry and four-direction switching/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Build two crossed, switchable K9AY loops');
+  await expect(page.locator('.result-summary')).toContainText('9.144 m diameter footprint');
+  await expect(page.locator('.result-summary')).toContainText('Selected receive direction45° NE');
+  await expect(page.locator('.result-summary')).toContainText('Selected switching stateLoop 1 · reference connections');
+  await expect(page.locator('.result-summary')).toContainText('Nominal transformer turns ratio3.00 : 1');
+  await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
+
+  await page.getByLabel('Selected K9AY receive direction', { exact: true }).selectOption('3');
+  await expect(page.locator('.result-summary')).toContainText('Selected receive direction315° NW');
+  await expect(page.locator('.result-summary')).toContainText('Selected switching stateLoop 2 · feed/termination reversed');
+  await expect(page.locator('.result-summary')).toContainText('Termination and principal-null direction135° SE');
+
+  await expect(page.getByText('Map the relay states before installation')).toBeHidden();
+  await page.getByText('Build and commission four-direction K9AY loops').click();
+  await expect(page.getByText('Map the relay states before installation')).toBeVisible();
+  await page.getByLabel('Help: Selected K9AY receive direction').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Selected K9AY receive direction' })).toContainText('continuity tests with power removed');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'K9AY assumed antenna-side impedance' })).toHaveValue('450');
+  await expect(page.getByRole('spinbutton', { name: 'K9AY receiver feedline impedance' })).toHaveValue('50');
+  await expect(page.getByRole('spinbutton', { name: 'K9AY extra wire for corners and pigtails' })).toHaveValue('4.14');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Four directions require four verified circuit states' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('k9ay-four-direction-loop-planner');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
