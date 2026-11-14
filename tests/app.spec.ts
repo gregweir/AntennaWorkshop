@@ -1066,12 +1066,21 @@ test('maps four K9AY receive directions to crossed-loop switching states', async
   await expect(page.locator('.result-summary')).toContainText('Selected receive direction45° NE');
   await expect(page.locator('.result-summary')).toContainText('Selected switching stateLoop 1 · reference connections');
   await expect(page.locator('.result-summary')).toContainText('Nominal transformer turns ratio3.00 : 1');
+  await expect(page.getByRole('heading', { name: 'Label every loop terminal before designing the controller' })).toBeVisible();
+  await expect(page.locator('.k9ay-material-check')).toContainText('Upper slopes');
+  await expect(page.locator('.k9ay-material-check')).toContainText('Lower slopes and base leads');
+  await expect(page.locator('.k9ay-switching-check tbody tr').nth(0)).toContainText('L1A');
+  await expect(page.locator('.k9ay-switching-check tbody tr').nth(0)).toContainText('L1B');
+  await expect(page.locator('.k9ay-transformer-check')).toContainText('3:1 turns');
+  await expect(page.locator('.k9ay-transformer-check')).toContainText('450.0 Ω');
   await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
 
   await page.getByLabel('Selected K9AY receive direction', { exact: true }).selectOption('3');
   await expect(page.locator('.result-summary')).toContainText('Selected receive direction315° NW');
   await expect(page.locator('.result-summary')).toContainText('Selected switching stateLoop 2 · feed/termination reversed');
   await expect(page.locator('.result-summary')).toContainText('Termination and principal-null direction135° SE');
+  await expect(page.locator('.k9ay-switching-check tbody tr.selected')).toContainText('L2B');
+  await expect(page.locator('.k9ay-switching-check tbody tr.selected')).toContainText('L2A');
 
   await expect(page.getByText('Map the relay states before installation')).toBeHidden();
   await page.getByText('Build and commission four-direction K9AY loops').click();
@@ -1083,8 +1092,14 @@ test('maps four K9AY receive directions to crossed-loop switching states', async
   await expect(page.getByRole('spinbutton', { name: 'K9AY assumed antenna-side impedance' })).toHaveValue('450');
   await expect(page.getByRole('spinbutton', { name: 'K9AY receiver feedline impedance' })).toHaveValue('50');
   await expect(page.getByRole('spinbutton', { name: 'K9AY extra wire for corners and pigtails' })).toHaveValue('4.14');
+  await expect(page.getByRole('spinbutton', { name: 'K9AY antenna winding' })).toHaveValue('3');
+  await expect(page.getByRole('spinbutton', { name: 'K9AY feedline winding' })).toHaveValue('1');
+  await page.getByRole('spinbutton', { name: 'K9AY antenna winding' }).fill('2');
+  await expect(page.getByRole('complementary', { name: 'K9AY design advisories' })).toContainText('transformer turns');
+  await page.getByRole('spinbutton', { name: 'K9AY antenna winding' }).fill('3');
   await expect(page.locator('.caution-card').filter({ hasText: 'Four directions require four verified circuit states' })).toBeVisible();
   await expect(page.locator('.provenance-card')).toContainText('k9ay-four-direction-loop-planner');
+  await expect(page.locator('.provenance-card')).toContainText('Model 2.0.0');
 });
 
 test('plans an isolated Loop-on-Ground antenna and compares receive families', async ({ page }) => {

@@ -20,7 +20,9 @@ const referenceInput = {
   terminationResistanceOhms: 390,
   assumedAntennaImpedanceOhms: 450,
   feedlineImpedanceOhms: 50,
-  wireCutAllowancePercent: 4.14
+  wireCutAllowancePercent: 4.14,
+  antennaWindingTurns: 3,
+  feedlineWindingTurns: 1
 };
 
 describe('calculateK9ay', () => {
@@ -32,8 +34,17 @@ describe('calculateK9ay', () => {
     expect(result.designWireLengthPerLoopMetres).toBeCloseTo(feet(2 * (25 + Math.hypot(15, 5))), 10);
     expect(result.cutWireLengthPerLoopMetres).toBeCloseTo(feet(85), 2);
     expect(result.totalWireForTwoLoopsMetres).toBeCloseTo(result.cutWireLengthPerLoopMetres * 2, 10);
+    expect(result.segmentSchedulePerLoop.map(({ label, quantity }) => ({ label, quantity }))).toEqual([
+      { label: 'Upper slopes', quantity: 2 },
+      { label: 'Lower slopes and base leads', quantity: 2 }
+    ]);
+    expect(result.segmentSchedulePerLoop[0].designLengthMetres).toBeCloseTo(feet(25), 10);
+    expect(result.segmentSchedulePerLoop[1].designLengthMetres).toBeCloseTo(feet(Math.hypot(15, 5)), 10);
+    expect(result.segmentSchedulePerLoop.reduce((total, segment) => total + segment.totalAllocatedLengthMetres, 0)).toBeCloseTo(result.cutWireLengthPerLoopMetres, 10);
     expect(result.footprintDiameterMetres).toBeCloseTo(feet(30), 10);
     expect(result.transformerTurnsRatio).toBe(3);
+    expect(result.enteredTransformerTurnsRatio).toBe(3);
+    expect(result.enteredReferredAntennaImpedanceOhms).toBe(450);
     expect(result.warnings).toEqual([]);
   });
 
@@ -42,6 +53,7 @@ describe('calculateK9ay', () => {
 
     expect(result.directions.map(({ bearingDegrees, compassPoint }) => `${bearingDegrees} ${compassPoint}`)).toEqual(['45 NE', '135 SE', '225 SW', '315 NW']);
     expect(result.directions.map(({ loop, reversed }) => [loop, reversed])).toEqual([[1, false], [2, false], [1, true], [2, true]]);
+    expect(result.directions.map(({ feedTerminal, terminationTerminal }) => [feedTerminal, terminationTerminal])).toEqual([['L1A', 'L1B'], ['L2A', 'L2B'], ['L1B', 'L1A'], ['L2B', 'L2A']]);
     expect(result.selectedDirection).toMatchObject({ bearingDegrees: 315, compassPoint: 'NW', loop: 2, reversed: true, terminationBearingDegrees: 135, terminationCompassPoint: 'SE' });
     expect(result.directionDescription).toContain('Loop 2, reversed state');
     expect(result.directionDescription).toContain('feed end at 315° NW');
@@ -67,10 +79,18 @@ describe('calculateK9ay', () => {
     expect(() => calculateK9ay({ ...referenceInput, selectedDirectionIndex: 4 })).toThrow(/whole number/);
     expect(() => calculateK9ay({ ...referenceInput, firstReceiveBearingDegrees: 360 })).toThrow(/less than 360/);
     expect(() => calculateK9ay({ ...referenceInput, feedlineImpedanceOhms: 0 })).toThrow(/Feedline/);
+    expect(() => calculateK9ay({ ...referenceInput, antennaWindingTurns: 3.5 })).toThrow(/whole number/);
+  });
+
+  it('warns when the entered winding ratio misses the antenna-side assumption', () => {
+    const result = calculateK9ay({ ...referenceInput, antennaWindingTurns: 2, feedlineWindingTurns: 1 });
+
+    expect(result.enteredReferredAntennaImpedanceOhms).toBe(200);
+    expect(result.warnings).toContainEqual(expect.stringContaining('transformer turns refer an impedance more than 25%'));
   });
 
   it('carries versioned source provenance', () => {
-    expect(K9AY_MODEL).toMatchObject({ id: 'k9ay-four-direction-loop-planner', version: '1.0.0', reviewedOn: '2026-11-13' });
+    expect(K9AY_MODEL).toMatchObject({ id: 'k9ay-four-direction-loop-planner', version: '2.0.0', reviewedOn: '2026-11-14' });
     expect(K9AY_MODEL.sources).toHaveLength(2);
   });
 });

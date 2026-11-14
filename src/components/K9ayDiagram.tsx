@@ -5,7 +5,10 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
+import { useId, type ReactNode } from 'react';
+import type { calculateK9ay } from '../calculators/k9ay';
 import { formatLength, type UnitSystem } from '../lib/units';
+import { HelpTip } from './ContextHelp';
 import { DiagramDefinitions, DiagramGrid, SvgDimension } from './diagram/DiagramPrimitives';
 
 interface Direction {
@@ -15,6 +18,22 @@ interface Direction {
   reversed: boolean;
   terminationBearingDegrees: number;
   terminationCompassPoint: string;
+  feedTerminal: string;
+  terminationTerminal: string;
+}
+
+type K9ayResult = ReturnType<typeof calculateK9ay>;
+
+function K9ayNumberField({ label, value, min, max, step, unit, help, tooltip, onChange }: { label: string; value: number; min: number; max: number; step: number; unit: string; help: string; tooltip: ReactNode; onChange: (value: number) => void }) {
+  const inputId = useId();
+  return <div className="field"><span className="field-label-with-help"><label htmlFor={inputId}>{label}</label><HelpTip label={label}>{tooltip}</HelpTip></span><span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span><small>{help}</small></div>;
+}
+
+export function K9ayConstructionControls({ antennaWindingTurns, setAntennaWindingTurns, feedlineWindingTurns, setFeedlineWindingTurns }: { antennaWindingTurns: number; setAntennaWindingTurns: (value: number) => void; feedlineWindingTurns: number; setFeedlineWindingTurns: (value: number) => void }) {
+  return <>
+    <K9ayNumberField label="K9AY antenna winding" tooltip="Enter the actual whole-number turns planned on the winding connected through the switching network to the selected loop feed terminal. This ratio check does not select a core or predict bandwidth, loss, isolation, saturation, or winding capacitance." value={antennaWindingTurns} min={1} max={100} step={1} unit="turns" help="The 3:1 planning default reproduces the published 9:1 impedance-transformation context toward 50 Ω coax." onChange={setAntennaWindingTurns} />
+    <K9ayNumberField label="K9AY feedline winding" tooltip="Enter the actual whole-number turns planned on the receiver-feedline winding. Switching, common-mode isolation, static protection, control-line decoupling, and receiver protection remain separate engineered functions." value={feedlineWindingTurns} min={1} max={100} step={1} unit="turns" help="The squared turns ratio supplies impedance context only; it is not a transformer or controller design." onChange={setFeedlineWindingTurns} />
+  </>;
 }
 
 interface Props {
@@ -83,4 +102,15 @@ export function K9ayDiagram({ apexHeightMetres, halfWidthMetres, lowerCornerHeig
     </svg>
     <figcaption>Plan and elevation views, not to scale · Two loops share one support and ground. Selecting a loop and reversing its feed and termination provides four directions; actual response depends on the full installation.</figcaption>
   </figure>;
+}
+
+export function K9ayConstructionPanel({ result, unitSystem }: { result: K9ayResult; unitSystem: UnitSystem }) {
+  return <section className="k9ay-construction-panel" aria-labelledby="k9ay-construction-title">
+    <div className="k9ay-construction-heading"><div><p className="eyebrow">Construction and switching worksheet</p><h3 id="k9ay-construction-title">Label every loop terminal before designing the controller</h3><p>The table names the four required electrical states without prescribing relays, control voltage, fail-safe behaviour, or a controller circuit. Assign the physical base leads L1A, L1B, L2A, and L2B before installation, then prove every state with power removed.</p></div><dl><div><dt>Wire per loop</dt><dd>{formatLength(result.cutWireLengthPerLoopMetres, unitSystem)}</dd></div><div><dt>Two-loop wire total</dt><dd>{formatLength(result.totalWireForTwoLoopsMetres, unitSystem)}</dd></div><div><dt>Shared footprint</dt><dd>{formatLength(result.footprintDiameterMetres, unitSystem)} diameter</dd></div><div><dt>Selected state</dt><dd>{result.selectedDirection.feedTerminal} feed · {result.selectedDirection.terminationTerminal} termination</dd></div></dl></div>
+    <div className="k9ay-construction-grid">
+      <article className="k9ay-material-check"><h4>Per-loop material allocation</h4><div className="table-scroll"><table><thead><tr><th scope="col">Segment</th><th scope="col">Qty</th><th scope="col">Finished each</th><th scope="col">Allowance each</th><th scope="col">Allocated total</th></tr></thead><tbody>{result.segmentSchedulePerLoop.map((segment) => <tr key={segment.label}><th scope="row">{segment.label}</th><td>{segment.quantity}</td><td>{formatLength(segment.designLengthMetres, unitSystem)}</td><td>{formatLength(segment.allocatedLengthMetres, unitSystem)}</td><td>{formatLength(segment.totalAllocatedLengthMetres, unitSystem)}</td></tr>)}</tbody></table></div><ol><li>Build both loops from the same material and reproduce the same finished apex, corner, and base geometry.</li><li>Use the rows to allocate material, not to prescribe extra splices; preserve continuous wire wherever the physical terminal arrangement permits.</li><li>Label both ends of each loop before routing them into the weatherproof base enclosure.</li><li>Document the shared RF ground, soil, moisture, bonding, static protection, and seasonal condition.</li></ol></article>
+      <article className="k9ay-switching-check"><p className="eyebrow">Four-state truth table</p><h4>Map direction to loop, feed terminal, and termination terminal</h4><div className="table-scroll"><table><thead><tr><th scope="col">Receive direction</th><th scope="col">Loop</th><th scope="col">Feed</th><th scope="col">Termination</th><th scope="col">State</th></tr></thead><tbody>{result.directions.map((direction) => <tr key={direction.index} className={direction.index === result.selectedDirectionIndex ? 'selected' : undefined}><th scope="row">{direction.bearingDegrees.toFixed(0)}° {direction.compassPoint}</th><td>{direction.loop}</td><td>{direction.feedTerminal}</td><td>{direction.terminationTerminal}</td><td>{direction.reversed ? 'Reversed' : 'Reference'}</td></tr>)}</tbody></table></div><ol><li>With control power removed, confirm inactive-loop isolation and continuity from the selected feed and termination ports to the labelled terminals.</li><li>Check that no relay state shorts the transformer, termination, loop, control wiring, or shared ground unintentionally.</li><li>Verify transformer insertion loss and transformation across every intended band with representative terminations.</li><li>Commission all four states by repeatable signal-to-noise comparisons toward the intended feed, reverse, and side bearings.</li></ol><p className="k9ay-controller-limit"><strong>This is a truth table, not a controller schematic.</strong> Relay topology, contact ratings, sequencing, control-line RF isolation, lightning and static protection, receiver protection, failure modes, and remote-control safety require separate design and verification.</p></article>
+      <article className="k9ay-transformer-check"><p className="eyebrow">Ideal winding-ratio check</p><h4>Compare the planned winding with the impedance assumption</h4><dl><div><dt>Calculated ideal turns ratio</dt><dd>{result.transformerTurnsRatio.toFixed(2)} : 1</dd></div><div><dt>Entered winding</dt><dd>{result.antennaWindingTurns}:{result.feedlineWindingTurns} turns · {result.enteredTransformerTurnsRatio.toFixed(2)} : 1</dd></div><div><dt>Entered impedance ratio</dt><dd>{result.enteredTransformerImpedanceRatio.toFixed(2)} : 1</dd></div><div><dt>Ideal referred impedance</dt><dd>{result.enteredReferredAntennaImpedanceOhms.toFixed(1)} Ω · {result.enteredReferredImpedanceDifferencePercent.toFixed(1)}% from assumption</dd></div></dl><p>The winding comparison does not predict core behaviour, installed loop impedance, termination optimum, gain, front-to-back ratio, or null depth.</p></article>
+    </div>
+  </section>;
 }

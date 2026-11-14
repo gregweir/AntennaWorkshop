@@ -6626,7 +6626,8 @@ path.loading-coil {
 .discone-construction-panel,
 .lpda-construction-panel,
 .beverage-construction-panel,
-.compact-construction-panel {
+.compact-construction-panel,
+.k9ay-construction-panel {
   width: 100%;
   min-width: 0;
   margin-top: 1rem;
@@ -6645,7 +6646,9 @@ path.loading-coil {
 .beverage-construction-heading,
 .beverage-construction-grid,
 .compact-construction-heading,
-.compact-construction-grid {
+.compact-construction-grid,
+.k9ay-construction-heading,
+.k9ay-construction-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -6678,7 +6681,14 @@ path.loading-coil {
 .compact-construction-heading p,
 .compact-segment-check h4,
 .compact-transformer-check h4,
-.compact-transformer-check p { margin: 0; }
+.compact-transformer-check p,
+.k9ay-construction-heading h3,
+.k9ay-construction-heading p,
+.k9ay-material-check h4,
+.k9ay-switching-check h4,
+.k9ay-switching-check p,
+.k9ay-transformer-check h4,
+.k9ay-transformer-check p { margin: 0; }
 
 .helix-construction-heading dl,
 .helix-feed-workflow dl,
@@ -6687,7 +6697,9 @@ path.loading-coil {
 .beverage-construction-heading dl,
 .beverage-transformer-check dl,
 .compact-construction-heading dl,
-.compact-transformer-check dl {
+.compact-transformer-check dl,
+.k9ay-construction-heading dl,
+.k9ay-transformer-check dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
@@ -6701,17 +6713,19 @@ path.loading-coil {
 .beverage-construction-heading dl div,
 .beverage-transformer-check dl div,
 .compact-construction-heading dl div,
-.compact-transformer-check dl div {
+.compact-transformer-check dl div,
+.k9ay-construction-heading dl div,
+.k9ay-transformer-check dl div {
   padding: 0.65rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
 }
 
-.helix-construction-panel dt, .discone-construction-panel dt, .lpda-construction-panel dt, .beverage-construction-panel dt, .compact-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-.helix-construction-panel dd, .discone-construction-panel dd, .lpda-construction-panel dd, .beverage-construction-panel dd, .compact-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
-.helix-construction-grid, .discone-construction-grid, .lpda-construction-grid, .beverage-construction-grid, .compact-construction-grid { margin-top: 1rem; }
-.helix-turn-schedule, .helix-feed-workflow, .discone-radial-schedule, .discone-feed-workflow, .lpda-polarity-check, .lpda-feed-check, .beverage-system-check, .beverage-transformer-check, .compact-segment-check, .compact-transformer-check { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
+.helix-construction-panel dt, .discone-construction-panel dt, .lpda-construction-panel dt, .beverage-construction-panel dt, .compact-construction-panel dt, .k9ay-construction-panel dt { color: var(--text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.helix-construction-panel dd, .discone-construction-panel dd, .lpda-construction-panel dd, .beverage-construction-panel dd, .compact-construction-panel dd, .k9ay-construction-panel dd { margin: 0.2rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
+.helix-construction-grid, .discone-construction-grid, .lpda-construction-grid, .beverage-construction-grid, .compact-construction-grid, .k9ay-construction-grid { margin-top: 1rem; }
+.helix-turn-schedule, .helix-feed-workflow, .discone-radial-schedule, .discone-feed-workflow, .lpda-polarity-check, .lpda-feed-check, .beverage-system-check, .beverage-transformer-check, .compact-segment-check, .compact-transformer-check, .k9ay-material-check, .k9ay-switching-check, .k9ay-transformer-check { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
 .helix-turn-schedule .table-scroll, .discone-radial-schedule .table-scroll { min-width: 0; margin: 0.7rem 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .helix-turn-schedule table, .discone-radial-schedule table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 0.72rem; }
 .helix-turn-schedule th, .helix-turn-schedule td, .discone-radial-schedule th, .discone-radial-schedule td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
@@ -6769,12 +6783,25 @@ path.loading-coil {
 .compact-segment-check ol, .compact-transformer-check ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
 .compact-segment-check li + li, .compact-transformer-check li + li { margin-top: 0.35rem; }
 .compact-transformer-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
+.k9ay-material-check, .k9ay-switching-check, .k9ay-transformer-check { display: grid; align-content: start; gap: 0.75rem; }
+.k9ay-material-check .table-scroll, .k9ay-switching-check .table-scroll { min-width: 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.k9ay-material-check table, .k9ay-switching-check table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.72rem; }
+.k9ay-material-check th, .k9ay-material-check td, .k9ay-switching-check th, .k9ay-switching-check td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.k9ay-material-check thead th, .k9ay-switching-check thead th { background: var(--tl-navy); color: var(--tl-cream); font-family: var(--font-mono); }
+.k9ay-material-check tbody tr:last-child > *, .k9ay-switching-check tbody tr:last-child > * { border-bottom: 0; }
+.k9ay-switching-check tbody tr.selected { background: color-mix(in srgb, var(--tl-gold) 16%, var(--bg-surface)); }
+.k9ay-material-check ol, .k9ay-switching-check ol { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.78rem; }
+.k9ay-material-check li + li, .k9ay-switching-check li + li { margin-top: 0.35rem; }
+.k9ay-controller-limit { padding: 0.75rem; border-left: 3px solid var(--tl-coral); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.76rem; }
+.k9ay-transformer-check { grid-column: 1 / -1; }
+.k9ay-transformer-check > p:last-child { color: var(--text-secondary); font-size: 0.76rem; }
 
 .helix-advisory ul,
 .discone-advisory ul,
 .lpda-advisory ul,
 .beverage-advisory ul,
-.compact-receive-advisory ul {
+.compact-receive-advisory ul,
+.k9ay-advisory ul {
   margin: 0.55rem 0 0;
   padding-left: 1.2rem;
   color: var(--text-secondary);
@@ -6783,7 +6810,9 @@ path.loading-coil {
 .helix-advisory li + li,
 .discone-advisory li + li,
 .lpda-advisory li + li,
-.beverage-advisory li + li {
+.beverage-advisory li + li,
+.compact-receive-advisory li + li,
+.k9ay-advisory li + li {
   margin-top: 0.35rem;
 }
 
@@ -10197,7 +10226,9 @@ path.loading-coil {
   .beverage-construction-heading,
   .beverage-construction-grid,
   .compact-construction-heading,
-  .compact-construction-grid {
+  .compact-construction-grid,
+  .k9ay-construction-heading,
+  .k9ay-construction-grid {
     grid-template-columns: 1fr;
   }
 

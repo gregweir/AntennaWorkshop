@@ -18,12 +18,14 @@ export interface K9ayInput {
   assumedAntennaImpedanceOhms: number;
   feedlineImpedanceOhms: number;
   wireCutAllowancePercent: number;
+  antennaWindingTurns: number;
+  feedlineWindingTurns: number;
 }
 
 export const K9AY_MODEL = {
   id: 'k9ay-four-direction-loop-planner',
-  version: '1.0.0',
-  reviewedOn: '2026-11-13',
+  version: '2.0.0',
+  reviewedOn: '2026-11-14',
   sources: [
     {
       title: 'Breed — The K9AY Terminated Loop: A Compact, Directional Receiving Antenna',
@@ -40,6 +42,11 @@ function finiteRange(value: number, minimum: number, maximum: number, label: str
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
     throw new RangeError(`${label} must be between ${minimum} and ${maximum}.`);
   }
+}
+
+function wholeNumber(value: number, minimum: number, maximum: number, label: string) {
+  finiteRange(value, minimum, maximum, label);
+  if (!Number.isInteger(value)) throw new RangeError(`${label} must be a whole number.`);
 }
 
 function compassPoint(bearingDegrees: number) {
@@ -63,6 +70,8 @@ export function calculateK9ay(input: K9ayInput) {
   finiteRange(input.assumedAntennaImpedanceOhms, 1, 10_000, 'Assumed antenna impedance');
   finiteRange(input.feedlineImpedanceOhms, 1, 1_000, 'Feedline impedance');
   finiteRange(input.wireCutAllowancePercent, 0, 25, 'Wire cut allowance');
+  wholeNumber(input.antennaWindingTurns, 1, 100, 'Antenna winding turns');
+  wholeNumber(input.feedlineWindingTurns, 1, 100, 'Feedline winding turns');
 
   const wavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (input.frequencyMHz * 1_000_000);
   const upperSlopingSideMetres = Math.hypot(input.halfWidthMetres, input.apexHeightMetres - input.lowerCornerHeightMetres);
@@ -70,6 +79,10 @@ export function calculateK9ay(input: K9ayInput) {
   const designWireLengthPerLoopMetres = 2 * (upperSlopingSideMetres + lowerSlopingSideMetres);
   const cutWireLengthPerLoopMetres = designWireLengthPerLoopMetres * (1 + input.wireCutAllowancePercent / 100);
   const totalWireForTwoLoopsMetres = cutWireLengthPerLoopMetres * 2;
+  const segmentSchedulePerLoop = [
+    { label: 'Upper slopes', quantity: 2, designLengthMetres: upperSlopingSideMetres },
+    { label: 'Lower slopes and base leads', quantity: 2, designLengthMetres: lowerSlopingSideMetres }
+  ].map((segment) => ({ ...segment, allocatedLengthMetres: segment.designLengthMetres * (1 + input.wireCutAllowancePercent / 100), totalAllocatedLengthMetres: segment.quantity * segment.designLengthMetres * (1 + input.wireCutAllowancePercent / 100) }));
   const footprintDiameterMetres = input.halfWidthMetres * 2;
   const directions = Array.from({ length: 4 }, (_, index) => {
     const bearingDegrees = (input.firstReceiveBearingDegrees + index * 90) % 360;
@@ -80,6 +93,8 @@ export function calculateK9ay(input: K9ayInput) {
       loop: index % 2 === 0 ? 1 : 2,
       reversed: index >= 2,
       feedEnd: index >= 2 ? 'opposite end' : 'reference end',
+      feedTerminal: `L${index % 2 + 1}${index >= 2 ? 'B' : 'A'}`,
+      terminationTerminal: `L${index % 2 + 1}${index >= 2 ? 'A' : 'B'}`,
       terminationBearingDegrees: (bearingDegrees + 180) % 360,
       terminationCompassPoint: compassPoint((bearingDegrees + 180) % 360)
     };
@@ -87,6 +102,10 @@ export function calculateK9ay(input: K9ayInput) {
   const selectedDirection = directions[input.selectedDirectionIndex];
   const impedanceTransformationRatio = input.assumedAntennaImpedanceOhms / input.feedlineImpedanceOhms;
   const transformerTurnsRatio = Math.sqrt(impedanceTransformationRatio);
+  const enteredTransformerTurnsRatio = input.antennaWindingTurns / input.feedlineWindingTurns;
+  const enteredTransformerImpedanceRatio = enteredTransformerTurnsRatio ** 2;
+  const enteredReferredAntennaImpedanceOhms = input.feedlineImpedanceOhms * enteredTransformerImpedanceRatio;
+  const enteredReferredImpedanceDifferencePercent = Math.abs(enteredReferredAntennaImpedanceOhms - input.assumedAntennaImpedanceOhms) / input.assumedAntennaImpedanceOhms * 100;
   const terminationDifferencePercent = Math.abs(input.terminationResistanceOhms - input.assumedAntennaImpedanceOhms) / input.assumedAntennaImpedanceOhms * 100;
   const wireLengthWavelengths = designWireLengthPerLoopMetres / wavelengthMetres;
   const warnings: string[] = [];
@@ -94,6 +113,7 @@ export function calculateK9ay(input: K9ayInput) {
   if (wireLengthWavelengths >= 0.3) warnings.push('The loop wire is at least 0.30 wavelength at the reference frequency; the inventor cautions that an oversized loop can change operating mode and termination requirements.');
   if (terminationDifferencePercent > 25) warnings.push('The entered termination differs by more than 25% from the assumed antenna impedance; ground, frequency, geometry, and transformer loading require installed measurement.');
   if (input.wireCutAllowancePercent === 0) warnings.push('No allowance is included for corner attachment, base pigtails, routing, or trimming.');
+  if (enteredReferredImpedanceDifferencePercent > 25) warnings.push('The entered transformer turns refer an impedance more than 25% from the antenna-side planning assumption; verify the winding choice and complete receive system.');
 
   return {
     ...input,
@@ -103,6 +123,7 @@ export function calculateK9ay(input: K9ayInput) {
     designWireLengthPerLoopMetres,
     cutWireLengthPerLoopMetres,
     totalWireForTwoLoopsMetres,
+    segmentSchedulePerLoop,
     footprintDiameterMetres,
     wireLengthWavelengths,
     longestDiagonalWavelengths: Math.hypot(footprintDiameterMetres, input.apexHeightMetres) / wavelengthMetres,
@@ -110,6 +131,10 @@ export function calculateK9ay(input: K9ayInput) {
     selectedDirection,
     impedanceTransformationRatio,
     transformerTurnsRatio,
+    enteredTransformerTurnsRatio,
+    enteredTransformerImpedanceRatio,
+    enteredReferredAntennaImpedanceOhms,
+    enteredReferredImpedanceDifferencePercent,
     terminationDifferencePercent,
     directionDescription: `Loop ${selectedDirection.loop}, ${selectedDirection.reversed ? 'reversed' : 'reference'} state: primary response toward the feed end at ${selectedDirection.bearingDegrees.toFixed(0)}° ${selectedDirection.compassPoint}; termination and principal-null direction at ${selectedDirection.terminationBearingDegrees.toFixed(0)}° ${selectedDirection.terminationCompassPoint}`,
     warnings
