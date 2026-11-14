@@ -837,7 +837,15 @@ test('plans a radial discone without inventing an upper usable frequency', async
   await expect(page.getByRole('spinbutton', { name: 'Cone half-angle' })).toHaveValue('30');
   await expect(page.getByRole('spinbutton', { name: 'Cone radial elements' })).toHaveValue('8');
   await expect(page.getByRole('spinbutton', { name: 'Disc radial elements' })).toHaveValue('8');
+  await expect(page.getByRole('spinbutton', { name: 'Radial conductor diameter' })).toHaveValue('6.35');
+  await expect(page.getByRole('spinbutton', { name: 'Planned feed gap' })).toHaveValue('5');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum radial length error' })).toHaveValue('2');
   await expect(page.getByRole('img', { name: /Dimensioned radial-element discone antenna/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Conventional discone feed-region connection/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cut equal radial sets and prove the feed geometry' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Centre conductor to disc; outer conductor to cone' })).toBeVisible();
+  await expect(page.getByRole('table')).toContainText('Disc8');
+  await expect(page.getByRole('table')).toContainText('Cone8');
   await expect(page.locator('.result-summary')).toContainText('Build 8 disc and 8 cone radials');
   await expect(page.locator('.result-summary')).toContainText('52.2 cm cone slant');
   await expect(page.locator('.result-summary')).toContainText('Cone vertical height45.2 cm');
@@ -846,9 +854,9 @@ test('plans a radial discone without inventing an upper usable frequency', async
   await expect(page.locator('.result-summary')).toContainText('Upper-frequency limitNot inferred · measure the finished antenna');
   await expect(page.getByRole('complementary', { name: 'Discone design advisories' })).toHaveCount(0);
 
-  await expect(page.getByText('Keep the feed region compact')).toBeHidden();
+  await expect(page.getByText('Keep the conventional feed compact')).toBeHidden();
   await page.getByText('Build and commission a radial discone').click();
-  await expect(page.getByText('Keep the feed region compact')).toBeVisible();
+  await expect(page.getByText('Keep the conventional feed compact')).toBeVisible();
   await page.getByLabel('Help: Cone half-angle').click();
   await expect(page.getByRole('note').filter({ hasText: 'Cone half-angle' })).toContainText('60° included cone');
 
@@ -856,6 +864,9 @@ test('plans a radial discone without inventing an upper usable frequency', async
   await expect(page.locator('.result-summary')).toContainText('Cone included angle70°');
   await page.getByRole('spinbutton', { name: 'Disc radial elements' }).fill('4');
   await expect(page.getByRole('complementary', { name: 'Discone design advisories' })).toContainText('sparse radial approximation');
+  await page.getByRole('spinbutton', { name: 'Planned feed gap' }).fill('1000');
+  await expect(page.getByRole('complementary', { name: 'Discone design advisories' })).toContainText('disc radius');
+  await page.getByRole('spinbutton', { name: 'Planned feed gap' }).fill('5');
 
   await page.getByRole('button', { name: 'Show advanced' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Extra radial length for connections' })).toHaveValue('2.5');

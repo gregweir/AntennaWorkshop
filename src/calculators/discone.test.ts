@@ -13,7 +13,10 @@ const referenceInput = {
   coneHalfAngleDegrees: 30,
   coneRadialCount: 8,
   discRadialCount: 8,
-  connectionAllowancePercent: 2.5
+  connectionAllowancePercent: 2.5,
+  radialConductorDiameterMillimetres: 6.35,
+  feedGapMillimetres: 5,
+  radialLengthToleranceMillimetres: 2
 };
 
 describe('calculateDiscone', () => {
@@ -27,6 +30,13 @@ describe('calculateDiscone', () => {
     expect(result.cutConeRadialMetres).toBeCloseTo(result.coneSlantLengthMetres * 1.025, 12);
     expect(result.cutDiscRadialMetres).toBeCloseTo(result.discRadiusMetres * 1.025, 12);
     expect(result.totalRadialWireMetres).toBeCloseTo((result.cutConeRadialMetres + result.cutDiscRadialMetres) * 8, 12);
+    expect(result.coneRadialAngularSpacingDegrees).toBe(45);
+    expect(result.discRadialAngularSpacingDegrees).toBe(45);
+    expect(result.coneBaseArcSpacingMetres).toBeCloseTo(Math.PI * result.coneBaseDiameterMetres / 8, 12);
+    expect(result.discRimArcSpacingMetres).toBeCloseTo(Math.PI * result.discDiameterMetres / 8, 12);
+    expect(result.feedGapWavelengths).toBeCloseTo(0.005 / result.wavelengthMetres, 12);
+    expect(result.coneRadialLengthTolerancePercent).toBeCloseTo(0.002 / result.coneSlantLengthMetres * 100, 12);
+    expect(result.discRadialLengthTolerancePercent).toBeCloseTo(0.002 / result.discRadiusMetres * 100, 12);
     expect(result.warnings).toEqual([]);
   });
 
@@ -57,13 +67,25 @@ describe('calculateDiscone', () => {
     expect(() => calculateDiscone({ ...referenceInput, coneRadialCount: 8.5 })).toThrow('whole number');
     expect(() => calculateDiscone({ ...referenceInput, discRadialCount: 3 })).toThrow(RangeError);
     expect(() => calculateDiscone({ ...referenceInput, connectionAllowancePercent: 26 })).toThrow(RangeError);
+    expect(() => calculateDiscone({ ...referenceInput, radialConductorDiameterMillimetres: 0 })).toThrow(RangeError);
+    expect(() => calculateDiscone({ ...referenceInput, feedGapMillimetres: 0 })).toThrow(RangeError);
+    expect(() => calculateDiscone({ ...referenceInput, radialLengthToleranceMillimetres: -1 })).toThrow(RangeError);
+  });
+
+  it('warns about physically conflicting fabrication entries', () => {
+    const result = calculateDiscone({ ...referenceInput, radialConductorDiameterMillimetres: 1000, feedGapMillimetres: 1000, radialLengthToleranceMillimetres: 1000 });
+
+    expect(result.warnings.join(' ')).toContain('rim arc spacing');
+    expect(result.warnings.join(' ')).toContain('disc radius');
+    expect(result.warnings.join(' ')).toContain('shortest finished radial');
   });
 
   it('preserves source provenance', () => {
     expect(DISCONE_MODEL.id).toBe('ntia-nasa-discone');
-    expect(DISCONE_MODEL.reviewedOn).toBe('2026-11-13');
-    expect(DISCONE_MODEL.sources).toHaveLength(2);
+    expect(DISCONE_MODEL.reviewedOn).toBe('2026-11-14');
+    expect(DISCONE_MODEL.sources).toHaveLength(3);
     expect(DISCONE_MODEL.sources[0].url).toContain('its.ntia.gov');
     expect(DISCONE_MODEL.sources[1].url).toContain('ntrs.nasa.gov');
+    expect(DISCONE_MODEL.sources[2].url).toContain('US5608416A');
   });
 });
