@@ -50,6 +50,43 @@ test('maps a selected band to frequency and wavelength', async ({ page }) => {
   await expect(page.locator('.band-indicator')).toContainText('21.149 m');
 });
 
+test('offers guided and searchable workbench antenna selection', async ({ page }) => {
+  await page.getByRole('tab', { name: /Guided/ }).click();
+  await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
+  await expect(page.getByLabel('Guided antenna choice step 1 of 3')).toBeVisible();
+
+  await page.getByRole('button', { name: /Dedicated receiving/ }).click();
+  await expect(page.getByRole('heading', { name: 'Which site or operating goal matters most?' })).toBeVisible();
+  await expect(page.getByLabel('Guided antenna choice step 2 of 3')).toBeVisible();
+  await page.getByRole('button', { name: /No vertical support/ }).click();
+  await expect(page.getByRole('heading', { name: '1 construction planner to review' })).toBeVisible();
+  await expect(page.getByText('These are relevant options, not performance rankings.')).toBeVisible();
+  await page.getByRole('button', { name: /Loop on Ground/ }).click();
+  await expect(page.getByRole('heading', { name: 'Loop-on-Ground receiving antenna' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Back to site or goal' }).click();
+  await page.getByRole('button', { name: /Control noise direction/ }).click();
+  await expect(page.getByRole('heading', { name: '4 construction planners to review' })).toBeVisible();
+
+  await page.getByRole('tab', { name: /Workbench/ }).click();
+  const search = page.getByRole('searchbox', { name: 'Search designs' });
+  await search.fill('shortened coil');
+  await expect(page.getByText('2 of 27 designs')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
+
+  await search.fill('');
+  await page.getByRole('button', { name: 'Receive only' }).click();
+  await expect(page.getByText('5 of 27 designs')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
+
+  await search.fill('no matching antenna phrase');
+  await expect(page.getByText('No matching designs')).toBeVisible();
+  await page.getByRole('button', { name: 'Show all designs' }).click();
+  await expect(page.getByText('27 of 27 designs')).toBeVisible();
+});
+
 test('builds a guided multiband fan dipole and exposes Australian bands', async ({ page }) => {
   await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
   await page.locator('select.band-select').selectOption('80m');
@@ -649,7 +686,7 @@ test('plans an untuned active receiving loop without inventing amplifier perform
 
 test('matches receive planners to explicit site and system constraints', async ({ page }) => {
   await page.locator('select.band-select').selectOption('40m');
-  await page.getByText('Help me choose a receiving antenna').click();
+  await page.getByText('Compare receive antennas against my site').click();
 
   await expect(page.getByRole('heading', { name: 'Start with constraints, not claimed performance' })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Maximum receive-antenna horizontal clearance' })).toHaveValue('10');

@@ -44,7 +44,7 @@ export function ReceiveAntennaSelector({ referenceFrequencyMHz, unitSystem, onOp
   }, [activeElectronicsAllowed, directionPreference, groundReturnsAllowed, maximumHorizontalSpanMetres, maximumSupportHeightMetres, referenceFrequencyMHz, surfaceWireAllowed, switchingAllowed]);
 
   return <details className="receive-selector">
-    <summary><span>Help me choose a receiving antenna</span><small>Match the site and operating method before opening a planner</small></summary>
+    <summary><span>Compare receive antennas against my site</span><small>Detailed fit check for space, grounding, direction control, and electronics</small></summary>
     <div className="receive-selector-body">
       <div className="receive-selector-intro">
         <div><p className="eyebrow">Receive-antenna selection wizard</p><h3>Start with constraints, not claimed performance</h3></div>

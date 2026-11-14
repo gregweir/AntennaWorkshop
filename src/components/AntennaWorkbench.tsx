@@ -25,6 +25,7 @@ import { calculateK9ay, K9AY_MODEL } from '../calculators/k9ay';
 import { calculateLoopOnGround, LOOP_ON_GROUND_MODEL } from '../calculators/loopOnGround';
 import { calculateActiveReceiveLoop, ACTIVE_RECEIVE_LOOP_MODEL } from '../calculators/activeReceiveLoop';
 import type { ReceiveAntennaCandidate } from '../calculators/receiveAntennaSelector';
+import { ANTENNA_DESIGNS, type AntennaType } from '../lib/antennaDesignCatalog';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
@@ -59,39 +60,8 @@ import { K9ayDiagram } from './K9ayDiagram';
 import { LoopOnGroundDiagram } from './LoopOnGroundDiagram';
 import { ActiveReceiveLoopDiagram } from './ActiveReceiveLoopDiagram';
 import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
+import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
-
-type AntennaType = 'dipole' | 'fan-dipole' | 'doublet' | 'phased-collinear' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
-
-const designs: Record<AntennaType, { name: string; short: string; description: string }> = {
-  dipole: { name: 'Centre-fed half-wave dipole', short: 'Dipole', description: 'Two straight legs' },
-  'fan-dipole': { name: 'Multiband fan dipole', short: 'Fan dipole', description: 'Parallel resonant wire pairs' },
-  doublet: { name: 'Balanced-line multiband doublet', short: 'Doublet', description: 'Equal legs · balanced line · tuner' },
-  'phased-collinear': { name: 'Phased wire collinear array', short: 'Collinear', description: 'Equal half waves · phasing stubs' },
-  'loaded-dipole': { name: 'Inductively loaded dipole', short: 'Loaded dipole', description: 'Shortened span · two series coils' },
-  'trap-dipole': { name: 'Two-band parallel-LC trap dipole', short: 'Trap dipole', description: 'Two bands · matched parallel traps' },
-  'small-loop': { name: 'Small transmitting loop', short: 'Small loop', description: 'Circular loop · measured-L tuning' },
-  'inverted-v': { name: 'Inverted-V dipole', short: 'Inverted-V', description: 'Single high support' },
-  efhw: { name: 'End-fed half-wave (EFHW)', short: 'EFHW', description: 'End transformer · multiband potential' },
-  ocfd: { name: 'Off-centre-fed dipole (OCFD)', short: 'OCFD', description: 'Unequal legs · multiband potential' },
-  jpole: { name: 'J-pole vertical', short: 'J-pole', description: 'Vertical radiator · matching stub' },
-  'slim-jim': { name: 'Slim Jim vertical', short: 'Slim Jim', description: 'Folded radiator · interrupted side' },
-  moxon: { name: 'Moxon rectangle', short: 'Moxon', description: 'Two-element directional rectangle' },
-  'cubical-quad': { name: 'Two-element cubical quad', short: 'Cubical quad', description: 'Driven loop · reflector loop' },
-  'axial-helix': { name: 'Axial-mode helical antenna', short: 'Axial helix', description: 'Circular polarization · endfire beam' },
-  discone: { name: 'Broadband discone antenna', short: 'Discone', description: 'Disc · cone · wideband vertical' },
-  'log-periodic': { name: 'Log-periodic dipole array', short: 'Log-periodic', description: 'Scaled dipoles · directional wideband' },
-  beverage: { name: 'Beverage receiving antenna', short: 'Beverage', description: 'Low long wire · directional receive' },
-  'compact-receive': { name: 'Compact terminated receiving antenna', short: 'Flag · Pennant · EWE', description: 'Compact low-band · directional receive' },
-  k9ay: { name: 'K9AY four-direction receiving loops', short: 'K9AY loops', description: 'Crossed loops · four switched directions' },
-  'loop-on-ground': { name: 'Loop-on-Ground receiving antenna', short: 'Loop on Ground', description: 'Surface loop · low-profile receive' },
-  'active-receive-loop': { name: 'Untuned active receiving loop', short: 'Active receive loop', description: 'Broadband loop · rotatable nulls' },
-  yagi: { name: 'Three-element Yagi', short: 'Basic Yagi', description: 'Reflector · driven · director' },
-  'loaded-vertical': { name: 'Inductively loaded vertical', short: 'Loaded vertical', description: 'Shortened radiator · movable coil' },
-  'ground-mounted-vertical': { name: 'Ground-mounted quarter-wave vertical', short: 'Ground vertical', description: 'Ground-level base · radial field' },
-  'ground-plane': { name: 'Quarter-wave ground plane', short: 'Ground plane', description: 'Elevated vertical · sloping radials' },
-  'full-wave-loop': { name: 'Full-wave wire loop', short: 'Full-wave loop', description: 'Square, triangle, or circle' }
-};
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -395,7 +365,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       <div className="workspace-heading">
         <div>
           <p className="eyebrow">Graphical antenna workshop</p>
-          <h2 id="calculator-title">{designs[antennaType].name}</h2>
+          <h2 id="calculator-title">{ANTENNA_DESIGNS[antennaType].name}</h2>
         </div>
         {antennaType !== 'moxon' && antennaType !== 'yagi' && antennaType !== 'small-loop' && <button className="advanced-toggle" type="button" aria-expanded={advancedOpen} onClick={() => setAdvancedOpen(!advancedOpen)}>
           {advancedOpen ? 'Hide advanced' : 'Show advanced'}
@@ -404,14 +374,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
       <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />
 
-      <div className="design-picker" aria-label="Antenna design">
-        {(Object.keys(designs) as AntennaType[]).map((type) => (
-          <button key={type} type="button" aria-pressed={antennaType === type} onClick={() => selectDesign(type)}>
-            <span>{designs[type].short}</span>
-            <small>{designs[type].description}</small>
-          </button>
-        ))}
-      </div>
+      <AntennaDesignPicker activeType={antennaType} onSelect={selectDesign} />
 
       {antennaType === 'dipole' && <StepByStepHelp title="Build and tune a centre-fed dipole" intro="Use this sequence to turn two equal calculated legs into a measured antenna in its final support geometry. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the design frequency', detail: 'Select the frequency where you want the installed antenna to resonate, rather than relying only on the conventional band name.' },
@@ -974,10 +937,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
       {calculation && calculation.type !== 'beverage' && calculation.type !== 'compact-receive' && calculation.type !== 'k9ay' && calculation.type !== 'loop-on-ground' && calculation.type !== 'active-receive-loop' && <section className="workflow-handoff" aria-labelledby="antenna-handoff-heading">
         <div><p className="eyebrow">Connected workflow</p><h3 id="antenna-handoff-heading">Use this design in an RF station project</h3><p>Carry a representative frequency and the largest physical dimension into the feed-system calculator. Gain, loss, power, duty cycle, installed height, and the exact operating frequency remain explicit inputs.</p></div>
-        <dl><div><dt>Design</dt><dd>{designs[antennaType].short}</dd></div><div><dt>{calculation.type === 'small-loop' || calculation.type === 'log-periodic' ? 'Range centre' : 'Frequency'}</dt><dd>{handoffFrequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(largestAntennaDimension(calculation, loopShape), unitSystem)}</dd></div></dl>
+        <dl><div><dt>Design</dt><dd>{ANTENNA_DESIGNS[antennaType].short}</dd></div><div><dt>{calculation.type === 'small-loop' || calculation.type === 'log-periodic' ? 'Range centre' : 'Frequency'}</dt><dd>{handoffFrequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(largestAntennaDimension(calculation, loopShape), unitSystem)}</dd></div></dl>
         <button type="button" onClick={() => onContinueToSystem(createAntennaDesignHandoff({
           handoffId: globalThis.crypto?.randomUUID?.() ?? `antenna-${Date.now()}`,
-          label: designs[antennaType].name,
+          label: ANTENNA_DESIGNS[antennaType].name,
           frequencyMHz: handoffFrequencyMHz,
           largestDimensionMetres: largestAntennaDimension(calculation, loopShape),
           antennaModelId: model.id,
