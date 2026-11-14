@@ -24,6 +24,7 @@ describe('antenna design catalog', () => {
     expect(filterAntennaDesigns('circular polarization', 'all')).toEqual(['axial-helix']);
     expect(filterAntennaDesigns('no support', 'all')).toEqual(['loop-on-ground']);
     expect(filterAntennaDesigns('zs6bkw', 'all')).toEqual(['g5rv']);
+    expect(filterAntennaDesigns('delta triangle', 'all')).toEqual(['full-wave-loop']);
   });
 
   it('returns transmit-capable designs for guided transmit goals', () => {

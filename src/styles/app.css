@@ -8208,6 +8208,25 @@ path.loading-coil {
   stroke-width: 8;
 }
 
+.delta-loop-feed circle {
+  fill: var(--tl-navy);
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+}
+
+.delta-loop-feed path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.delta-loop-feed text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
 .feedpoint rect {
   fill: var(--tl-navy);
   stroke: var(--tl-coral);
@@ -9446,7 +9465,8 @@ path.loading-coil {
   .feedpoint text,
   .end-labels text,
   .folded-dipole-feed text,
-  .folded-dipole-labels text {
+  .folded-dipole-labels text,
+  .delta-loop-feed text {
     font-size: 11px;
   }
 
@@ -9454,6 +9474,15 @@ path.loading-coil {
   .folded-dipole-feed text,
   .folded-dipole-labels text {
     font-size: 24px;
+  }
+
+  .delta-loop-feed text {
+    font-size: 20px;
+  }
+
+  .delta-loop-figure .dimension-lines text,
+  .delta-loop-figure .end-labels text {
+    font-size: 22px;
   }
 }
 

@@ -63,9 +63,13 @@ export interface BasicYagiInput {
 }
 
 export type LoopShape = 'square' | 'triangle' | 'circle';
+export type DeltaLoopOrientation = 'apex-up' | 'apex-down';
+export type DeltaLoopFeedMode = 'horizontal' | 'vertical';
 
 export interface FullWaveLoopInput extends CommonDesignInput {
   shape: LoopShape;
+  deltaOrientation?: DeltaLoopOrientation;
+  deltaFeedMode?: DeltaLoopFeedMode;
 }
 
 export const ANTENNA_MODELS = {
@@ -108,12 +112,20 @@ export const ANTENNA_MODELS = {
   },
   fullWaveLoop: {
     id: 'full-wave-loop',
-    version: '1.0.0',
-    reviewedOn: '2026-11-11',
+    version: '1.1.0',
+    reviewedOn: '2026-11-14',
     sources: [
       {
         title: 'ARRL — Radio Antennas and How They Operate',
         url: 'https://www.arrl.org/files/file/Technology/tis/info/pdf/8409030.pdf'
+      },
+      {
+        title: 'ARRL — General Class delta-loop and loop-polarization reference',
+        url: 'https://www.arrl.org/files/file/Instructor%20resources/General%20Class/AD7FO%202011%20General%20syllabus%20rev%201_02.pdf'
+      },
+      {
+        title: 'ARRL Contest Update — Vertically polarized delta-loop feedpoint example',
+        url: 'https://www.arrl.org/contestupdateissue?issue=2011-09-28'
       }
     ]
   },
@@ -337,16 +349,34 @@ export function calculateFullWaveLoop(input: FullWaveLoopInput) {
   if (!['square', 'triangle', 'circle'].includes(input.shape)) {
     throw new RangeError('Loop shape is not supported.');
   }
+  const deltaOrientation = input.deltaOrientation ?? 'apex-up';
+  const deltaFeedMode = input.deltaFeedMode ?? 'horizontal';
+  if (!['apex-up', 'apex-down'].includes(deltaOrientation)) throw new RangeError('Delta-loop orientation is not supported.');
+  if (!['horizontal', 'vertical'].includes(deltaFeedMode)) throw new RangeError('Delta-loop feed mode is not supported.');
   const lengths = commonLengths(input, 1);
   const primaryDimensionMetres = input.shape === 'square'
     ? lengths.cutLengthMetres / 4
     : input.shape === 'triangle'
       ? lengths.cutLengthMetres / 3
       : lengths.cutLengthMetres / Math.PI;
+  const triangleHeightMetres = input.shape === 'triangle' ? primaryDimensionMetres * Math.sqrt(3) / 2 : null;
+  const feedpointDistanceFromApexMetres = input.shape === 'triangle'
+    ? lengths.cutLengthMetres * (deltaFeedMode === 'vertical' ? 0.25 : 0.5)
+    : null;
   return {
     ...lengths,
     perimeterMetres: lengths.cutLengthMetres,
-    primaryDimensionMetres
+    primaryDimensionMetres,
+    deltaOrientation,
+    deltaFeedMode,
+    triangleHeightMetres,
+    feedpointDistanceFromApexMetres,
+    feedpointPerimeterFraction: input.shape === 'triangle' ? (deltaFeedMode === 'vertical' ? 0.25 : 0.5) : null,
+    feedArrangement: input.shape === 'triangle'
+      ? deltaFeedMode === 'vertical'
+        ? 'Quarter-perimeter side feed · vertical-polarization starting arrangement'
+        : 'Midpoint of horizontal side · horizontal-polarization starting arrangement'
+      : 'Feedpoint placement remains an installation choice'
   };
 }
 

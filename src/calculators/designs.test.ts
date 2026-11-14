@@ -37,17 +37,31 @@ describe('additional antenna calculators', () => {
   it('converts loop perimeter into dimensions for each supported shape', () => {
     const common = { frequencyMHz: 7.1, lengthCorrectionFactor: 1.02, trimAllowancePercent: 0 };
     const square = calculateFullWaveLoop({ ...common, shape: 'square' });
-    const triangle = calculateFullWaveLoop({ ...common, shape: 'triangle' });
+    const triangle = calculateFullWaveLoop({ ...common, shape: 'triangle', deltaOrientation: 'apex-down', deltaFeedMode: 'vertical' });
     const circle = calculateFullWaveLoop({ ...common, shape: 'circle' });
     expect(square.perimeterMetres).toBeCloseTo(43.068776, 6);
     expect(square.primaryDimensionMetres).toBeCloseTo(square.perimeterMetres / 4, 10);
     expect(triangle.primaryDimensionMetres).toBeCloseTo(triangle.perimeterMetres / 3, 10);
+    expect(triangle.triangleHeightMetres).toBeCloseTo(triangle.primaryDimensionMetres * Math.sqrt(3) / 2, 10);
+    expect(triangle.feedpointDistanceFromApexMetres).toBeCloseTo(triangle.perimeterMetres / 4, 10);
+    expect(triangle.feedpointPerimeterFraction).toBe(0.25);
+    expect(triangle.deltaOrientation).toBe('apex-down');
+    expect(triangle.feedArrangement).toContain('vertical-polarization starting arrangement');
     expect(circle.primaryDimensionMetres).toBeCloseTo(circle.perimeterMetres / Math.PI, 10);
+  });
+
+  it('defaults a delta loop to an apex-up horizontal-polarization starting arrangement', () => {
+    const result = calculateFullWaveLoop({ frequencyMHz: 14.2, lengthCorrectionFactor: 1.02, trimAllowancePercent: 2.5, shape: 'triangle' });
+    expect(result.deltaOrientation).toBe('apex-up');
+    expect(result.deltaFeedMode).toBe('horizontal');
+    expect(result.feedpointDistanceFromApexMetres).toBeCloseTo(result.perimeterMetres / 2, 12);
+    expect(result.feedArrangement).toContain('Midpoint of horizontal side');
   });
 
   it('rejects geometry outside supported limits', () => {
     expect(() => calculateInvertedV({ frequencyMHz: 7, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, includedAngleDegrees: 20 })).toThrow(RangeError);
     expect(() => calculateGroundPlane({ frequencyMHz: 7, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, radialCount: 2, radialSlopeDegrees: 45 })).toThrow(RangeError);
+    expect(() => calculateFullWaveLoop({ frequencyMHz: 7, lengthCorrectionFactor: 1.02, trimAllowancePercent: 0, shape: 'triangle', deltaFeedMode: 'diagonal' as never })).toThrow(RangeError);
   });
 
   it('calculates a ground-mounted quarter-wave vertical and radial field', () => {

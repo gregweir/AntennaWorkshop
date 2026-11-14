@@ -49,7 +49,7 @@ export const ANTENNA_DESIGNS: Record<AntennaType, AntennaDesignDefinition> = {
   'loaded-vertical': { name: 'Inductively loaded vertical', short: 'Loaded vertical', description: 'Shortened radiator · movable coil', category: 'vertical', receiveOnly: false, tags: ['shortened', 'coil', 'limited space'], guidedGoals: ['limited-space', 'vertical-footprint'] },
   'ground-mounted-vertical': { name: 'Ground-mounted quarter-wave vertical', short: 'Ground vertical', description: 'Ground-level base · radial field', category: 'vertical', receiveOnly: false, tags: ['radials', 'ground mounted', 'vertical'], guidedGoals: ['vertical-footprint'] },
   'ground-plane': { name: 'Quarter-wave ground plane', short: 'Ground plane', description: 'Elevated vertical · sloping radials', category: 'vertical', receiveOnly: false, tags: ['elevated', 'radials', 'vertical'], guidedGoals: ['vertical-footprint'] },
-  'full-wave-loop': { name: 'Full-wave wire loop', short: 'Full-wave loop', description: 'Square, triangle, or circle', category: 'loop', receiveOnly: false, tags: ['wire', 'loop', 'full wave'], guidedGoals: ['simple-wire'] }
+  'full-wave-loop': { name: 'Full-wave wire loop and delta loop', short: 'Full-wave / delta loop', description: 'Square, delta triangle, or circle', category: 'loop', receiveOnly: false, tags: ['wire', 'loop', 'full wave', 'delta', 'triangle'], guidedGoals: ['simple-wire'] }
 };
 
 export const ANTENNA_CATEGORIES: Array<{ id: 'all' | AntennaDesignCategory; label: string }> = [

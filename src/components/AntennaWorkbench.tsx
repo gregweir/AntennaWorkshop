@@ -7,7 +7,7 @@
 
 import { lazy, Suspense, useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
-import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type LoopShape } from '../calculators/designs';
+import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type DeltaLoopFeedMode, type DeltaLoopOrientation, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
 import { calculateHalfWaveDipole, HALF_WAVE_DIPOLE_MODEL } from '../calculators/dipole';
 import { calculateFoldedDipole, FOLDED_DIPOLE_MODEL } from '../calculators/foldedDipole';
@@ -34,11 +34,9 @@ import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/cata
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { DipoleDiagram } from './DipoleDiagram';
-import { FoldedDipoleDiagram } from './FoldedDipoleDiagram';
 import { EfhwDiagram } from './EfhwDiagram';
 import { GroundPlaneDiagram } from './GroundPlaneDiagram';
 import { InvertedVDiagram } from './InvertedVDiagram';
-import { LoopDiagram } from './LoopDiagram';
 import { OcfdDiagram } from './OcfdDiagram';
 import { JpoleDiagram } from './JpoleDiagram';
 import { SlimJimDiagram } from './SlimJimDiagram';
@@ -70,6 +68,8 @@ import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { ResultEvidenceBadge, ResultEvidenceGuide } from './ResultEvidenceGuide';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
+const FoldedDipoleDiagram = lazy(() => import('./FoldedDipoleDiagram').then((module) => ({ default: module.FoldedDipoleDiagram })));
+const LoopDiagram = lazy(() => import('./LoopDiagram').then((module) => ({ default: module.LoopDiagram })));
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -123,6 +123,8 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   const [radialCount, setRadialCount] = useState(4);
   const [radialSlopeDegrees, setRadialSlopeDegrees] = useState(45);
   const [loopShape, setLoopShape] = useState<LoopShape>('square');
+  const [deltaLoopOrientation, setDeltaLoopOrientation] = useState<DeltaLoopOrientation>('apex-up');
+  const [deltaLoopFeedMode, setDeltaLoopFeedMode] = useState<DeltaLoopFeedMode>('horizontal');
   const [transformerRatio, setTransformerRatio] = useState(49);
   const [estimatedEndImpedanceOhms, setEstimatedEndImpedanceOhms] = useState(2450);
   const [feedpointPercentFromEnd, setFeedpointPercentFromEnd] = useState(33.333);
@@ -249,11 +251,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
       if (antennaType === 'loaded-vertical') return { type: antennaType, value: calculateLoadedVertical({ frequencyMHz, lengthCorrectionFactor, radiatorHeightMetres: loadedVerticalHeightMetres, loadingPointFromBaseMetres: loadedVerticalCoilPositionMetres, conductorDiameterMillimetres: loadedVerticalConductorDiameterMillimetres }) } as const;
       if (antennaType === 'ground-mounted-vertical') return { type: antennaType, value: calculateGroundMountedVertical({ ...common, radialCount: groundRadialCount, radialLengthMultiplier: groundRadialLengthMultiplier }) } as const;
       if (antennaType === 'ground-plane') return { type: antennaType, value: calculateGroundPlane({ ...common, radialCount, radialSlopeDegrees }) } as const;
-      return { type: antennaType, value: calculateFullWaveLoop({ ...common, shape: loopShape }) } as const;
+      return { type: antennaType, value: calculateFullWaveLoop({ ...common, shape: loopShape, deltaOrientation: deltaLoopOrientation, deltaFeedMode: deltaLoopFeedMode }) } as const;
     } catch {
       return null;
     }
-  }, [antennaType, beverageAssumedImpedanceOhms, beverageFeedlineImpedanceOhms, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearPhasingVelocityFactor, collinearStubTrimAllowancePercent, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, disconeConeRadialCount, disconeDiscRadialCount, disconeHalfAngleDegrees, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, helixCircumferenceWavelengths, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, includedAngleDegrees, jpoleTapPercent, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadElementSpacingWavelengths, radialCount, radialSlopeDegrees, slimJimGapPercent, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
+  }, [antennaType, beverageAssumedImpedanceOhms, beverageFeedlineImpedanceOhms, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearPhasingVelocityFactor, collinearStubTrimAllowancePercent, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, deltaLoopFeedMode, deltaLoopOrientation, disconeConeRadialCount, disconeDiscRadialCount, disconeHalfAngleDegrees, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, helixCircumferenceWavelengths, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, includedAngleDegrees, jpoleTapPercent, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadElementSpacingWavelengths, radialCount, radialSlopeDegrees, slimJimGapPercent, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
 
   const model = antennaType === 'dipole'
     ? HALF_WAVE_DIPOLE_MODEL
@@ -680,9 +682,9 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
 
       {antennaType === 'full-wave-loop' && <StepByStepHelp title="Build and tune a full-wave loop" intro="Use this sequence to preserve the calculated perimeter while choosing a practical installed shape, plane, and feed arrangement. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the installed plane', detail: 'Decide whether the loop will be vertical, horizontal, or sloped and plan supports, height, orientation, clearances, and feedline routing.' },
-        { title: 'Choose a practical shape', detail: 'Use a square, triangle, or circle as the starting geometry while recognizing that distortion changes impedance and pattern.' },
+        { title: 'Choose a practical shape', detail: 'Use a square, circle, or equilateral delta loop as the starting geometry while recognizing that distortion changes impedance and pattern.' },
         { title: 'Cut the complete perimeter long', detail: 'Retain the selected trim allowance and mark support and feedpoint locations without changing the total conductor length.' },
-        { title: 'Prepare the feed arrangement', detail: 'Choose a feedpoint and balanced feed, matching, and common-mode-control approach appropriate to the desired bands and installed geometry.' },
+        { title: 'Prepare the feed arrangement', detail: loopShape === 'triangle' ? 'Use the selected midpoint or quarter-perimeter delta-loop feed location as a polarization starting arrangement, then provide a balanced transition, matching as measured, and common-mode control.' : 'Choose a feedpoint and balanced feed, matching, and common-mode-control approach appropriate to the desired bands and installed geometry.' },
         { title: 'Install before measuring', detail: 'Raise and close the complete loop in its intended shape and plane before judging resonance or impedance.' },
         { title: 'Tune the perimeter evenly', detail: 'Use low analyser power, make small distributed or symmetrical length changes, preserve the intended shape, and remeasure each intended band.' }
       ]} limit="This calculator does not predict feedpoint impedance, matching ratio, bandwidth, multiband response, losses, common-mode current, or the installed radiation pattern." />}
@@ -911,6 +913,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
             </select>
             <small>Perimeter stays constant; this converts it into equal sides or a diameter.</small>
           </div>}
+          {antennaType === 'full-wave-loop' && loopShape === 'triangle' && <fieldset className="delta-loop-controls">
+            <legend>Delta-loop installation</legend>
+            <label className="field"><span>Triangle orientation</span><select aria-label="Delta-loop orientation" value={deltaLoopOrientation} onChange={(event) => setDeltaLoopOrientation(event.target.value as DeltaLoopOrientation)}><option value="apex-up">Apex up</option><option value="apex-down">Apex down</option></select><small>Choose the support arrangement the drawing should follow; the ideal span and height remain the same.</small></label>
+            <label className="field"><span className="field-label-with-help"><span>Feed placement goal</span><HelpTip label="Delta-loop feed placement">For a vertically installed loop, an ARRL example places the feed one-quarter wavelength from the apex for a vertical-polarization arrangement. Feeding the midpoint of a horizontal wire is the conventional horizontal-polarization arrangement. Ground, height, distortion, feedline routing, and common-mode current can change the installed result.</HelpTip></span><select aria-label="Delta-loop feed placement goal" value={deltaLoopFeedMode} onChange={(event) => setDeltaLoopFeedMode(event.target.value as DeltaLoopFeedMode)}><option value="horizontal">Horizontal-polarization starting arrangement</option><option value="vertical">Vertical-polarization starting arrangement</option></select><small>This selects a construction starting point, not a prediction of the installed polarization or pattern.</small></label>
+          </fieldset>}
 
           {advancedOpen && antennaType !== 'moxon' && antennaType !== 'yagi' && antennaType !== 'small-loop' && antennaType !== 'g5rv' && antennaType !== 'cubical-quad' && antennaType !== 'axial-helix' && antennaType !== 'discone' && antennaType !== 'log-periodic' && antennaType !== 'beverage' && antennaType !== 'compact-receive' && antennaType !== 'k9ay' && antennaType !== 'loop-on-ground' && antennaType !== 'active-receive-loop' && <div className="advanced-fields">
             {antennaType === 'efhw' && <NumberField label="Estimated antenna end impedance" tooltip="This value is a planning assumption used only to show nominal transformed resistance. A real feedpoint also has reactance and changes with height, wire shape, ground, nearby objects, return path, frequency, and loss." value={estimatedEndImpedanceOhms} min={200} max={20000} step={50} unit="Ω" help="A planning assumption only: deployment height, geometry, surroundings, and return path can move this value substantially." onChange={setEstimatedEndImpedanceOhms} />}
@@ -976,7 +983,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         <div className="visual-panel" id="design-drawing">
           <div className="antenna-print-diagram">
           {calculation?.type === 'dipole' && <DipoleDiagram totalMetres={calculation.value.cutTotalMetres} legMetres={calculation.value.cutLegMetres} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
-          {calculation?.type === 'folded-dipole' && <FoldedDipoleDiagram spanMetres={calculation.value.cutSpanMetres} spacingMetres={calculation.value.conductorSpacingMetres} unitSystem={unitSystem} />}
+          {calculation?.type === 'folded-dipole' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading folded-dipole drawing…</div>}><FoldedDipoleDiagram spanMetres={calculation.value.cutSpanMetres} spacingMetres={calculation.value.conductorSpacingMetres} unitSystem={unitSystem} /></Suspense>}
           {calculation?.type === 'fan-dipole' && <FanDipoleDiagram elements={calculation.value.elements} unitSystem={unitSystem} />}
           {calculation?.type === 'doublet' && <DoubletDiagram legMetres={calculation.value.cutLegMetres} totalMetres={calculation.value.cutTotalMetres} feedlineMetres={calculation.value.balancedLineLengthMetres} feedlineImpedanceOhms={calculation.value.balancedLineImpedanceOhms} unitSystem={unitSystem} />}
           {calculation?.type === 'g5rv' && <G5rvDiagram presetLabel={calculation.value.presetLabel} radiatorMetres={calculation.value.radiatorLengthMetres} legMetres={calculation.value.legLengthMetres} matchingSectionMetres={calculation.value.matchingSectionPhysicalLengthMetres} matchingSectionImpedanceOhms={calculation.value.matchingSectionImpedanceOhms} unitSystem={unitSystem} />}
@@ -1003,7 +1010,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {calculation?.type === 'loaded-vertical' && <LoadedVerticalDiagram radiatorHeightMetres={calculation.value.radiatorHeightMetres} loadingPointFromBaseMetres={calculation.value.loadingPointFromBaseMetres} inductanceMicrohenries={calculation.value.inductanceMicrohenries} unitSystem={unitSystem} />}
           {calculation?.type === 'ground-mounted-vertical' && <GroundMountedVerticalDiagram radiatorMetres={calculation.value.radiatorMetres} radialMetres={calculation.value.radialMetres} radialFieldDiameterMetres={calculation.value.radialFieldDiameterMetres} radialCount={groundRadialCount} unitSystem={unitSystem} />}
           {calculation?.type === 'ground-plane' && <GroundPlaneDiagram radiatorMetres={calculation.value.radiatorMetres} radialMetres={calculation.value.radialMetres} footprintDiameterMetres={calculation.value.footprintDiameterMetres} radialCount={radialCount} slopeDegrees={radialSlopeDegrees} unitSystem={unitSystem} />}
-          {calculation?.type === 'full-wave-loop' && <LoopDiagram perimeterMetres={calculation.value.perimeterMetres} primaryDimensionMetres={calculation.value.primaryDimensionMetres} shape={loopShape} unitSystem={unitSystem} />}
+          {calculation?.type === 'full-wave-loop' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading loop drawing…</div>}><LoopDiagram perimeterMetres={calculation.value.perimeterMetres} primaryDimensionMetres={calculation.value.primaryDimensionMetres} shape={loopShape} unitSystem={unitSystem} deltaOrientation={calculation.value.deltaOrientation} deltaFeedMode={calculation.value.deltaFeedMode} triangleHeightMetres={calculation.value.triangleHeightMetres} feedpointDistanceFromApexMetres={calculation.value.feedpointDistanceFromApexMetres} /></Suspense>}
           {!calculation && <div className="diagram-placeholder">The construction drawing will appear when the inputs are valid.</div>}
           </div>
         </div>
@@ -1099,6 +1106,12 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           <p className="formula">Zfolded ≈ 4 × Zdipole</p>
           <p>Equal current division in two equal conductors gives the familiar four-times resistance relationship. With the entered {calculation.value.assumedSingleDipoleResistanceOhms.toFixed(1)} Ω reference, the nominal folded value is {calculation.value.nominalFoldedResistanceOhms.toFixed(1)} Ω. Real spacing, diameter, insulation, end connections, feed gap, height, ground, surroundings, and reactance require modelling or measurement.</p>
         </article>}
+        {calculation.type === 'full-wave-loop' && loopShape === 'triangle' && <article>
+          <p className="eyebrow">Delta-loop geometry</p>
+          <h3>One perimeter, three equal sides</h3>
+          <p className="formula">side = perimeter ÷ 3 · ideal height = side × √3 ÷ 2</p>
+          <p>The feed marker follows the selected vertical-loop starting arrangement. The quarter-perimeter side location is measured along the conductor from the apex; the horizontal arrangement is at the midpoint of the horizontal side. Preserve the complete perimeter when changing orientation.</p>
+        </article>}
         {calculation.type === 'efhw' && <article className="caution-card">
           <p className="eyebrow">EFHW safety and installation</p>
           <h3>High voltage does not mean no return current</h3>
@@ -1108,6 +1121,11 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           <p className="eyebrow">Folded-dipole feed system</p>
           <h3>A nominal ratio is not a transformer design</h3>
           <p>The displayed impedance and turns ratios compare real-resistance assumptions only. Select a documented balanced transformer or balanced line for the measured complex impedance, frequency range, power, voltage, current, loss, and environment. Provide suitable common-mode control and verify heating and SWR across the complete operating band.</p>
+        </article>}
+        {calculation.type === 'full-wave-loop' && loopShape === 'triangle' && <article className="caution-card">
+          <p className="eyebrow">Delta-loop polarization and matching</p>
+          <h3>Feed placement is a starting arrangement, not a field prediction</h3>
+          <p>The cited feed locations assume a vertical, symmetrical loop. Height, ground, unequal sides, sag, nearby conductors, feedline routing, the balanced transition, and common-mode current can alter polarization, impedance, and pattern. Measure the installed complex impedance, control feedline current, and model or verify the far-field result when polarization or direction matters.</p>
         </article>}
         {calculation.type === 'ocfd' && <article className="caution-card">
           <p className="eyebrow">OCFD matching and balance</p>
@@ -1404,8 +1422,9 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape, onPrin
     headline = 'Cut radiator and radials'; primary = `${formatLength(calculation.value.radiatorMetres, unitSystem)} each`;
     details = [[`${radialCount} radial wires`, formatLength(calculation.value.totalRadialWireMetres, unitSystem)], ['Footprint diameter', formatLength(calculation.value.footprintDiameterMetres, unitSystem)]];
   } else {
-    headline = 'Cut one continuous loop'; primary = formatLength(calculation.value.perimeterMetres, unitSystem);
+    headline = loopShape === 'triangle' ? 'Cut one continuous delta loop' : 'Cut one continuous loop'; primary = formatLength(calculation.value.perimeterMetres, unitSystem);
     details = [[loopShape === 'circle' ? 'Diameter' : 'Each side', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Resonant perimeter', formatLength(calculation.value.resonantLengthMetres, unitSystem)]];
+    if (loopShape === 'triangle' && calculation.value.triangleHeightMetres !== null && calculation.value.feedpointDistanceFromApexMetres !== null) details.push(['Ideal support span', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Ideal triangle height', formatLength(calculation.value.triangleHeightMetres, unitSystem)], ['Selected orientation', calculation.value.deltaOrientation === 'apex-up' ? 'Apex up' : 'Apex down'], ['Published feed arrangement', calculation.value.feedArrangement], ['Feedpoint along wire from apex', formatLength(calculation.value.feedpointDistanceFromApexMetres, unitSystem)], ['Installed impedance, polarization, and pattern', 'Not inferred · model and measure']);
   }
   details.push([calculation.type === 'trap-dipole' ? 'Lower-band free-space wavelength' : calculation.type === 'small-loop' || calculation.type === 'log-periodic' || calculation.type === 'active-receive-loop' ? 'Lower-edge free-space wavelength' : calculation.type === 'fan-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
   const classified = details.map(([term, value]) => ({ term, value, kind: classifyResultEvidence(term, value) }));

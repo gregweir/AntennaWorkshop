@@ -1005,7 +1005,22 @@ test('switches among graphical antenna designs and updates construction results'
   await page.getByLabel('Help: Radial slope below horizontal').click();
   await expect(page.getByRole('note').filter({ hasText: 'Radial slope below horizontal' })).toContainText('actual result depends on the complete installation');
 
-  await selectAntenna(/Full-wave loop/);
+  await selectAntenna(/Full-wave/);
+  await page.getByLabel('Loop shape', { exact: true }).selectOption('triangle');
+  await expect(page.getByRole('heading', { name: 'Full-wave wire loop and delta loop' })).toBeVisible();
+  await expect(page.getByLabel('Delta-loop orientation')).toHaveValue('apex-up');
+  await expect(page.getByLabel('Delta-loop feed placement goal')).toHaveValue('horizontal');
+  await expect(page.getByRole('img', { name: /Dimensioned full-wave triangle delta loop/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Cut one continuous delta loop');
+  await expect(page.locator('.result-summary')).toContainText('Ideal triangle height');
+  await expect(page.locator('.result-summary')).toContainText('Midpoint of horizontal side');
+  await page.getByLabel('Delta-loop orientation').selectOption('apex-down');
+  await page.getByLabel('Delta-loop feed placement goal').selectOption('vertical');
+  await expect(page.locator('.result-summary')).toContainText('Quarter-perimeter side feed');
+  await expect(page.locator('.result-summary')).toContainText('Not inferred · model and measure');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Delta-loop polarization and matching' })).toContainText('not a field prediction');
+  await page.getByLabel('Help: Delta-loop feed placement').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Delta-loop feed placement' })).toContainText('one-quarter wavelength from the apex');
   await page.getByLabel('Loop shape', { exact: true }).selectOption('circle');
   await expect(page.getByRole('img', { name: /Dimensioned full-wave circle loop/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Diameter');
