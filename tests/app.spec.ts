@@ -779,6 +779,10 @@ test('plans an axial-mode helix and separates dimensions from classical estimate
   await expect(page.getByRole('spinbutton', { name: 'Pitch angle' })).toHaveValue('12.5');
   await expect(page.getByRole('spinbutton', { name: 'Number of turns' })).toHaveValue('6');
   await expect(page.getByRole('spinbutton', { name: 'Ground-plane diameter' })).toHaveValue('0.8');
+  await expect(page.getByRole('spinbutton', { name: 'Conductor diameter or tape width' })).toHaveValue('6.35');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum diameter error' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Maximum turn-spacing error' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Feedline reference impedance' })).toHaveValue('50');
   await expect(page.getByLabel('Helix winding and polarization', { exact: true })).toHaveValue('right');
   await expect(page.getByRole('img', { name: /Dimensioned axial-mode helical antenna/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('Wind 6 uniform axial-mode turns');
@@ -788,7 +792,14 @@ test('plans an axial-mode helix and separates dimensions from classical estimate
   await expect(page.locator('.result-summary')).toContainText('Helix conductor with allowance4.341 m');
   await expect(page.locator('.result-summary')).toContainText('Classical half-power beamwidth estimate45.1°');
   await expect(page.locator('.result-summary')).toContainText('Classical gain estimate11.2 dBi');
+  await expect(page.locator('.result-summary')).toContainText('Resistive-only SWR reference2.80 : 1 · not a measured match');
   await expect(page.locator('.helix-polarization')).toContainText('Right-handed winding · RHCP');
+  await expect(page.getByRole('heading', { name: 'Control the winding before developing the match' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Axial-mode helix feed transition concept' })).toBeVisible();
+  await expect(page.locator('.helix-turn-schedule tbody tr')).toHaveCount(6);
+  await expect(page.locator('.helix-construction-panel')).toContainText('Worst-case axial stack');
+  await expect(page.locator('.helix-construction-panel')).toContainText('1.2 cm');
+  await expect(page.locator('.helix-feed-limit')).toContainText('No vane dimensions are inferred');
   await expect(page.getByRole('complementary', { name: 'Helix design advisories' })).toHaveCount(0);
 
   await expect(page.getByText('Choose polarization before winding')).toBeHidden();
@@ -799,6 +810,9 @@ test('plans an axial-mode helix and separates dimensions from classical estimate
 
   await page.getByRole('spinbutton', { name: 'Number of turns' }).fill('8');
   await expect(page.locator('.result-summary')).toContainText('Wind 8 uniform axial-mode turns');
+  await expect(page.locator('.helix-turn-schedule tbody tr')).toHaveCount(8);
+  await page.getByRole('spinbutton', { name: 'Feedline reference impedance' }).fill('75');
+  await expect(page.locator('.helix-feed-workflow')).toContainText('1.87 : 1');
   await page.getByRole('spinbutton', { name: 'Turn circumference' }).fill('0.8');
   await expect(page.getByRole('complementary', { name: 'Helix design advisories' })).toContainText('outside the narrower 0.9–1.1 λ starting region');
   await page.getByLabel('Helix winding and polarization', { exact: true }).selectOption('left');

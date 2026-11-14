@@ -14,7 +14,11 @@ const referenceInput = {
   pitchAngleDegrees: 12.5,
   turnCount: 6,
   groundPlaneWavelengths: 0.8,
-  trimAllowancePercent: 2.5
+  trimAllowancePercent: 2.5,
+  conductorWidthMillimetres: 6.35,
+  diameterToleranceMillimetres: 2,
+  turnSpacingToleranceMillimetres: 2,
+  feedlineImpedanceOhms: 50
 };
 
 describe('calculateAxialModeHelix', () => {
@@ -31,7 +35,29 @@ describe('calculateAxialModeHelix', () => {
     expect(result.estimatedHalfPowerBeamwidthDegrees).toBeCloseTo(52 / Math.sqrt(6 * Math.tan(12.5 * Math.PI / 180)), 12);
     expect(result.estimatedTerminalResistanceOhms).toBe(140);
     expect(result.estimatedAxialRatio).toBeCloseTo(13 / 12, 12);
+    expect(result.conductorWidthWavelengths).toBeCloseTo(0.00635 / result.wavelengthMetres, 12);
+    expect(result.estimatedTerminalToFeedlineRatio).toBeCloseTo(2.8, 12);
+    expect(result.estimatedResistiveOnlySwr).toBeCloseTo(2.8, 12);
     expect(result.warnings).toEqual([]);
+  });
+
+  it('creates a turn-by-turn fabrication schedule and tolerance worksheet', () => {
+    const result = calculateAxialModeHelix(referenceInput);
+
+    expect(result.turnSchedule).toHaveLength(6);
+    expect(result.turnSchedule[0]).toEqual({
+      turnNumber: 1,
+      startAxialMetres: 0,
+      endAxialMetres: result.turnSpacingMetres,
+      startConductorMetres: 0,
+      endConductorMetres: result.conductorPerTurnMetres
+    });
+    expect(result.turnSchedule.at(-1)?.endAxialMetres).toBeCloseTo(result.axialLengthMetres, 12);
+    expect(result.turnSchedule.at(-1)?.endConductorMetres).toBeCloseTo(result.designConductorLengthMetres, 12);
+    expect(result.diameterTolerancePercent).toBeCloseTo(0.002 / result.diameterMetres * 100, 12);
+    expect(result.circumferenceChangeAtDiameterToleranceMetres).toBeCloseTo(Math.PI * 0.002, 12);
+    expect(result.turnSpacingTolerancePercent).toBeCloseTo(0.002 / result.turnSpacingMetres * 100, 12);
+    expect(result.worstCaseAxialStackErrorMetres).toBeCloseTo(0.012, 12);
   });
 
   it('keeps winding geometry coupled when circumference or pitch changes', () => {
@@ -60,11 +86,23 @@ describe('calculateAxialModeHelix', () => {
     expect(() => calculateAxialModeHelix({ ...referenceInput, turnCount: 6.5 })).toThrow('whole number');
     expect(() => calculateAxialModeHelix({ ...referenceInput, groundPlaneWavelengths: 3.1 })).toThrow(RangeError);
     expect(() => calculateAxialModeHelix({ ...referenceInput, trimAllowancePercent: 26 })).toThrow(RangeError);
+    expect(() => calculateAxialModeHelix({ ...referenceInput, conductorWidthMillimetres: 0 })).toThrow(RangeError);
+    expect(() => calculateAxialModeHelix({ ...referenceInput, diameterToleranceMillimetres: -1 })).toThrow(RangeError);
+    expect(() => calculateAxialModeHelix({ ...referenceInput, turnSpacingToleranceMillimetres: Number.NaN })).toThrow(RangeError);
+    expect(() => calculateAxialModeHelix({ ...referenceInput, feedlineImpedanceOhms: 0 })).toThrow(RangeError);
+  });
+
+  it('warns about physically conflicting fabrication entries', () => {
+    const result = calculateAxialModeHelix({ ...referenceInput, conductorWidthMillimetres: 200, diameterToleranceMillimetres: 300, turnSpacingToleranceMillimetres: 200 });
+
+    expect(result.warnings.join(' ')).toContain('equals or exceeds the centre-to-centre turn spacing');
+    expect(result.warnings.join(' ')).toContain('equals or exceeds the helix diameter');
+    expect(result.warnings.join(' ')).toContain('equals or exceeds the target spacing');
   });
 
   it('preserves source provenance', () => {
     expect(AXIAL_MODE_HELIX_MODEL.id).toBe('nasa-axial-mode-helix');
-    expect(AXIAL_MODE_HELIX_MODEL.reviewedOn).toBe('2026-11-13');
+    expect(AXIAL_MODE_HELIX_MODEL.reviewedOn).toBe('2026-11-14');
     expect(AXIAL_MODE_HELIX_MODEL.sources).toHaveLength(3);
     expect(AXIAL_MODE_HELIX_MODEL.sources.every((source) => source.url.startsWith('https://ntrs.nasa.gov/'))).toBe(true);
   });
