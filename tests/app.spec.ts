@@ -102,7 +102,11 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   const dipoleCard = page.getByRole('button', { name: /Dipole/ });
   await expect(dipoleCard).toContainText('Wire');
   await expect(dipoleCard).toContainText('Transmit-capable geometry');
+  await page.reload();
+  await expect(page.getByRole('searchbox', { name: 'Search designs' })).toBeVisible();
   await page.getByRole('tab', { name: /Guided/ }).click();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
   await expect(page.getByLabel('Guided antenna choice step 1 of 3')).toBeVisible();
 
   await page.getByRole('button', { name: /Dedicated receiving/ }).click();
