@@ -87,6 +87,25 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByText('27 of 27 designs')).toBeVisible();
 });
 
+test('separates build dimensions, assumptions, references, and field verification', async ({ page }) => {
+  await expect(page.getByRole('heading', { name: 'Know what the number means before cutting' })).toBeVisible();
+  await expect(page.locator('.result-evidence-guide')).toContainText('Calculated');
+  await expect(page.locator('.result-evidence-guide')).toContainText('Published starting point');
+  await expect(page.locator('.result-evidence-guide')).toContainText('Entered assumption');
+  await expect(page.locator('.result-evidence-guide')).toContainText('Must measure');
+  await expect(page.getByRole('heading', { name: 'Build dimensions' })).toBeVisible();
+  await expect(page.locator('.result-supporting-details')).not.toHaveAttribute('open');
+  await page.locator('.result-supporting-details summary').click();
+  await expect(page.locator('[data-evidence="calculated"]').filter({ hasText: 'Free-space wavelength' })).toBeVisible();
+
+  await page.getByRole('button', { name: /Discone/ }).click();
+  await expect(page.getByRole('heading', { name: 'Verify on the finished build' })).toBeVisible();
+  await expect(page.locator('[data-evidence="measure"]')).toContainText('Upper-frequency limit');
+  await expect(page.locator('[data-evidence="measure"] .result-evidence-badge')).toHaveText('Must measure');
+  await expect(page.locator('[data-evidence="source"]').filter({ hasText: 'Source cone-slant ratio' })).toBeVisible();
+  await expect(page.locator('[data-evidence="assumption"]').filter({ hasText: 'Cone included angle' })).toBeVisible();
+});
+
 test('builds a guided multiband fan dipole and exposes Australian bands', async ({ page }) => {
   await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
   await page.locator('select.band-select').selectOption('80m');

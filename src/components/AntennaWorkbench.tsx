@@ -26,6 +26,7 @@ import { calculateLoopOnGround, LOOP_ON_GROUND_MODEL } from '../calculators/loop
 import { calculateActiveReceiveLoop, ACTIVE_RECEIVE_LOOP_MODEL } from '../calculators/activeReceiveLoop';
 import type { ReceiveAntennaCandidate } from '../calculators/receiveAntennaSelector';
 import { ANTENNA_DESIGNS, type AntennaType } from '../lib/antennaDesignCatalog';
+import { classifyResultEvidence, isSupportingResult, type ResultEvidenceKind } from '../lib/resultEvidence';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
@@ -62,6 +63,7 @@ import { ActiveReceiveLoopDiagram } from './ActiveReceiveLoopDiagram';
 import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
 import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
+import { ResultEvidenceBadge, ResultEvidenceGuide } from './ResultEvidenceGuide';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -876,7 +878,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           </div>}
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
-          {calculation && <ResultSummary calculation={calculation} unitSystem={unitSystem} radialCount={radialCount} loopShape={loopShape} />}
+          {calculation && <><ResultEvidenceGuide /><ResultSummary calculation={calculation} unitSystem={unitSystem} radialCount={radialCount} loopShape={loopShape} /></>}
           {calculation?.type === 'axial-helix' && calculation.value.warnings.length > 0 && <aside className="model-note helix-advisory" aria-label="Helix design advisories"><strong>Review these design choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'discone' && calculation.value.warnings.length > 0 && <aside className="model-note discone-advisory" aria-label="Discone design advisories"><strong>Review these construction choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'log-periodic' && calculation.value.warnings.length > 0 && <aside className="model-note lpda-advisory" aria-label="Log-periodic design advisories"><strong>Review these design choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
@@ -1285,7 +1287,21 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { ca
     details = [[loopShape === 'circle' ? 'Diameter' : 'Each side', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Resonant perimeter', formatLength(calculation.value.resonantLengthMetres, unitSystem)]];
   }
   details.push([calculation.type === 'trap-dipole' ? 'Lower-band free-space wavelength' : calculation.type === 'small-loop' || calculation.type === 'log-periodic' || calculation.type === 'active-receive-loop' ? 'Lower-edge free-space wavelength' : calculation.type === 'fan-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
-  return <div className="result-summary" aria-live="polite"><p>{headline}</p><strong>{primary}</strong><dl>{details.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}</dl></div>;
+  const classified = details.map(([term, value]) => ({ term, value, kind: classifyResultEvidence(term, value) }));
+  const buildResults = classified.filter(({ kind, term }) => kind === 'calculated' && !isSupportingResult(term));
+  const supportingResults = classified.filter(({ kind, term }) => kind === 'calculated' && isSupportingResult(term));
+  const contextResults = classified.filter(({ kind }) => kind === 'source' || kind === 'assumption');
+  const measurementResults = classified.filter(({ kind }) => kind === 'measure');
+  const renderRows = (rows: Array<{ term: string; value: string; kind: ResultEvidenceKind }>) => <dl>{rows.map(({ term, value, kind }) => <div key={term} data-evidence={kind}><dt>{term}</dt><dd>{value}</dd><ResultEvidenceBadge kind={kind} /></div>)}</dl>;
+
+  return <div className="result-summary" aria-live="polite">
+    <p>{headline}</p>
+    <strong>{primary}</strong>
+    <ResultEvidenceBadge kind="calculated" />
+    {buildResults.length > 0 && <section className="result-priority-group" aria-labelledby="build-dimensions-heading"><h4 id="build-dimensions-heading">Build dimensions</h4>{renderRows(buildResults)}</section>}
+    {measurementResults.length > 0 && <section className="result-priority-group result-verification-group" aria-labelledby="verify-results-heading"><h4 id="verify-results-heading">Verify on the finished build</h4>{renderRows(measurementResults)}</section>}
+    {(supportingResults.length > 0 || contextResults.length > 0) && <details className="result-supporting-details"><summary>Inputs, references, and supporting calculations ({supportingResults.length + contextResults.length})</summary>{renderRows([...contextResults, ...supportingResults])}</details>}
+  </div>;
 }
 
 function HarmonicBands({ frequencies, jurisdiction }: { frequencies: Array<{ multiple: number; frequencyMHz: number }>; jurisdiction: JurisdictionCode }) {
