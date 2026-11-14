@@ -14,7 +14,9 @@ const example = {
   radiatorCorrectionFactor: 0.95,
   radiatorTrimAllowancePercent: 2.5,
   phasingLineVelocityFactor: 0.95,
-  phasingStubTrimAllowancePercent: 2.5
+  phasingStubTrimAllowancePercent: 2.5,
+  phasingStubLengthToleranceMillimetres: 5,
+  maximumJunctionPhaseErrorDegrees: 5
 };
 
 describe('phased wire collinear planner', () => {
@@ -27,10 +29,33 @@ describe('phased wire collinear planner', () => {
     expect(result.resonantPhasingStubPhysicalLengthMetres).toBeCloseTo(result.wavelengthMetres * 0.25 * 0.95, 12);
     expect(result.cutPhasingStubPhysicalLengthMetres).toBeCloseTo(result.resonantPhasingStubPhysicalLengthMetres * 1.025, 12);
     expect(result.phasingStubCount).toBe(3);
-    expect(result.radiatingSpanMetres).toBeCloseTo(result.cutRadiatorSectionMetres * 4, 12);
-    expect(result.minimumConductorMetres).toBeCloseTo(result.radiatingSpanMetres + result.cutPhasingStubPhysicalLengthMetres * 6, 12);
+    expect(result.radiatingSpanMetres).toBeCloseTo(result.resonantRadiatorSectionMetres * 4, 12);
+    expect(result.totalRadiatorWireMetres).toBeCloseTo(result.cutRadiatorSectionMetres * 4, 12);
+    expect(result.minimumConductorMetres).toBeCloseTo(result.totalRadiatorWireMetres + result.cutPhasingStubPhysicalLengthMetres * 6, 12);
     expect(result.feedModeReference).toBe('Balanced voltage feed');
     expect(result.feedImpedanceReference).toBe('QST reference: over 1000 Ω');
+  });
+
+  it('translates finished stub tolerance into junction and end-to-end phase error', () => {
+    const result = calculatePhasedWireCollinear(example);
+    const expectedJunctionError = 720 * 0.005 / (result.wavelengthMetres * example.phasingLineVelocityFactor);
+
+    expect(result.junctionPhaseReversalErrorDegrees).toBeCloseTo(expectedJunctionError, 12);
+    expect(result.systematicEndToEndPhaseErrorDegrees).toBeCloseTo(expectedJunctionError * 3, 12);
+    expect(result.maximumStubLengthErrorMetres).toBeCloseTo(5 * result.phasingLineWavelengthMetres / 720, 12);
+    expect(result.toleranceWithinPhaseBudget).toBe(true);
+    expect(result.radiatorSchedule).toHaveLength(4);
+    expect(result.radiatorSchedule[3].endMetres).toBeCloseTo(result.radiatingSpanMetres, 12);
+    expect(result.stubSchedule).toHaveLength(3);
+    expect(result.stubSchedule[1].positionMetres).toBeCloseTo(result.resonantRadiatorSectionMetres * 2, 12);
+    expect(result.stubSchedule[0].nominalRoundTripPhaseDegrees).toBe(180);
+  });
+
+  it('warns when the entered construction tolerance exceeds the phase budget', () => {
+    const result = calculatePhasedWireCollinear({ ...example, phasingStubLengthToleranceMillimetres: 200, maximumJunctionPhaseErrorDegrees: 5 });
+
+    expect(result.toleranceWithinPhaseBudget).toBe(false);
+    expect(result.warnings).toContain('The entered finished-stub length tolerance exceeds the selected per-junction phase-error budget.');
   });
 
   it('preserves the element and stub count boundaries', () => {
@@ -56,11 +81,13 @@ describe('phased wire collinear planner', () => {
     expect(() => calculatePhasedWireCollinear({ ...example, radiatorCorrectionFactor: 1.01 })).toThrow(RangeError);
     expect(() => calculatePhasedWireCollinear({ ...example, phasingLineVelocityFactor: 0.49 })).toThrow(RangeError);
     expect(() => calculatePhasedWireCollinear({ ...example, phasingStubTrimAllowancePercent: 26 })).toThrow(RangeError);
+    expect(() => calculatePhasedWireCollinear({ ...example, phasingStubLengthToleranceMillimetres: -1 })).toThrow(RangeError);
+    expect(() => calculatePhasedWireCollinear({ ...example, maximumJunctionPhaseErrorDegrees: 0 })).toThrow(RangeError);
   });
 
   it('retains source provenance and a review date', () => {
     expect(PHASED_WIRE_COLLINEAR_MODEL.id).toBe('half-wave-phased-wire-collinear');
     expect(PHASED_WIRE_COLLINEAR_MODEL.reviewedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(PHASED_WIRE_COLLINEAR_MODEL.sources).toHaveLength(2);
+    expect(PHASED_WIRE_COLLINEAR_MODEL.sources).toHaveLength(3);
   });
 });

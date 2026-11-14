@@ -43,10 +43,10 @@ export function PhasedWireCollinearDiagram({ elementCount, radiatingSpanMetres, 
         {junctions.map((x, index) => <path key={index} d={`M${x - 8} ${top} V258 Q${x - 8} 270 ${x} 270 Q${x + 8} 270 ${x + 8} 258 V${top}`} />)}
       </g>
       <g className="collinear-junctions">{junctions.map((x, index) => <g key={index}><circle cx={x - 8} cy={top} r="4" /><circle cx={x + 8} cy={top} r="4" /></g>)}</g>
-      <text className="diagram-caption" x={left + sectionWidth / 2} y="121" textAnchor="middle">Each radiator · {formatLength(radiatorSectionMetres, unitSystem)}</text>
-      <text className="diagram-caption" x="380" y="302" textAnchor="middle">Each shorted two-conductor stub · {formatLength(phasingStubMetres, unitSystem)} one-way</text>
+      <text className="diagram-caption" x={left + sectionWidth / 2} y="121" textAnchor="middle">Each finished radiator target · {formatLength(radiatorSectionMetres, unitSystem)}</text>
+      <text className="diagram-caption" x="380" y="302" textAnchor="middle">Each finished shorted stub target · {formatLength(phasingStubMetres, unitSystem)} one-way</text>
       <g className="collinear-feed-note"><rect x="205" y="330" width="350" height="48" rx="10" /><text x="380" y="350" textAnchor="middle">QST reference · {feedModeReference.toLowerCase()}</text><text x="380" y="368" textAnchor="middle">Feed location and matching network are not dimensioned</text></g>
     </svg>
-    <figcaption>Construction sequence · Stub depth is schematic; preserve equal radiator sections and equal electrically quarter-wave stubs. The feed class is source context only; feedpoint, matching, supports, pattern, and gain require separate design and verification.</figcaption>
+    <figcaption>Finished target geometry · Cut lengths and trim reserve are listed separately below. Stub depth is schematic; preserve equal radiator sections and equal electrically quarter-wave stubs. The feed class is source context only; feedpoint, matching, supports, pattern, and gain require separate design and verification.</figcaption>
   </figure>;
 }

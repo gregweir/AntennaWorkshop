@@ -683,9 +683,16 @@ test('plans an equal-section phased wire collinear without inventing gain or mat
   await expect(page.locator('.collinear-stubs path')).toHaveCount(3);
   await expect(page.locator('.result-summary')).toContainText('Build 4 equal half-wave radiator sections');
   await expect(page.locator('.result-summary')).toContainText('10.279 m each');
-  await expect(page.locator('.result-summary')).toContainText('41.116 m');
+  await expect(page.locator('.result-summary')).toContainText('40.113 m');
   await expect(page.locator('.visual-panel')).toContainText('QST reference · balanced voltage feed');
   await expect(page.locator('.result-summary')).toContainText('QST reference: over 1000 Ω');
+  await expect(page.getByRole('spinbutton', { name: 'Finished stub length tolerance' })).toHaveValue('5');
+  await expect(page.getByRole('spinbutton', { name: 'Per-junction phase-error budget' })).toHaveValue('5');
+  await expect(page.getByRole('heading', { name: 'Stub phase commissioning' })).toBeVisible();
+  await expect(page.locator('.collinear-commissioning')).toContainText('Within selected phase budget');
+  await expect(page.locator('.collinear-commissioning')).toContainText('Possible error per junction');
+  await expect(page.locator('.collinear-schedule-card').first()).toContainText('R4');
+  await expect(page.locator('.collinear-schedule-card').last()).toContainText('S3');
 
   await expect(page.getByText('Establish the electrical half wave')).toBeHidden();
   await page.getByText('Build and commission a phased wire collinear').click();
@@ -701,6 +708,9 @@ test('plans an equal-section phased wire collinear without inventing gain or mat
   await page.getByRole('spinbutton', { name: 'Radiating half-wave sections' }).fill('3');
   await expect(page.locator('.result-summary')).toContainText('Balanced current feed');
   await expect(page.locator('.result-summary')).toContainText('QST reference: slightly over 300 Ω');
+  await page.getByRole('spinbutton', { name: 'Finished stub length tolerance' }).fill('200');
+  await expect(page.locator('.collinear-commissioning')).toContainText('Revise the stub tolerance');
+  await page.getByRole('spinbutton', { name: 'Finished stub length tolerance' }).fill('5');
 
   await page.getByRole('button', { name: 'Show advanced' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Length correction factor' })).toHaveValue('0.95');
