@@ -1070,6 +1070,32 @@ test('calculates feedline loss and preserves physical values across unit changes
   await page.getByLabel('Load resistance', { exact: true }).fill('100');
   await expect(page.locator('.result-summary')).toContainText('70.71 Ω');
 
+  await page.getByRole('button', { name: /Balun \/ unun ratio/ }).click();
+  await expect(page.getByRole('heading', { name: 'Balun and unun ratio' })).toBeVisible();
+  await expect(page.getByLabel('Operating frequency')).toHaveCount(0);
+  await expect(page.getByLabel('Source resistance for ratio', { exact: true })).toHaveValue('50');
+  await expect(page.getByLabel('Load resistance for ratio', { exact: true })).toHaveValue('200');
+  await expect(page.getByLabel('Chosen source-side turns', { exact: true })).toHaveValue('3');
+  await expect(page.getByLabel('Source-side connection', { exact: true })).toHaveValue('unbalanced');
+  await expect(page.getByLabel('Load-side connection', { exact: true })).toHaveValue('balanced');
+  await expect(page.locator('.result-summary')).toContainText('1 : 4.000');
+  await expect(page.locator('.ideal-transformer-options article')).toHaveCount(1);
+  await expect(page.getByRole('img', { name: /Ideal balun ratio diagram/ })).toBeVisible();
+  await expect(page.getByText('Identify balanced and unbalanced sides', { exact: true })).toBeHidden();
+  await page.getByText('Plan and verify a balun or unun').click();
+  await expect(page.getByText('Identify balanced and unbalanced sides', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Chosen source-side turns').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Chosen source-side turns' })).toContainText('not a calculated minimum');
+  await page.getByLabel('Load resistance for ratio', { exact: true }).fill('75');
+  await expect(page.locator('.ideal-transformer-options article')).toHaveCount(2);
+  await expect(page.locator('.ideal-transformer-options').first()).toContainText('3:4 turns');
+  await expect(page.locator('.ideal-transformer-options').first()).toContainText('42.19 Ω');
+  await page.getByLabel('Load-side connection', { exact: true }).selectOption('unbalanced');
+  await expect(page.locator('.result-summary')).toContainText('Ideal unun impedance ratio');
+  await expect(page.getByRole('img', { name: /Ideal unun ratio diagram/ })).toBeVisible();
+  await page.getByLabel('Chosen source-side turns', { exact: true }).fill('2.5');
+  await expect(page.getByRole('alert')).toContainText('ideal transformer ratio');
+
   await page.getByRole('button', { name: /ERP \/ EIRP/ }).click();
   await expect(page.getByRole('heading', { name: 'ERP and EIRP' })).toBeVisible();
   await expect(page.getByText('Confirm the gain reference', { exact: true })).toBeHidden();

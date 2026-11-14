@@ -5277,7 +5277,7 @@ select {
 
 .feedline-mode-picker {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
   margin-bottom: 1.5rem;
 }
@@ -5479,6 +5479,107 @@ select {
 .quarter-wave-transformer-figure .transformer-line .transformer-centre {
   stroke: var(--tl-coral);
   stroke-width: 3;
+}
+
+.ideal-transformer-terminal rect {
+  fill: var(--bg-elevated);
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.ideal-transformer-terminal.load rect {
+  stroke: var(--tl-coral);
+}
+
+.ideal-transformer-terminal text,
+.ideal-transformer-winding text,
+.ideal-transformer-core text,
+.ideal-transformer-ratio {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.ideal-transformer-terminal text:first-of-type,
+.ideal-transformer-terminal text:last-of-type,
+.ideal-transformer-core text,
+.ideal-transformer-ratio.muted {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.ideal-transformer-winding path,
+.ideal-transformer-wire path,
+.ideal-transformer-core path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 5;
+}
+
+.ideal-transformer-winding.load path {
+  stroke: var(--tl-coral);
+}
+
+.ideal-transformer-core path {
+  stroke: var(--text-secondary);
+  stroke-width: 7;
+}
+
+.ideal-transformer-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0 1rem 1rem;
+}
+
+.ideal-transformer-options article {
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.ideal-transformer-options article > span,
+.ideal-transformer-options article > strong {
+  display: block;
+}
+
+.ideal-transformer-options article > span {
+  color: var(--accent-technical);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ideal-transformer-options article > strong {
+  margin: 0.2rem 0 0.65rem;
+  font-family: var(--font-mono);
+}
+
+.ideal-transformer-options dl {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.ideal-transformer-options dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.ideal-transformer-options dt {
+  color: var(--text-secondary);
+}
+
+.ideal-transformer-options dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 750;
+  text-align: right;
 }
 
 .stub-coax path {

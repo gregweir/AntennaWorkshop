@@ -27,6 +27,10 @@ test('opens every workspace and preserves a user preference', async ({ page }) =
   await expect(page.getByRole('heading', { name: 'Quarter-wave transformer' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('70.71 Ω');
   await expect(page.getByRole('img', { name: /Dimensioned quarter-wave transmission-line transformer/ })).toBeVisible();
+  await page.getByRole('button', { name: /Balun \/ unun ratio/ }).click();
+  await expect(page.getByRole('heading', { name: 'Balun and unun ratio' })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('1 : 4.000');
+  await expect(page.getByRole('img', { name: /Ideal balun ratio diagram/ })).toBeVisible();
   const matchingDimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
   expect(matchingDimensions.content).toBeLessThanOrEqual(matchingDimensions.viewport);
 

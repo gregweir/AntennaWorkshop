@@ -110,6 +110,8 @@ The L-network guide must synthesize every mathematically valid lossless two-elem
 
 The quarter-wave transformer guide must accept two positive real terminal resistances, calculate their geometric-mean line impedance, independently recompute the ideal input resistance, and calculate a 90-degree physical section from the design frequency and actual velocity factor. It must make commercial line availability a separate builder decision, include trimming and final-hardware measurement guidance, and direct reactive loads to a suitable matching or tuning method. It must not infer an available cable or fabricated-line geometry, bandwidth, loss, mismatch away from design, connector effects, voltage, current, heating, or safe power.
 
+The balun and unun ratio guide must calculate ideal source-to-load impedance and turns ratios between two positive real resistances, label balanced and unbalanced connection classes, and compare the adjacent integer load-side winding counts for a chosen integer source-side count. Each integer option must independently report the ideal reflected input resistance, mismatch, and resistance error. The guide must state ratio direction explicitly and treat source turns as an entered scale rather than a calculated minimum. It must not select current or voltage behaviour, autotransformer or transmission-line topology, a core, wire, insulation, winding layout, grounding, or isolation, and must not infer magnetizing inductance, flux, loss, balance, common-mode impedance, bandwidth, voltage, current, heating, or safe power.
+
 Equivalent-radiated-power guidance must preserve the transmitter-power reference plane and definition, document feed-system loss, use antenna gain rather than uncorrected directivity, and keep the selected dBi or dBd reference attached to the entered value. Exposure duty cycle and installed geometry remain separate station-project inputs and must not silently reduce the displayed ERP or EIRP. The workflow may not represent a directional equivalent power as total radiated power, pattern prediction, time averaging, near-field analysis, or compliance.
 
 ## Visual language
@@ -125,7 +127,7 @@ Initial visuals cover a dipole or inverted-V, vertical with radials, loop, Moxon
 
 ## Initial calculator roadmap
 
-The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, classic and half-size G5RV plus ZS6BKW family presets, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, L-networks, quarter-wave transformers, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
+The first useful release includes wavelength, dipole, fan dipole, balanced-line doublet, classic and half-size G5RV plus ZS6BKW family presets, inverted-V, quarter-wave vertical, ground plane, full-wave loop, EFHW, off-centre-fed dipole, J-pole, Slim Jim, Moxon, basic Yagi, feedline loss, velocity factor, coaxial stubs, L-networks, quarter-wave transformers, ideal balun/unun ratios, SWR, return loss, mismatch loss, ERP/EIRP, and unit conversion.
 
 Advanced families later include other multiband designs, detailed small-loop loss and component modelling, detailed collinear-array, cubical-quad, helical, discone, log-periodic, and Beverage modelling, additional receive antennas, detailed trap and capacitor construction, and matching networks.
 
