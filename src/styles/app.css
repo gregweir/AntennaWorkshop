@@ -8502,6 +8502,33 @@ path.loading-coil {
   stroke-linejoin: round;
 }
 
+.half-rhombic-wire path:first-child {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.half-rhombic-wire .counterpoise {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 5;
+  stroke-dasharray: 10 7;
+}
+
+.half-rhombic-support line {
+  stroke: var(--border-strong);
+  stroke-width: 4;
+  stroke-dasharray: 7 6;
+}
+
+.half-rhombic-support circle {
+  fill: var(--tl-navy);
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
 .v-beam-feed circle,
 .v-beam-endpoints circle {
   fill: var(--tl-navy);
@@ -8528,7 +8555,8 @@ path.loading-coil {
 }
 
 #v-beam-arrow path,
-#rhombic-arrow path { fill: var(--accent-technical); }
+#rhombic-arrow path,
+#half-rhombic-arrow path { fill: var(--accent-technical); }
 
 .v-beam-angle path {
   fill: none;
@@ -8538,6 +8566,7 @@ path.loading-coil {
 
 .v-beam-feed text,
 .v-beam-endpoints text,
+.half-rhombic-support text,
 .v-beam-direction text,
 .v-beam-angle text,
 .v-beam-labels text {

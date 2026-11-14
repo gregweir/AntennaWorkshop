@@ -18,6 +18,8 @@ The G3TXQ broadband hex-beam workflow reproduces the current KIO PVC-insulated w
 
 The long-wire tools now include both V-beam and four-support rhombic site planners. They apply cited physical-length starting formulas, rotate stakeout coordinates to a true bearing, distinguish open and terminated direction context, and keep angle choice, termination, feed, height, performance, structure, and RF exposure explicit for modelling and measurement.
 
+The vertical half-rhombic workflow adds a one-apex-support field antenna with two equal sloping legs, a base-to-base counterpoise, true-bearing stakeout, the cited 3–7 m height context, and open or 500–600 Ω terminated operation. It keeps ground quality, feed impedance, resistor heating, pattern, exposure, and structural capacity outside the geometry calculation.
+
 The long-wire V-beam workflow converts the published one-to-ten-wavelength leg and apex-angle combinations into a true-bearing site survey. It provides endpoint coordinates, span, depth, wire inventory, open bidirectional or separately terminated forward context, and balanced-feed guidance without predicting impedance, match, gain, pattern, termination heating, ground quality, or structure.
 
 Every valid antenna result can be printed as a focused build sheet containing the selected design, prioritized dimensions, installed-verification items, supporting calculations and assumptions, and the dimensioned drawing. Navigation, selectors, and unrelated workspaces are excluded from the print packet.

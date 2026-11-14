@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 35 designs')).toBeVisible();
+  await expect(page.getByText('2 of 36 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 35 designs')).toBeVisible();
+  await expect(page.getByText('5 of 36 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('35 of 35 designs')).toBeVisible();
+  await expect(page.getByText('36 of 36 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -259,6 +259,36 @@ test('surveys a four-support rhombic without inventing an optimum angle or termi
   await page.getByLabel('Help: Rhombic included angle').click();
   await expect(page.getByRole('note').filter({ hasText: 'Rhombic included angle' })).toContainText('does not claim');
   await expect(page.locator('.provenance-card')).toContainText('tc-9-64-four-support-rhombic-site-planner');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+  expect(dimensions.content).toBe(dimensions.viewport);
+});
+
+test('surveys a vertical half-rhombic with explicit counterpoise and termination limits', async ({ page }) => {
+  await page.getByRole('button', { name: /Half-rhombic/ }).click();
+  await expect(page.getByRole('heading', { name: 'Vertical half-rhombic' })).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.1');
+  await expect(page.getByRole('img', { name: /Dimensioned vertical half-rhombic elevation and site-axis diagram/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Survey two equal slopes from a 6.000 m apex');
+  await expect(page.locator('.result-summary')).toContainText('85.537 m active wire');
+  await expect(page.locator('.result-summary')).toContainText('Counterpoise with attachment allowance');
+  await expect(page.locator('.result-summary')).toContainText('550 Ω entered non-inductive far-end termination');
+  await expect(page.getByRole('row', { name: /B Apex support/ })).toContainText('41.292 m');
+
+  await page.getByRole('spinbutton', { name: 'Half-rhombic forward true bearing' }).fill('90');
+  await expect(page.getByRole('row', { name: /C Termination/ })).toContainText('90.0°');
+  await page.getByRole('spinbutton', { name: 'Half-rhombic far-end termination' }).fill('750');
+  await expect(page.getByRole('complementary', { name: 'Half-rhombic design advisories' })).toContainText('500–600 Ω');
+  await page.getByLabel('Half-rhombic far-end configuration', { exact: true }).selectOption('open');
+  await expect(page.locator('.result-summary')).toContainText('Bidirectional along the sloping-wire site axis');
+
+  await expect(page.getByText('Set the apex support height')).toBeHidden();
+  await page.getByText('Survey, build, and commission a vertical half-rhombic').click();
+  await expect(page.getByText('Set the apex support height')).toBeVisible();
+  await page.getByLabel('Help: Half-rhombic far-end configuration').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Half-rhombic far-end configuration' })).toContainText('500–600 Ω');
+  await expect(page.locator('.provenance-card')).toContainText('atp-6-02-53-vertical-half-rhombic-site-planner');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
