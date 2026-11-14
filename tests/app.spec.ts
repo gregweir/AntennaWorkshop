@@ -1052,6 +1052,24 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.locator('.l-network-solution')).toHaveCount(4);
   await expect(page.locator('.result-summary')).toContainText('4 options');
 
+  await page.getByRole('button', { name: /Quarter-wave transformer/ }).click();
+  await expect(page.getByRole('heading', { name: 'Quarter-wave transformer' })).toBeVisible();
+  await expect(page.getByLabel('Source resistance', { exact: true })).toHaveValue('50');
+  await expect(page.getByLabel('Load resistance', { exact: true })).toHaveValue('100');
+  await expect(page.getByLabel('Transformer velocity factor', { exact: true })).toHaveValue('0.66');
+  await expect(page.getByRole('img', { name: /Dimensioned quarter-wave transmission-line transformer/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('70.71 Ω');
+  await expect(page.locator('.result-summary')).toContainText('50.000 + j0 Ω');
+  await expect(page.getByText('Measure both terminal impedances', { exact: true })).toBeHidden();
+  await page.getByText('Build and verify a quarter-wave transformer').click();
+  await expect(page.getByText('Measure both terminal impedances', { exact: true })).toBeVisible();
+  await page.getByLabel('Help: Load resistance').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Load resistance' })).toContainText('tune it out');
+  await page.getByLabel('Load resistance', { exact: true }).fill('0');
+  await expect(page.getByRole('alert')).toContainText('quarter-wave transformer');
+  await page.getByLabel('Load resistance', { exact: true }).fill('100');
+  await expect(page.locator('.result-summary')).toContainText('70.71 Ω');
+
   await page.getByRole('button', { name: /ERP \/ EIRP/ }).click();
   await expect(page.getByRole('heading', { name: 'ERP and EIRP' })).toBeVisible();
   await expect(page.getByText('Confirm the gain reference', { exact: true })).toBeHidden();

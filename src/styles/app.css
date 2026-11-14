@@ -5277,7 +5277,7 @@ select {
 
 .feedline-mode-picker {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.7rem;
   margin-bottom: 1.5rem;
 }
@@ -5441,6 +5441,44 @@ select {
   color: var(--text-secondary);
   font-size: 0.78rem;
   text-align: center;
+}
+
+.quarter-wave-transformer-figure .transformer-terminal rect {
+  fill: var(--bg-elevated);
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.quarter-wave-transformer-figure .transformer-terminal.load rect {
+  stroke: var(--tl-coral);
+}
+
+.quarter-wave-transformer-figure .transformer-terminal text,
+.quarter-wave-transformer-figure .transformer-line text,
+.quarter-wave-transformer-figure .transformer-check {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.quarter-wave-transformer-figure .transformer-terminal text:first-of-type,
+.quarter-wave-transformer-figure .transformer-terminal text:last-of-type,
+.quarter-wave-transformer-figure .transformer-line text:last-of-type,
+.quarter-wave-transformer-figure .transformer-check {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.quarter-wave-transformer-figure .transformer-line path {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 5;
+}
+
+.quarter-wave-transformer-figure .transformer-line .transformer-centre {
+  stroke: var(--tl-coral);
+  stroke-width: 3;
 }
 
 .stub-coax path {

@@ -23,6 +23,10 @@ test('opens every workspace and preserves a user preference', async ({ page }) =
   await page.getByRole('button', { name: /L-network/ }).click();
   await expect(page.getByRole('heading', { name: 'L-network matching' })).toBeVisible();
   await expect(page.locator('.l-network-solution')).toHaveCount(2);
+  await page.getByRole('button', { name: /Quarter-wave transformer/ }).click();
+  await expect(page.getByRole('heading', { name: 'Quarter-wave transformer' })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('70.71 Ω');
+  await expect(page.getByRole('img', { name: /Dimensioned quarter-wave transmission-line transformer/ })).toBeVisible();
   const matchingDimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
   expect(matchingDimensions.content).toBeLessThanOrEqual(matchingDimensions.viewport);
 

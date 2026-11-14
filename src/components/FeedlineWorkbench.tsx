@@ -9,6 +9,7 @@ import { useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { calculateCoaxialStub, calculateFeedlineBudget, calculateRadiatedPower, COAXIAL_STUB_MODEL, FEEDLINE_MODEL, RADIATED_POWER_MODEL, type GainReference, type StubFraction, type StubTermination } from '../calculators/feedline';
 import { calculateLNetwork, L_NETWORK_MODEL } from '../calculators/lNetwork';
+import { calculateQuarterWaveTransformer, QUARTER_WAVE_TRANSFORMER_MODEL } from '../calculators/quarterWaveTransformer';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createStationSourceTransfer, type AntennaDesignHandoff, type StationSourceTransfer } from '../workflows/stationSourceWorkflow';
@@ -17,6 +18,7 @@ import { FeedlineDiagram } from './FeedlineDiagram';
 import { CoaxialStubDiagram } from './CoaxialStubDiagram';
 import { RadiatedPowerDiagram } from './RadiatedPowerDiagram';
 import { LNetworkDiagram } from './LNetworkDiagram';
+import { QuarterWaveTransformerDiagram } from './QuarterWaveTransformerDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
 
@@ -28,7 +30,7 @@ interface Props {
 }
 
 export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, onAddToExposure }: Props) {
-  const [mode, setMode] = useState<'power' | 'stub' | 'match' | 'radiated'>(antennaHandoff ? 'radiated' : 'power');
+  const [mode, setMode] = useState<'power' | 'stub' | 'match' | 'transformer' | 'radiated'>(antennaHandoff ? 'radiated' : 'power');
   const [frequencyText, setFrequencyText] = useState(antennaHandoff ? antennaHandoff.frequencyMHz.toString() : '146.520');
   const [transmitterPowerWatts, setTransmitterPowerWatts] = useState(100);
   const [cableLengthMetres, setCableLengthMetres] = useState(30);
@@ -42,6 +44,10 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
   const [systemResistanceOhms, setSystemResistanceOhms] = useState(50);
   const [loadResistanceOhms, setLoadResistanceOhms] = useState(100);
   const [loadReactanceOhms, setLoadReactanceOhms] = useState(-50);
+  const [transformerSourceResistanceOhms, setTransformerSourceResistanceOhms] = useState(50);
+  const [transformerLoadResistanceOhms, setTransformerLoadResistanceOhms] = useState(100);
+  const [transformerVelocityFactor, setTransformerVelocityFactor] = useState(0.66);
+  const [transformerTrimAllowancePercent, setTransformerTrimAllowancePercent] = useState(5);
   const [feedSystemLossDb, setFeedSystemLossDb] = useState(1.8);
   const [antennaGainDb, setAntennaGainDb] = useState(2.15);
   const [gainReference, setGainReference] = useState<GainReference>('dBi');
@@ -84,6 +90,20 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
     }
   }, [frequencyMHz, loadReactanceOhms, loadResistanceOhms, systemResistanceOhms]);
 
+  const transformerResult = useMemo(() => {
+    try {
+      return calculateQuarterWaveTransformer({
+        frequencyMHz,
+        sourceResistanceOhms: transformerSourceResistanceOhms,
+        loadResistanceOhms: transformerLoadResistanceOhms,
+        velocityFactor: transformerVelocityFactor,
+        trimAllowancePercent: transformerTrimAllowancePercent
+      });
+    } catch {
+      return null;
+    }
+  }, [frequencyMHz, transformerLoadResistanceOhms, transformerSourceResistanceOhms, transformerTrimAllowancePercent, transformerVelocityFactor]);
+
   const radiatedResult = useMemo(() => {
     try {
       return calculateRadiatedPower({ transmitterPowerWatts, feedSystemLossDb, antennaGainDb, gainReference });
@@ -92,12 +112,12 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
     }
   }, [antennaGainDb, feedSystemLossDb, gainReference, transmitterPowerWatts]);
 
-  const result = mode === 'power' ? powerResult : mode === 'stub' ? stubResult : mode === 'match' ? matchResult : radiatedResult;
-  const model = mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : mode === 'match' ? L_NETWORK_MODEL : RADIATED_POWER_MODEL;
+  const result = mode === 'power' ? powerResult : mode === 'stub' ? stubResult : mode === 'match' ? matchResult : mode === 'transformer' ? transformerResult : radiatedResult;
+  const model = mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : mode === 'match' ? L_NETWORK_MODEL : mode === 'transformer' ? QUARTER_WAVE_TRANSFORMER_MODEL : RADIATED_POWER_MODEL;
 
   return <section className="workspace shell feedline-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
     <div className="workspace-heading">
-      <div><p className="eyebrow">Feedline and matching</p><h2 id="calculator-title">{mode === 'power' ? 'Feedline power budget' : mode === 'stub' ? 'Coaxial stub length' : mode === 'match' ? 'L-network matching' : 'ERP and EIRP'}</h2></div>
+      <div><p className="eyebrow">Feedline and matching</p><h2 id="calculator-title">{mode === 'power' ? 'Feedline power budget' : mode === 'stub' ? 'Coaxial stub length' : mode === 'match' ? 'L-network matching' : mode === 'transformer' ? 'Quarter-wave transformer' : 'ERP and EIRP'}</h2></div>
       <span className="model-badge">Model {model.version}</span>
     </div>
     {antennaHandoff && <section className="linked-workflow" aria-labelledby="linked-antenna-heading"><div><p className="eyebrow">Linked antenna design</p><h3 id="linked-antenna-heading">{antennaHandoff.label}</h3><p>Frequency and largest physical dimension came from the antenna calculator. Complete the system and exposure-specific inputs below.</p></div><dl><div><dt>Frequency</dt><dd>{antennaHandoff.frequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(antennaHandoff.largestDimensionMetres, unitSystem)}</dd></div><div><dt>Design model</dt><dd>{antennaHandoff.antennaModelId} {antennaHandoff.antennaModelVersion}</dd></div></dl></section>}
@@ -105,6 +125,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
       <button type="button" aria-pressed={mode === 'power'} onClick={() => setMode('power')}><strong>Power budget</strong><small>Loss, SWR, and accepted power</small></button>
       <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
       <button type="button" aria-pressed={mode === 'match'} onClick={() => setMode('match')}><strong>L-network</strong><small>Measured complex load to system resistance</small></button>
+      <button type="button" aria-pressed={mode === 'transformer'} onClick={() => setMode('transformer')}><strong>Quarter-wave transformer</strong><small>Real resistances through a 90° line</small></button>
       <button type="button" aria-pressed={mode === 'radiated'} onClick={() => setMode('radiated')}><strong>ERP / EIRP</strong><small>Loss, gain, and reference power</small></button>
     </div>
     <ResultEvidenceKey />
@@ -132,6 +153,14 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
       { title: 'Build compactly with suitable components', detail: 'Keep leads and ground paths short. Select capacitors and inductors for measured Q, self-resonance, voltage, current, heating, tolerance, and environmental stability.' },
       { title: 'Measure and tune the completed network', detail: 'Start at low power, sweep around the design frequency, adjust the real components, then verify loss, bandwidth, heating, voltage clearance, and stability at intended operating conditions.' }
     ]} limit="This is an ideal lossless lumped-element synthesis at one frequency. It does not predict bandwidth, harmonic response, component Q or parasitics, loss, voltage, current, heating, safe power, balance, common mode, or the effect of connecting the physical network." />}
+    {mode === 'transformer' && <StepByStepHelp title="Build and verify a quarter-wave transformer" intro="Use this sequence to connect two unequal real resistances with one 90° transmission-line section at a chosen frequency. Experienced builders can leave the guide closed." steps={[
+      { title: 'Measure both terminal impedances', detail: 'Calibrate at the intended connection planes and confirm that source and load are effectively real at the design frequency. This model cannot absorb load reactance.' },
+      { title: 'Choose the exact design frequency', detail: 'The section is one electrical quarter wavelength only at this frequency; its transformation changes on either side.' },
+      { title: 'Calculate the required line impedance', detail: 'The geometric mean of the two real resistances is the required characteristic impedance. Check whether that line can actually be built or purchased.' },
+      { title: 'Use the actual velocity factor', detail: 'Enter data for the specific cable or transmission-line construction. A material preset is only a starting point.' },
+      { title: 'Cut long with final hardware included', detail: 'Keep the trimming allowance and include connectors, transitions, bends, and exposed conductors in the electrical path.' },
+      { title: 'Measure, trim, and test at low power', detail: 'Move the analyser reference plane to the completed input, trim in small steps, sweep around the design frequency, and verify loss, heating, voltage, and useful bandwidth.' }
+    ]} limit="This is an ideal lossless single-section model for real terminal impedances at one frequency. It does not select an available cable, remove reactance, or predict loss, bandwidth, mismatch away from design, connector effects, voltage, current, heating, or safe power." />}
     {mode === 'radiated' && <StepByStepHelp title="Calculate and document ERP / EIRP" intro="Use this sequence to keep transmitter power, feed-system loss, antenna gain, and exposure assumptions traceable. Experienced operators can leave the guide closed." steps={[
       { title: 'Define the transmitter power', detail: 'Use power at the input to the documented feed system and identify whether the source value is peak-envelope, carrier, or another quantity required by the intended use.' },
       { title: 'Document feed-system loss', detail: 'Combine supported losses for cable, connectors, switches, filters, duplexers, and other components at the operating frequency and conditions.' },
@@ -151,9 +180,9 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
             <option value="custom">Custom frequency</option>
             {availableBands.map((band) => <option key={band.id} value={band.id}>{band.label} · {formatFrequencyRange(band)}</option>)}
           </select>
-          <small>{antennaHandoff ? 'Locked to the linked antenna geometry; return to the antenna calculator to change it.' : mode === 'match' ? 'The measured complex load and synthesized component values apply only at this frequency.' : 'Use a cable loss specification measured at, or near, this operating frequency.'}</small>
+          <small>{antennaHandoff ? 'Locked to the linked antenna geometry; return to the antenna calculator to change it.' : mode === 'match' ? 'The measured complex load and synthesized component values apply only at this frequency.' : mode === 'transformer' ? 'The line is exactly 90° and provides the ideal transformation only at this frequency.' : 'Use a cable loss specification measured at, or near, this operating frequency.'}</small>
         </label>
-        <PowerField label="Operating frequency" value={frequencyText} unit="MHz" min={0.001} step={0.001} readOnly={Boolean(antennaHandoff)} onChange={setFrequencyText} help={antennaHandoff ? 'This frequency remains linked to the transferred construction geometry.' : mode === 'match' ? 'Component values are synthesized for this single frequency.' : 'Frequency records which manufacturer attenuation value applies; it does not rescale that value automatically.'} />
+        <PowerField label="Operating frequency" value={frequencyText} unit="MHz" min={0.001} step={0.001} readOnly={Boolean(antennaHandoff)} onChange={setFrequencyText} help={antennaHandoff ? 'This frequency remains linked to the transferred construction geometry.' : mode === 'match' ? 'Component values are synthesized for this single frequency.' : mode === 'transformer' ? 'The transformer section is 90° at this single design frequency.' : 'Frequency records which manufacturer attenuation value applies; it does not rescale that value automatically.'} />
         {mode === 'power' ? <>
           <PowerField label="Transmitter power" value={transmitterPowerWatts} unit="W" min={0.001} step={1} onChange={(value) => setTransmitterPowerWatts(Number(value))} help="Use the forward power entering the accessories and feedline." />
           <PowerField label="Cable length" value={Number(cableLengthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={0} step={0.1} onChange={(value) => setCableLengthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Include the complete cable path, including indoor and mast runs." />
@@ -170,6 +199,12 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
           <PowerField label="System resistance" tooltip="Enter the real impedance the network input should present at the design frequency. This is commonly 50 Ω in amateur systems but may differ. The model assumes no source reactance." value={systemResistanceOhms} unit="Ω" min={0.01} max={1_000_000} step={0.1} onChange={(value) => setSystemResistanceOhms(Number(value))} help="Required real input impedance at the network source side." />
           <PowerField label="Measured load resistance" tooltip="Enter the real part R of the series-form load impedance measured at the intended network connection plane. Resistance must be positive." value={loadResistanceOhms} unit="Ω" min={0.01} max={1_000_000} step={0.1} onChange={(value) => setLoadResistanceOhms(Number(value))} help="The R term in the measured R + jX load." />
           <PowerField label="Measured load reactance" tooltip="Enter the signed series reactance X from the analyser. Positive reactance is inductive (+jX); negative reactance is capacitive (−jX)." value={loadReactanceOhms} unit="Ω" min={-1_000_000} max={1_000_000} step={0.1} onChange={(value) => setLoadReactanceOhms(Number(value))} help="Use a positive value for inductive reactance and a negative value for capacitive reactance." />
+        </> : mode === 'transformer' ? <>
+          <PowerField label="Source resistance" tooltip="Enter the real resistance the transformer input must present at the design frequency. Any source reactance must be handled separately." value={transformerSourceResistanceOhms} unit="Ω" min={0.01} max={1_000_000} step={0.1} onChange={(value) => setTransformerSourceResistanceOhms(Number(value))} help="Required real input resistance on the system side; j0 is assumed." />
+          <PowerField label="Load resistance" tooltip="Enter the positive real load resistance measured at the transformer's load-side reference plane. If the measured impedance includes reactance, tune it out or use a method that accepts complex impedance." value={transformerLoadResistanceOhms} unit="Ω" min={0.01} max={1_000_000} step={0.1} onChange={(value) => setTransformerLoadResistanceOhms(Number(value))} help="Measured real load resistance at the design frequency; j0 is required." />
+          <label className="field"><span>Common dielectric preset</span><select value={transformerVelocityFactor} onChange={(event) => setTransformerVelocityFactor(Number(event.target.value))}><option value={0.66}>Solid polyethylene · 0.66</option><option value={0.7}>PTFE · 0.70</option><option value={0.8}>Foam polyethylene · 0.80</option><option value={0.85}>Low-density foam · 0.85</option><option value={1}>Air or ideal open line · 1.00</option></select><small>Use measured or manufacturer data for the line construction you will actually build.</small></label>
+          <PowerField label="Transformer velocity factor" tooltip="Velocity factor sets the physical length of the 90° section, not its required characteristic impedance. Use data for the specific cable, parallel line, or fabricated line." value={transformerVelocityFactor} unit="ratio" min={0.01} max={1} step={0.01} onChange={(value) => setTransformerVelocityFactor(Number(value))} help="Propagation speed in the transformer section divided by the speed of light." />
+          <PowerField label="Extra length for transformer trimming" tooltip="This allowance is added beyond the ideal physical quarter wavelength. Final connectors, transitions, exposed conductors, and analyser reference planes all contribute to electrical length." value={transformerTrimAllowancePercent} unit="%" min={0} max={25} step={0.5} onChange={(value) => setTransformerTrimAllowancePercent(Number(value))} help="Added to the ideal length so the completed section can be measured and shortened." />
         </> : <>
           <PowerField label="Transmitter power" tooltip="Enter power at the input to the feed system represented below. Record whether the value is peak-envelope, carrier, average, or another defined quantity; the calculator cannot infer or convert that definition." value={transmitterPowerWatts} unit="W" min={0.001} step={1} onChange={(value) => setTransmitterPowerWatts(Number(value))} help="Use power before the feedline and accessories. For time-averaged exposure work, use the power definition required by the applicable method." />
           <PowerField label="Total feed-system loss" tooltip="Combine documented insertion losses between the stated transmitter-power reference plane and the antenna input. Use values at the operating frequency and relevant conditions; do not include antenna inefficiency here when the stated antenna gain already includes it." value={feedSystemLossDb} unit="dB" min={0} max={100} step={0.1} onChange={(value) => setFeedSystemLossDb(Number(value))} help="Combine feeder, connector, switch, filter, duplexer, and other insertion losses before the antenna." />
@@ -182,7 +217,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
             <PowerField label="Installed antenna north position" value={Number(antennaNorthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={-1_000_000} max={1_000_000} step={0.1} onChange={(value) => setAntennaNorthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Enter a north-positive coordinate using the same site origin as evaluation points." />
           </>}
         </>}
-        {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : mode === 'match' ? 'matching network' : 'radiated power'}.</p>}
+        {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : mode === 'match' ? 'matching network' : mode === 'transformer' ? 'quarter-wave transformer' : 'radiated power'}.</p>}
         {mode === 'power' && powerResult && <EvidenceResultSummary headline="Forward power at antenna feedpoint" primary={`${powerResult.forwardPowerAtAntennaWatts.toFixed(2)} W`} primaryKind="calculated" items={[
           { term: 'Accepted by load', value: `${powerResult.acceptedPowerWatts.toFixed(2)} W`, kind: 'calculated' },
           { term: 'Cable loss', value: `${powerResult.cableLossDb.toFixed(2)} dB`, kind: 'calculated' },
@@ -202,6 +237,14 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
           { term: 'Required ideal input', value: `${systemResistanceOhms.toFixed(2)} + j0 Ω`, kind: 'assumption' },
           { term: 'Finished network input', value: 'Measure after construction at the same reference plane', kind: 'measure' },
           { term: 'Loss, bandwidth, and safe power', value: 'Not inferred · verify the physical network', kind: 'measure' }
+        ]} />}
+        {mode === 'transformer' && transformerResult && <EvidenceResultSummary headline="Required line characteristic impedance" primary={`${transformerResult.requiredCharacteristicImpedanceOhms.toFixed(2)} Ω`} primaryKind="calculated" items={[
+          { term: 'Start with this cut length', value: formatLength(transformerResult.cutLengthMetres, unitSystem), kind: 'calculated' },
+          { term: 'Ideal physical quarter wavelength', value: formatLength(transformerResult.physicalQuarterWaveMetres, unitSystem), kind: 'calculated' },
+          { term: 'Ideal input check', value: `${transformerResult.idealInputResistanceOhms.toFixed(3)} + j0 Ω`, kind: 'calculated' },
+          { term: 'Terminal impedances', value: `${transformerSourceResistanceOhms.toFixed(2)} Ω source · ${transformerLoadResistanceOhms.toFixed(2)} Ω load · both real`, kind: 'assumption' },
+          { term: 'Available line and finished response', value: 'Select or fabricate, then measure with final hardware', kind: 'measure' },
+          { term: 'Loss, bandwidth, and safe power', value: 'Not inferred · verify the physical transformer', kind: 'measure' }
         ]} />}
         {mode === 'radiated' && radiatedResult && <EvidenceResultSummary headline="Equivalent isotropically radiated power" primary={formatWatts(radiatedResult.eirpWatts)} primaryKind="calculated" items={[
           { term: 'Effective radiated power', value: formatWatts(radiatedResult.erpWatts), kind: 'calculated' },
@@ -226,11 +269,11 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
           }
         ))}>Add to station project</button></div>}
       </form>
-      <div className="visual-panel">{mode === 'power' ? powerResult ? <FeedlineDiagram result={powerResult} transmitterPowerWatts={transmitterPowerWatts} cableLengthLabel={formatLength(cableLengthMetres, unitSystem)} /> : <div className="diagram-placeholder">The power-flow diagram will appear when the inputs are valid.</div> : mode === 'stub' ? stubResult ? <CoaxialStubDiagram result={stubResult} termination={stubTermination} unitSystem={unitSystem} /> : <div className="diagram-placeholder">The coaxial-stub diagram will appear when the inputs are valid.</div> : mode === 'match' ? matchResult ? <LNetworkDiagram solutions={matchResult.solutions} /> : <div className="diagram-placeholder">The L-network options will appear when the measured load is valid.</div> : radiatedResult ? <RadiatedPowerDiagram result={radiatedResult} transmitterPowerWatts={transmitterPowerWatts} feedSystemLossDb={feedSystemLossDb} antennaGainDb={antennaGainDb} gainReference={gainReference} /> : <div className="diagram-placeholder">The ERP/EIRP diagram will appear when the inputs are valid.</div>}</div>
+      <div className="visual-panel">{mode === 'power' ? powerResult ? <FeedlineDiagram result={powerResult} transmitterPowerWatts={transmitterPowerWatts} cableLengthLabel={formatLength(cableLengthMetres, unitSystem)} /> : <div className="diagram-placeholder">The power-flow diagram will appear when the inputs are valid.</div> : mode === 'stub' ? stubResult ? <CoaxialStubDiagram result={stubResult} termination={stubTermination} unitSystem={unitSystem} /> : <div className="diagram-placeholder">The coaxial-stub diagram will appear when the inputs are valid.</div> : mode === 'match' ? matchResult ? <LNetworkDiagram solutions={matchResult.solutions} /> : <div className="diagram-placeholder">The L-network options will appear when the measured load is valid.</div> : mode === 'transformer' ? transformerResult ? <QuarterWaveTransformerDiagram result={transformerResult} unitSystem={unitSystem} /> : <div className="diagram-placeholder">The quarter-wave transformer will appear when the terminal resistances and line data are valid.</div> : radiatedResult ? <RadiatedPowerDiagram result={radiatedResult} transmitterPowerWatts={transmitterPowerWatts} feedSystemLossDb={feedSystemLossDb} antennaGainDb={antennaGainDb} gainReference={gainReference} /> : <div className="diagram-placeholder">The ERP/EIRP diagram will appear when the inputs are valid.</div>}</div>
     </div>
 
     <BandIndicator band={activeBand} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />
-    <p className="allocation-note">Band context for {jurisdictionName}. {mode === 'power' ? 'The calculator does not select a cable specification for you; use current manufacturer data.' : mode === 'stub' ? 'Velocity factor and physical length depend on the actual cable and connectors; confirm the finished stub by measurement.' : mode === 'match' ? 'The load must be measured at the design frequency and intended connection plane; remeasure the completed network.' : 'ERP and EIRP use maximum directional antenna gain and are not a substitute for jurisdiction-specific exposure evaluation.'}{bandSource && <> Allocation source: <a href={bandSource.url} target="_blank" rel="noreferrer">{bandSource.title}</a> (reviewed {bandSource.reviewedOn}).</>}</p>
+    <p className="allocation-note">Band context for {jurisdictionName}. {mode === 'power' ? 'The calculator does not select a cable specification for you; use current manufacturer data.' : mode === 'stub' ? 'Velocity factor and physical length depend on the actual cable and connectors; confirm the finished stub by measurement.' : mode === 'match' ? 'The load must be measured at the design frequency and intended connection plane; remeasure the completed network.' : mode === 'transformer' ? 'Both terminal impedances must be real at the design frequency, and the required line impedance must be sourced or fabricated; verify the completed section by measurement.' : 'ERP and EIRP use maximum directional antenna gain and are not a substitute for jurisdiction-specific exposure evaluation.'}{bandSource && <> Allocation source: <a href={bandSource.url} target="_blank" rel="noreferrer">{bandSource.title}</a> (reviewed {bandSource.reviewedOn}).</>}</p>
 
     {mode === 'power' && powerResult && <div className="explanation-grid">
       <article><p className="eyebrow">Power accounting</p><h3>Where the watts go</h3><p>The matched cable and accessory losses dissipate about {powerResult.pathDissipationWatts.toFixed(2)} W before the antenna. At the load, the selected SWR corresponds to {powerResult.reflectedPowerWatts.toFixed(2)} W reflected and {powerResult.acceptedPowerWatts.toFixed(2)} W accepted in this first-order budget.</p></article>
@@ -249,6 +292,12 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
       <article><p className="eyebrow">Candidate networks</p><h3>Topology is part of the result</h3><p>The shunt element can be on the source side or load side when the impedance geometry permits it. Opposite-sign mathematical roots produce different L/C combinations, and some complex loads permit both placements. These options can behave differently away from the design frequency.</p></article>
       <article className="caution-card"><p className="eyebrow">Physical implementation</p><h3>Ideal values are not component ratings</h3><p>Real inductors and capacitors have tolerance, Q, loss, self-resonance, parasitic reactance, voltage and current limits, and temperature dependence. Leads, enclosure, ground path, connectors, balance, common-mode current, and the act of connecting the network can change the measured load. Build compactly, tune at low power, and verify heating and voltage clearance at intended power.</p></article>
       <article className="provenance-card"><p className="eyebrow">Method and sources</p><h3>Model {L_NETWORK_MODEL.version}</h3><p>The calculator solves the standard lossless two-reactance L-network equations in both source-to-load orders, converts the resulting reactance or susceptance to an ideal L or C at the entered frequency, and independently recomputes each input impedance.</p><ul>{L_NETWORK_MODEL.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul><small>Model ID: {L_NETWORK_MODEL.id} · Reviewed {L_NETWORK_MODEL.reviewedOn}</small></article>
+    </div>}
+    {mode === 'transformer' && transformerResult && <div className="explanation-grid">
+      <article><p className="eyebrow">Impedance transformation</p><h3>The line impedance is the geometric mean</h3><p className="formula">Z₀ = √(Rsource × Rload)</p><p>A {transformerResult.requiredCharacteristicImpedanceOhms.toFixed(2)} Ω lossless 90° section terminated in {transformerLoadResistanceOhms.toFixed(2)} Ω presents {transformerResult.idealInputResistanceOhms.toFixed(3)} Ω at its input. This equality applies to real terminal impedances at {frequencyMHz.toFixed(3)} MHz.</p></article>
+      <article><p className="eyebrow">Electrical and physical length</p><h3>Velocity factor sets the cut length</h3><p className="formula">L = (c ÷ f) × VF ÷ 4</p><p>The free-space wavelength is {formatLength(transformerResult.freeSpaceWavelengthMetres, unitSystem)}. Velocity factor {transformerVelocityFactor.toFixed(2)} makes the ideal physical section {formatLength(transformerResult.physicalQuarterWaveMetres, unitSystem)}, before the {transformerTrimAllowancePercent.toFixed(1)}% trimming allowance.</p></article>
+      <article className="caution-card"><p className="eyebrow">Real-world implementation</p><h3>A calculated Z₀ may not be available</h3><p>Commercial cable impedances are limited, while fabricated coaxial, parallel-wire, stripline, or microstrip sections need separate geometry and material design. Transitions, connectors, bends, conductor dimensions, dielectric tolerance, weather, nearby objects, and residual terminal reactance alter the result. Measure the actual line, trim at low power, then verify useful bandwidth, loss, heating, and voltage clearance.</p></article>
+      <article className="provenance-card"><p className="eyebrow">Method and sources</p><h3>Model {QUARTER_WAVE_TRANSFORMER_MODEL.version}</h3><p>The calculator uses the standard lossless quarter-wave relationship Zin = Z₀² ÷ Rload, selects Z₀ as the geometric mean of two positive real resistances, and applies velocity factor only to physical length. It does not synthesize a multisection transformer or a line geometry.</p><ul>{QUARTER_WAVE_TRANSFORMER_MODEL.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul><small>Model ID: {QUARTER_WAVE_TRANSFORMER_MODEL.id} · Reviewed {QUARTER_WAVE_TRANSFORMER_MODEL.reviewedOn}</small></article>
     </div>}
     {mode === 'radiated' && radiatedResult && <div className="explanation-grid">
       <article><p className="eyebrow">Antenna-system budget</p><h3>Loss before gain</h3><p className="formula">EIRP(dBW) = P(dBW) − L(dB) + G(dBi)</p><p>{formatWatts(transmitterPowerWatts)} becomes {formatWatts(radiatedResult.antennaInputPowerWatts)} at the antenna after {feedSystemLossDb.toFixed(2)} dB of feed-system loss. The directional antenna gain is then applied.</p></article>

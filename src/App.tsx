@@ -134,7 +134,7 @@ export function App() {
         <h2 id="roadmap-title">One project, connected tools</h2>
         <div className="roadmap-grid">
           <article><span>01</span><h3>Antenna designs</h3><p>Wire, vertical, beam, loop, portable, and receive antennas with live cut plans.</p></article>
-          <article><span>02</span><h3>Feedline and matching</h3><p>Loss, velocity factor, stubs, SWR, measured-impedance L-networks, coils, traps, baluns, and ununs.</p></article>
+          <article><span>02</span><h3>Feedline and matching</h3><p>Loss, velocity factor, stubs, SWR, measured-impedance L-networks, quarter-wave transformers, coils, traps, baluns, and ununs.</p></article>
           <article><span>03</span><h3>RF exposure</h3><p>Sourced Canadian, United States, United Kingdom, and Australian reference and assessment workflows.</p></article>
         </div>
       </section>
