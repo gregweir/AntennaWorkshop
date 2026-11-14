@@ -4873,7 +4873,8 @@ select {
 .lpda-layout,
 .beverage-layout,
 .compact-receive-layout,
-.k9ay-layout {
+.k9ay-layout,
+.loop-on-ground-layout {
   grid-template-columns: 1fr;
 }
 
@@ -4885,7 +4886,8 @@ select {
 .lpda-layout .input-panel,
 .beverage-layout .input-panel,
 .compact-receive-layout .input-panel,
-.k9ay-layout .input-panel {
+.k9ay-layout .input-panel,
+.loop-on-ground-layout .input-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -4908,7 +4910,9 @@ select {
 .compact-receive-layout .input-panel > .field,
 .compact-receive-layout .compact-receive-editor,
 .k9ay-layout .input-panel > .field,
-.k9ay-layout .k9ay-editor {
+.k9ay-layout .k9ay-editor,
+.loop-on-ground-layout .input-panel > .field,
+.loop-on-ground-layout .loop-on-ground-editor {
   margin: 0;
 }
 
@@ -4951,7 +4955,12 @@ select {
 .k9ay-layout .advanced-fields,
 .k9ay-layout .result-summary,
 .k9ay-layout .k9ay-advisory,
-.k9ay-layout .validation-message {
+.k9ay-layout .validation-message,
+.loop-on-ground-layout .loop-on-ground-editor,
+.loop-on-ground-layout .advanced-fields,
+.loop-on-ground-layout .result-summary,
+.loop-on-ground-layout .loop-on-ground-advisory,
+.loop-on-ground-layout .validation-message {
   grid-column: 1 / -1;
 }
 
@@ -4963,7 +4972,8 @@ select {
 .lpda-layout .lpda-editor,
 .beverage-layout .beverage-editor,
 .compact-receive-layout .compact-receive-editor,
-.k9ay-layout .k9ay-editor {
+.k9ay-layout .k9ay-editor,
+.loop-on-ground-layout .loop-on-ground-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5189,7 +5199,8 @@ select {
 .lpda-editor,
 .beverage-editor,
 .compact-receive-editor,
-.k9ay-editor {
+.k9ay-editor,
+.loop-on-ground-editor {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1.2rem;
@@ -5209,7 +5220,8 @@ select {
 .lpda-editor legend,
 .beverage-editor legend,
 .compact-receive-editor legend,
-.k9ay-editor legend {
+.k9ay-editor legend,
+.loop-on-ground-editor legend {
   padding-inline: 0.35rem;
   font-weight: 800;
 }
@@ -5240,7 +5252,8 @@ select {
 
 .beverage-editor,
 .compact-receive-editor,
-.k9ay-editor {
+.k9ay-editor,
+.loop-on-ground-editor {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -5262,7 +5275,8 @@ select {
 .lpda-editor > .field,
 .beverage-editor > .field,
 .compact-receive-editor > .field,
-.k9ay-editor > .field {
+.k9ay-editor > .field,
+.loop-on-ground-editor > .field {
   margin: 0;
 }
 
@@ -5946,6 +5960,148 @@ path.loading-coil {
   fill: none;
   stroke: var(--text-primary);
   stroke-width: 2;
+}
+
+.log-plan > circle {
+  fill: color-mix(in srgb, var(--accent-technical) 5%, transparent);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.log-plan text,
+.log-feed-detail text {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.log-wire {
+  fill: color-mix(in srgb, var(--tl-coral) 4%, transparent);
+  stroke: var(--tl-coral);
+  stroke-linejoin: round;
+  stroke-width: 6;
+}
+
+.log-feed-axis {
+  stroke: var(--border-strong);
+  stroke-dasharray: 7 5;
+  stroke-width: 3;
+}
+
+.log-response-arrow {
+  fill: none;
+  marker-end: url('#loop-on-ground-arrow-end');
+  stroke: var(--tl-gold);
+  stroke-width: 5;
+}
+
+.log-feed-point {
+  fill: var(--accent-technical);
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.log-axis-label {
+  font-size: 12px !important;
+}
+
+.log-surface {
+  stroke: var(--text-secondary);
+  stroke-width: 5;
+}
+
+.log-surface-wire,
+.log-coax {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+}
+
+.log-transformer-box {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 2;
+}
+
+.log-winding {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 3;
+}
+
+.log-isolation-gap {
+  stroke: var(--tl-gold);
+  stroke-dasharray: 4 4;
+  stroke-width: 2;
+}
+
+.log-no-ground {
+  fill: var(--tl-coral) !important;
+  font-size: 12px !important;
+}
+
+.log-isolation-note {
+  align-self: stretch;
+  margin: 0;
+}
+
+.receive-family-comparison {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.receive-family-comparison h3,
+.receive-family-comparison p {
+  margin: 0;
+}
+
+.receive-family-comparison > div:first-child {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.receive-family-comparison > div:first-child > p:last-child {
+  color: var(--text-secondary);
+}
+
+.receive-family-table-wrap {
+  overflow-x: auto;
+}
+
+.receive-family-comparison table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.receive-family-comparison th,
+.receive-family-comparison td {
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.receive-family-comparison thead th {
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  font-family: var(--font-mono);
+}
+
+.receive-family-comparison tbody th {
+  min-width: 8rem;
+  color: var(--text-primary);
+}
+
+.receive-family-comparison tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 .coil-construction-panel {
@@ -7087,7 +7243,9 @@ path.loading-coil {
   .compact-receive-layout .input-panel,
   .compact-receive-layout .compact-receive-editor,
   .k9ay-layout .input-panel,
-  .k9ay-layout .k9ay-editor {
+  .k9ay-layout .k9ay-editor,
+  .loop-on-ground-layout .input-panel,
+  .loop-on-ground-layout .loop-on-ground-editor {
     grid-template-columns: 1fr;
   }
 
@@ -7374,7 +7532,8 @@ path.loading-coil {
   .lpda-editor,
   .beverage-editor,
   .compact-receive-editor,
-  .k9ay-editor {
+  .k9ay-editor,
+  .loop-on-ground-editor {
     grid-template-columns: 1fr;
   }
 

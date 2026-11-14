@@ -571,6 +571,47 @@ test('maps four K9AY receive directions to crossed-loop switching states', async
   await expect(page.locator('.provenance-card')).toContainText('k9ay-four-direction-loop-planner');
 });
 
+test('plans an isolated Loop-on-Ground antenna and compares receive families', async ({ page }) => {
+  await page.getByRole('button', { name: /Loop on Ground/ }).click();
+  await page.locator('select.band-select').selectOption('40m');
+
+  await expect(page.getByRole('heading', { name: 'Loop-on-Ground receiving antenna' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground side length' })).toHaveValue('4.572');
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground receive-axis bearing' })).toHaveValue('45');
+  await expect(page.getByRole('img', { name: /Loop-on-Ground receiving-antenna plan and feed isolation/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Lay out one isolated square receiving loop');
+  await expect(page.locator('.result-summary')).toContainText('4.572 m per side');
+  await expect(page.locator('.result-summary')).toContainText('Design perimeter18.288 m');
+  await expect(page.locator('.result-summary')).toContainText('Low-angle receive axis45° NE ↔ 225° SW');
+  await expect(page.locator('.result-summary')).toContainText('Feedpoint corner315° NW');
+  await expect(page.locator('.result-summary')).toContainText('Isolation transformer windings5:2 turns · antenna:coax');
+  await expect(page.locator('.result-summary')).toContainText('Antenna earth connectionNone · isolate loop from coax and earth');
+  await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
+
+  const comparison = page.getByRole('region', { name: 'Choose by site and directional need' });
+  await expect(comparison).toContainText('Loop on Ground');
+  await expect(comparison).toContainText('Flag / Pennant');
+  await expect(comparison).toContainText('EWE / Beverage');
+  await expect(comparison).toContainText('K9AY');
+
+  await expect(page.getByText('Keep the loop isolated from earth')).toBeHidden();
+  await page.getByText('Install and evaluate a Loop-on-Ground receiving antenna').click();
+  await expect(page.getByText('Keep the loop isolated from earth')).toBeVisible();
+  await page.getByLabel('Help: Loop-on-Ground isolation').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Loop-on-Ground isolation' })).toContainText('not electrically grounded');
+
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground antenna winding' })).toHaveValue('5');
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground coax winding' })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground feedline impedance' })).toHaveValue('75');
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground extra wire for anchoring' })).toHaveValue('2.5');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Invisible wire is a physical hazard unless the site is controlled' })).toBeVisible();
+  await expect(page.locator('.provenance-card')).toContainText('loop-on-ground-receive-planner');
+
+  await page.getByRole('spinbutton', { name: 'Receive reference frequency' }).fill('30');
+  await expect(page.getByRole('complementary', { name: 'Loop-on-Ground design advisories' })).toContainText('at least one wavelength');
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   await expect(page.getByText('Plan the installed span')).toBeHidden();
   await page.getByText('Build and tune a centre-fed dipole').click();
