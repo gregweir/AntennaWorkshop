@@ -1113,10 +1113,20 @@ test('plans an isolated Loop-on-Ground antenna and compares receive families', a
   await expect(page.locator('.result-summary')).toContainText('Lay out one isolated square receiving loop');
   await expect(page.locator('.result-summary')).toContainText('4.572 m per side');
   await expect(page.locator('.result-summary')).toContainText('Design perimeter18.288 m');
+  await expect(page.locator('.result-summary')).toContainText('Allocated wire per side4.686 m');
   await expect(page.locator('.result-summary')).toContainText('Low-angle receive axis45° NE ↔ 225° SW');
   await expect(page.locator('.result-summary')).toContainText('Feedpoint corner315° NW');
   await expect(page.locator('.result-summary')).toContainText('Isolation transformer windings5:2 turns · antenna:coax');
   await expect(page.locator('.result-summary')).toContainText('Antenna earth connectionNone · isolate loop from coax and earth');
+  await expect(page.getByRole('heading', { name: 'Survey the square, then prove the loop remains isolated' })).toBeVisible();
+  await expect(page.locator('.log-survey-check tbody tr')).toHaveCount(4);
+  await expect(page.locator('.log-survey-check tbody tr').nth(0)).toContainText('Feedpoint');
+  await expect(page.locator('.log-survey-check tbody tr').nth(0)).toContainText('315° NW');
+  await expect(page.locator('.log-survey-check tbody tr').nth(0)).toContainText('2.286 m W');
+  await expect(page.locator('.log-survey-check tbody tr').nth(0)).toContainText('2.286 m N');
+  await expect(page.locator('.log-material-check')).toContainText('4 × 4.572 m');
+  await expect(page.locator('.log-isolation-check')).toContainText('5:2 turns · antenna:coax');
+  await expect(page.locator('.log-isolation-check')).toContainText('468.8 Ω');
   await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
 
   const comparison = page.getByRole('region', { name: 'Choose by site and directional need' });
@@ -1138,6 +1148,7 @@ test('plans an isolated Loop-on-Ground antenna and compares receive families', a
   await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground extra wire for anchoring' })).toHaveValue('2.5');
   await expect(page.locator('.caution-card').filter({ hasText: 'Invisible wire is a physical hazard unless the site is controlled' })).toBeVisible();
   await expect(page.locator('.provenance-card')).toContainText('loop-on-ground-receive-planner');
+  await expect(page.locator('.provenance-card')).toContainText('Model 2.0.0');
 
   await page.getByRole('spinbutton', { name: 'Receive reference frequency' }).fill('30');
   await expect(page.getByRole('complementary', { name: 'Loop-on-Ground design advisories' })).toContainText('at least one wavelength');

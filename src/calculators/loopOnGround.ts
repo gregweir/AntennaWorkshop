@@ -19,8 +19,8 @@ export interface LoopOnGroundInput {
 
 export const LOOP_ON_GROUND_MODEL = {
   id: 'loop-on-ground-receive-planner',
-  version: '1.0.0',
-  reviewedOn: '2026-11-13',
+  version: '2.0.0',
+  reviewedOn: '2026-11-14',
   sources: [
     {
       title: 'Roberts — The Loop on Ground Antenna',
@@ -60,11 +60,24 @@ export function calculateLoopOnGround(input: LoopOnGroundInput) {
   const wavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (input.frequencyMHz * 1_000_000);
   const designPerimeterMetres = input.sideLengthMetres * 4;
   const cutWireLengthMetres = designPerimeterMetres * (1 + input.wireCutAllowancePercent / 100);
+  const allocatedCutLengthPerSideMetres = input.sideLengthMetres * (1 + input.wireCutAllowancePercent / 100);
   const diagonalMetres = input.sideLengthMetres * Math.SQRT2;
   const enclosedAreaSquareMetres = input.sideLengthMetres ** 2;
   const reverseReceiveBearingDegrees = (input.receiveAxisBearingDegrees + 180) % 360;
   const feedpointBearingDegrees = (input.receiveAxisBearingDegrees + 270) % 360;
   const oppositeCornerBearingDegrees = (feedpointBearingDegrees + 180) % 360;
+  const cornerDistanceFromCentreMetres = diagonalMetres / 2;
+  const cornerSurvey = ['Feedpoint', 'Corner 2', 'Opposite corner', 'Corner 4'].map((label, index) => {
+    const bearingDegrees = (feedpointBearingDegrees + index * 90) % 360;
+    const radians = bearingDegrees * Math.PI / 180;
+    return {
+      label,
+      bearingDegrees,
+      compassPoint: compassPoint(bearingDegrees),
+      eastOffsetMetres: cornerDistanceFromCentreMetres * Math.sin(radians),
+      northOffsetMetres: cornerDistanceFromCentreMetres * Math.cos(radians)
+    };
+  });
   const transformerTurnsRatio = input.antennaWindingTurns / input.coaxWindingTurns;
   const transformerImpedanceRatio = transformerTurnsRatio ** 2;
   const nominalReferredAntennaImpedanceOhms = input.feedlineImpedanceOhms * transformerImpedanceRatio;
@@ -80,7 +93,10 @@ export function calculateLoopOnGround(input: LoopOnGroundInput) {
     wavelengthMetres,
     designPerimeterMetres,
     cutWireLengthMetres,
+    allocatedCutLengthPerSideMetres,
     diagonalMetres,
+    cornerDistanceFromCentreMetres,
+    cornerSurvey,
     enclosedAreaSquareMetres,
     circumferenceWavelengths,
     reverseReceiveBearingDegrees,

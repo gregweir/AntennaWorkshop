@@ -26,6 +26,8 @@ describe('calculateLoopOnGround', () => {
 
     expect(result.designPerimeterMetres).toBeCloseTo(feet(60), 10);
     expect(result.cutWireLengthMetres).toBeCloseTo(feet(61.5), 10);
+    expect(result.allocatedCutLengthPerSideMetres).toBeCloseTo(feet(15.375), 10);
+    expect(result.allocatedCutLengthPerSideMetres * 4).toBeCloseTo(result.cutWireLengthMetres, 10);
     expect(result.diagonalMetres).toBeCloseTo(feet(15) * Math.SQRT2, 10);
     expect(result.enclosedAreaSquareMetres).toBeCloseTo(feet(15) ** 2, 10);
     expect(result.transformerTurnsRatio).toBe(2.5);
@@ -43,6 +45,14 @@ describe('calculateLoopOnGround', () => {
     expect(result.feedpointBearingDegrees).toBe(315);
     expect(result.feedpointCompassPoint).toBe('NW');
     expect(result.oppositeCornerBearingDegrees).toBe(135);
+    expect(result.cornerSurvey.map(({ label, bearingDegrees, compassPoint }) => ({ label, bearingDegrees, compassPoint }))).toEqual([
+      { label: 'Feedpoint', bearingDegrees: 315, compassPoint: 'NW' },
+      { label: 'Corner 2', bearingDegrees: 45, compassPoint: 'NE' },
+      { label: 'Opposite corner', bearingDegrees: 135, compassPoint: 'SE' },
+      { label: 'Corner 4', bearingDegrees: 225, compassPoint: 'SW' }
+    ]);
+    expect(result.cornerSurvey[0].eastOffsetMetres).toBeCloseTo(-feet(7.5), 10);
+    expect(result.cornerSurvey[0].northOffsetMetres).toBeCloseTo(feet(7.5), 10);
     expect(result.directionDescription).toContain('45° NE and 225° SW');
   });
 
@@ -69,7 +79,7 @@ describe('calculateLoopOnGround', () => {
   });
 
   it('carries versioned source provenance', () => {
-    expect(LOOP_ON_GROUND_MODEL).toMatchObject({ id: 'loop-on-ground-receive-planner', version: '1.0.0', reviewedOn: '2026-11-13' });
+    expect(LOOP_ON_GROUND_MODEL).toMatchObject({ id: 'loop-on-ground-receive-planner', version: '2.0.0', reviewedOn: '2026-11-14' });
     expect(LOOP_ON_GROUND_MODEL.sources).toHaveLength(2);
   });
 });
