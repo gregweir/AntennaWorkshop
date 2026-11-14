@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState, type MouseEvent } from 'react';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
 import { loadPreferences, savePreferences, type ThemePreference } from './preferences';
@@ -48,9 +48,19 @@ export function App() {
   }, [theme]);
 
   const jurisdictionName = jurisdictionProfiles.find((profile) => profile.code === jurisdiction)?.name ?? 'Unknown';
+  const skipToCalculator = (event: MouseEvent<HTMLAnchorElement>) => {
+    const calculator = document.getElementById('calculator');
+    if (!calculator) return;
+    event.preventDefault();
+    window.history.pushState(null, '', '#calculator');
+    globalThis.setTimeout(() => {
+      calculator.focus();
+      calculator.scrollIntoView({ block: 'start' });
+    }, 0);
+  };
 
   return <>
-    <a className="skip-link" href="#calculator">Skip to calculator</a>
+    <a className="skip-link" href="#calculator" onClick={skipToCalculator}>Skip to calculator</a>
     <PwaUpdateBanner />
     <header className="site-header">
       <div className="shell header-inner">

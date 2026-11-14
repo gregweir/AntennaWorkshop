@@ -69,14 +69,20 @@ LAN access over plain HTTP is suitable for browser testing, but service workers 
 ```bash
 npm test
 npm run test:e2e
+npm run test:browser-matrix
+npm run test:pwa
 npm run build
 npm run preview
 ```
 
 - `npm test` runs calculation and data-contract tests.
-- `npm run test:e2e` runs persistent-preference, interaction, update-notice, and responsive browser tests. Install Playwright's Chromium browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to a local Chromium-compatible executable.
+- `npm run test:e2e` runs the exhaustive persistent-preference, interaction, update-notice, and responsive suite in Chromium.
+- `npm run test:browser-matrix` runs focused release checks in desktop Chromium, Firefox, and WebKit plus representative Android and iPhone profiles. Install all three Playwright browser engines first; `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` may replace only the Chromium runtime.
+- `npm run test:pwa` builds on the production preview to verify cold offline return across every workspace.
 - `npm run build` performs strict type checking and creates the production PWA.
 - `npm run preview` serves the production build on the LAN at port 4174.
+
+See [`docs/BROWSER_TEST_MATRIX.md`](docs/BROWSER_TEST_MATRIX.md) for the automated coverage and the physical-device release checklist.
 
 ## Project layout
 

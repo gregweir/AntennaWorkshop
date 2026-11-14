@@ -7,6 +7,33 @@
 
 import { expect, test } from '@playwright/test';
 
+test('publishes an installable scoped manifest and active worker', async ({ page, request }) => {
+  await page.goto('./');
+  const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
+  expect(manifestHref).toBeTruthy();
+  const manifestResponse = await request.get(new URL(manifestHref!, page.url()).toString());
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = await manifestResponse.json();
+  expect(manifest).toMatchObject({
+    name: 'RadioBook Antenna Workshop',
+    short_name: 'Antenna Workshop',
+    display: 'standalone',
+    start_url: './',
+    scope: './'
+  });
+  expect(manifest.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ src: 'pwa-192.png', sizes: '192x192', type: 'image/png' }),
+    expect.objectContaining({ src: 'pwa-512.png', sizes: '512x512', type: 'image/png' })
+  ]));
+
+  const worker = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    return { scope: registration.scope, active: Boolean(registration.active) };
+  });
+  expect(worker.active).toBe(true);
+  expect(worker.scope).toBe('http://127.0.0.1:4174/antennas/');
+});
+
 test('returns offline and opens every precached workspace', async ({ context, page }) => {
   await page.goto('./');
   await expect(page.getByRole('heading', { name: 'Centre-fed half-wave dipole' })).toBeVisible();

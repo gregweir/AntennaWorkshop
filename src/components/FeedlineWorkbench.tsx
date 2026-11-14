@@ -82,7 +82,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
   const result = mode === 'power' ? powerResult : mode === 'stub' ? stubResult : radiatedResult;
   const model = mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : RADIATED_POWER_MODEL;
 
-  return <section className="workspace shell feedline-workspace" id="calculator" aria-labelledby="calculator-title">
+  return <section className="workspace shell feedline-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
     <div className="workspace-heading">
       <div><p className="eyebrow">Feedline and matching</p><h2 id="calculator-title">{mode === 'power' ? 'Feedline power budget' : mode === 'stub' ? 'Coaxial stub length' : 'ERP and EIRP'}</h2></div>
       <span className="model-badge">Model {model.version}</span>

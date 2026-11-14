@@ -107,7 +107,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
         ? 'The FCC MPE power-density table spans 0.3 to 100,000 MHz.'
         : 'Canadian power-density reference levels begin at 10 MHz; lower frequencies require electric- and magnetic-field treatment.';
 
-  return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title">
+  return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
     <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div><span className="model-badge">Preliminary beta</span></div>
     <div className="exposure-status" role="note"><strong>Preliminary tools only</strong><span>Reference lookup, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
     {showsEvidenceLabels && <ResultEvidenceKey />}

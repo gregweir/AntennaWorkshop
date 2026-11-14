@@ -162,6 +162,7 @@ The station-change log must identify the categories named in clause 5 as well as
 ## Acceptance criteria for the first public beta
 
 - Responsive operation on current Android, iOS, and desktop browsers.
+- Automated smoke coverage on Chromium, Firefox, and WebKit desktop engines plus representative Android and iPhone profiles, with physical Android and iOS installation checks required before public release.
 - Keyboard and screen-reader operability, visible focus, and 44-pixel minimum targets.
 - Cold offline return after one complete online visit.
 - Persistent projects survive reload, browser restart, and application upgrade.

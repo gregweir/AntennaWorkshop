@@ -363,7 +363,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
   };
 
   return (
-    <section className="workspace shell" id="calculator" aria-labelledby="calculator-title">
+    <section className="workspace shell" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
       <div className="workspace-heading">
         <div>
           <p className="eyebrow">Graphical antenna workshop</p>
