@@ -7579,7 +7579,43 @@ path.loading-coil {
   text-align: right;
 }
 
+.result-summary-actions {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.result-summary-actions button {
+  min-height: 44px;
+}
+
+.result-summary-actions small {
+  max-width: 34rem;
+  color: var(--text-secondary);
+}
+
+.antenna-print-heading,
+.antenna-print-limit {
+  display: none;
+}
+
+.antenna-print-diagram {
+  display: contents;
+}
+
 @media (max-width: 560px) {
+  .result-summary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .result-summary-actions button {
+    width: 100%;
+  }
+
   .result-summary dl div {
     align-items: flex-start;
   }
@@ -8922,6 +8958,149 @@ path.loading-coil {
     display: none !important;
   }
 
+  body.antenna-build-print .workspace > :not(.calculator-layout),
+  body.antenna-build-print .calculator-layout > :not(.input-panel):not(.visual-panel),
+  body.antenna-build-print .input-panel > :not(.antenna-print-heading):not(.result-summary),
+  body.antenna-build-print .visual-panel > :not(.antenna-print-diagram),
+  body.antenna-build-print .result-summary-actions {
+    display: none !important;
+  }
+
+  body.antenna-build-print .workspace,
+  body.antenna-build-print .calculator-layout,
+  body.antenna-build-print .input-panel,
+  body.antenna-build-print .visual-panel,
+  body.antenna-build-print .antenna-print-diagram {
+    display: block !important;
+  }
+
+  body.antenna-build-print .workspace,
+  body.antenna-build-print .input-panel,
+  body.antenna-build-print .visual-panel {
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: white;
+    box-shadow: none;
+  }
+
+  body.antenna-build-print .antenna-print-heading {
+    display: flex !important;
+    gap: 5mm;
+    align-items: center;
+    margin-bottom: 5mm;
+    padding-bottom: 4mm;
+    border-bottom: 2px solid #163348;
+    color: black;
+  }
+
+  body.antenna-build-print .antenna-print-heading img {
+    width: 16mm;
+    height: 16mm;
+    object-fit: contain;
+  }
+
+  body.antenna-build-print .antenna-print-heading p,
+  body.antenna-build-print .antenna-print-heading h1,
+  body.antenna-build-print .antenna-print-heading span {
+    margin: 0;
+  }
+
+  body.antenna-build-print .antenna-print-heading p,
+  body.antenna-build-print .antenna-print-heading span {
+    color: #4b5862;
+    font-size: 8pt;
+  }
+
+  body.antenna-build-print .antenna-print-heading h1 {
+    margin-block: 1mm;
+    font-family: Arial, sans-serif;
+    font-size: 18pt;
+    line-height: 1.1;
+  }
+
+  body.antenna-build-print .result-summary {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: black;
+  }
+
+  body.antenna-build-print .result-summary > strong {
+    color: #163348;
+    font-size: 16pt;
+  }
+
+  body.antenna-build-print .result-priority-group,
+  body.antenna-build-print .result-supporting-details,
+  body.antenna-build-print .result-supporting-details > dl,
+  body.antenna-build-print .antenna-print-limit {
+    display: block !important;
+  }
+
+  body.antenna-build-print .result-supporting-details > summary {
+    display: none;
+  }
+
+  body.antenna-build-print .result-summary dl div {
+    break-inside: avoid;
+  }
+
+  body.antenna-build-print .result-evidence-badge {
+    color: #163348;
+  }
+
+  body.antenna-build-print .antenna-print-limit {
+    margin-top: 4mm;
+    padding-top: 3mm;
+    border-top: 1px solid #9aa4aa;
+    color: #4b5862;
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    line-height: 1.4;
+    text-transform: none;
+  }
+
+  body.antenna-build-print .visual-panel {
+    margin-top: 7mm;
+    break-before: auto;
+  }
+
+  body.antenna-build-print .antenna-print-diagram > * {
+    width: 100%;
+    max-width: 100%;
+    break-inside: avoid;
+  }
+
+  body.antenna-build-print .antenna-print-diagram {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body.antenna-build-print .antenna-print-diagram svg {
+    width: 100%;
+    max-height: 175mm;
+  }
+
+  body.antenna-build-print .lpda-schedule .table-scroll {
+    overflow: visible;
+  }
+
+  body.antenna-build-print .lpda-schedule table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    font-size: 6.5pt;
+  }
+
+  body.antenna-build-print .lpda-schedule th,
+  body.antenna-build-print .lpda-schedule td {
+    padding: 1.5mm 1mm;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
   body:has(.trap-commissioning-panel) .workspace > :not(.trap-commissioning-panel),
   .visual-panel:has(.trap-commissioning-panel) > :not(.trap-commissioning-panel),
   .trap-record-library,
@@ -9188,5 +9367,9 @@ path.loading-coil {
 
   .acma-print-report footer p {
     margin: 0.7mm 0;
+  }
+
+  body.antenna-build-print:has(.trap-commissioning-panel) .workspace > .calculator-layout {
+    display: block !important;
   }
 }

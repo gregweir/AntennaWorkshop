@@ -113,6 +113,55 @@ test('compares three antenna systems without ranking unmodelled performance', as
   await expect(page.locator('.comparison-card-current').getByRole('button', { name: 'Planner open' })).toBeDisabled();
 });
 
+test('prints a focused antenna build sheet with dimensions and drawing', async ({ page }) => {
+  await page.evaluate(() => {
+    (window as typeof window & { antennaPrintCalls?: number }).antennaPrintCalls = 0;
+    window.print = () => {
+      const state = window as typeof window & { antennaPrintCalls?: number; antennaPrintDetailsOpen?: boolean };
+      state.antennaPrintCalls = 1;
+      state.antennaPrintDetailsOpen = document.querySelector<HTMLDetailsElement>('.result-supporting-details')?.open;
+    };
+  });
+  await page.getByRole('button', { name: 'Print build sheet' }).click();
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { antennaPrintCalls?: number }).antennaPrintCalls)).toBe(1);
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { antennaPrintDetailsOpen?: boolean }).antennaPrintDetailsOpen)).toBe(true);
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await page.reload();
+  await page.getByRole('button', { name: 'Print build sheet' }).waitFor();
+
+  await page.emulateMedia({ media: 'print' });
+  await page.evaluate(() => {
+    document.body.classList.add('antenna-build-print');
+    document.querySelector<HTMLDetailsElement>('.result-supporting-details')?.setAttribute('open', '');
+  });
+  await expect(page.locator('.antenna-print-heading')).toContainText('Centre-fed half-wave dipole');
+  await expect(page.locator('.result-summary')).toBeVisible();
+  await expect(page.locator('.result-supporting-details dl')).toBeVisible();
+  await expect(page.locator('.antenna-print-diagram .antenna-figure')).toBeVisible();
+  await expect(page.getByText('Compare antenna designs', { exact: true })).toBeHidden();
+  await expect(page.getByLabel('Design frequency', { exact: true })).toBeHidden();
+
+  await page.evaluate(() => document.body.classList.remove('antenna-build-print'));
+  await page.emulateMedia({ media: 'screen' });
+  await page.getByText('Compare antenna designs', { exact: true }).click();
+  await page.getByLabel('Comparison design 2').selectOption('log-periodic');
+  await page.getByRole('button', { name: 'Open Log-periodic planner' }).click();
+  await page.emulateMedia({ media: 'print' });
+  await page.evaluate(() => {
+    document.body.classList.add('antenna-build-print');
+    document.querySelector<HTMLDetailsElement>('.result-supporting-details')?.setAttribute('open', '');
+  });
+  const printWidths = await page.evaluate(() => ({
+    page: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+    schedule: document.querySelector('.lpda-schedule')?.scrollWidth ?? 0,
+    visual: document.querySelector('.visual-panel')?.clientWidth ?? 0
+  }));
+  expect(printWidths.content).toBeLessThanOrEqual(printWidths.page);
+  expect(printWidths.schedule).toBeLessThanOrEqual(printWidths.visual);
+  await expect(page.locator('.lpda-schedule th')).toHaveCount(13);
+});
+
 test('separates build dimensions, assumptions, references, and field verification', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Know what the number means before cutting' })).toBeVisible();
   await expect(page.locator('.result-evidence-guide')).toContainText('Calculated');

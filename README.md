@@ -8,6 +8,8 @@ The current workshop includes dimensioned half-wave dipole, fan dipole, balanced
 
 An optional three-design comparison aid covers required space and supports, band intent, feed and tuning systems, directional context, construction complexity, and installed measurements for every antenna planner. It deliberately compares practical topology rather than ranking unmodelled gain, efficiency, signal strength, or site suitability; any compared design can be opened directly in the workbench.
 
+Every valid antenna result can be printed as a focused build sheet containing the selected design, prioritized dimensions, installed-verification items, supporting calculations and assumptions, and the dimensioned drawing. Navigation, selectors, and unrelated workspaces are excluded from the print packet.
+
 The two-band trap-dipole workflow solves matched ideal parallel-LC traps for two design frequencies and a constrained span, then shows component targets, trap placement, operating-frequency reactances, and the intermediate trap resonance graphically. Physical component construction, power rating, parasitics, loss, heating, matching, and installed performance remain explicit measurement and verification tasks.
 
 Loaded dipole, loaded vertical, and trap-dipole results connect directly to a single-layer air-core coil construction planner. It converts the calculated inductance target into ideal and rounded turn counts, pitch, spacing, approximate winding-wire length, and a dimensioned coil drawing using the documented ARRL approximation. It detects wire that cannot fit in one layer and keeps Q, self-capacitance, self-resonance, voltage, current, heating, form loss, and weather effects outside the geometry estimate.

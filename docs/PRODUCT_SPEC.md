@@ -52,6 +52,8 @@ Contextual help must work with touch, keyboard, and pointer input. Complex secti
 
 The antenna workspace must provide an optional comparison of three user-selected construction planners. It must cover site footprint, band intent, feed and tuning system, directional context, build complexity, and required installed verification without assigning a performance ranking or inferring gain, efficiency, signal strength, or suitability at the user’s site.
 
+Every valid antenna plan must provide a printable build sheet containing the active design identity, displayed dimensions, supporting calculations and assumptions, required installed verification, and construction drawing. The print view must exclude navigation, planner selection, and unrelated tools, and must retain the warning that calculated starting dimensions require field verification.
+
 The EFHW guide must distinguish impedance ratio from winding turns ratio, treat end impedance and multiband resonances as installation-dependent assumptions, and lead the builder through return-path planning, documented transformer selection, build-long construction, installed measurement, and per-band verification. It must not imply that the calculator designs or power-rates a transformer or prescribes one universal counterpoise.
 
 The OCFD guide must explain how the selected split changes both leg lengths and likely feedpoint impedance, distinguish a nominal current-balun ratio from a complete balun and choking design, and preserve the selected split while trimming. It must require installed measurement on each intended band and avoid promising a match, pattern, or tuner-correctable common-mode system.

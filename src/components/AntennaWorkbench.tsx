@@ -380,6 +380,22 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
     selectDesign(type);
     globalThis.requestAnimationFrame?.(() => document.getElementById('calculator-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
+  const printBuildSheet = () => {
+    const printClass = 'antenna-build-print';
+    const closedDetails = [...document.querySelectorAll<HTMLDetailsElement>('.result-supporting-details:not([open])')];
+    const cleanup = () => {
+      document.body.classList.remove(printClass);
+      closedDetails.forEach((details) => details.removeAttribute('open'));
+    };
+    document.body.classList.add(printClass);
+    closedDetails.forEach((details) => details.setAttribute('open', ''));
+    window.addEventListener('afterprint', cleanup, { once: true });
+    try {
+      window.print();
+    } finally {
+      window.setTimeout(cleanup, 0);
+    }
+  };
 
   return (
     <section className="workspace shell" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
@@ -921,7 +937,10 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           </div>}
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
-          {calculation && <><ResultEvidenceGuide /><ResultSummary calculation={calculation} unitSystem={unitSystem} radialCount={radialCount} loopShape={loopShape} /></>}
+          {calculation && <><div className="antenna-print-heading">
+            <img src="/antennas/TartanleafLogo.jpg" alt="" width="72" height="72" />
+            <div><p>RadioBook Antenna Workshop</p><h1>{ANTENNA_DESIGNS[antennaType].name}</h1><span>{frequencyMHz.toFixed(3)} MHz · {unitSystem === 'metric' ? 'Metric' : 'Imperial'} · Model {model.version}</span></div>
+          </div><ResultEvidenceGuide /><ResultSummary calculation={calculation} unitSystem={unitSystem} radialCount={radialCount} loopShape={loopShape} onPrint={printBuildSheet} /></>}
           {calculation?.type === 'axial-helix' && calculation.value.warnings.length > 0 && <aside className="model-note helix-advisory" aria-label="Helix design advisories"><strong>Review these design choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'discone' && calculation.value.warnings.length > 0 && <aside className="model-note discone-advisory" aria-label="Discone design advisories"><strong>Review these construction choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'log-periodic' && calculation.value.warnings.length > 0 && <aside className="model-note lpda-advisory" aria-label="Log-periodic design advisories"><strong>Review these design choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
@@ -933,6 +952,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
         </form>
 
         <div className="visual-panel" id="design-drawing">
+          <div className="antenna-print-diagram">
           {calculation?.type === 'dipole' && <DipoleDiagram totalMetres={calculation.value.cutTotalMetres} legMetres={calculation.value.cutLegMetres} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
           {calculation?.type === 'fan-dipole' && <FanDipoleDiagram elements={calculation.value.elements} unitSystem={unitSystem} />}
           {calculation?.type === 'doublet' && <DoubletDiagram legMetres={calculation.value.cutLegMetres} totalMetres={calculation.value.cutTotalMetres} feedlineMetres={calculation.value.balancedLineLengthMetres} feedlineImpedanceOhms={calculation.value.balancedLineImpedanceOhms} unitSystem={unitSystem} />}
@@ -962,6 +982,7 @@ export function AntennaWorkbench({ jurisdiction, unitSystem, advancedOpen, setAd
           {calculation?.type === 'ground-plane' && <GroundPlaneDiagram radiatorMetres={calculation.value.radiatorMetres} radialMetres={calculation.value.radialMetres} footprintDiameterMetres={calculation.value.footprintDiameterMetres} radialCount={radialCount} slopeDegrees={radialSlopeDegrees} unitSystem={unitSystem} />}
           {calculation?.type === 'full-wave-loop' && <LoopDiagram perimeterMetres={calculation.value.perimeterMetres} primaryDimensionMetres={calculation.value.primaryDimensionMetres} shape={loopShape} unitSystem={unitSystem} />}
           {!calculation && <div className="diagram-placeholder">The construction drawing will appear when the inputs are valid.</div>}
+          </div>
         </div>
       </div>
 
@@ -1248,7 +1269,7 @@ function largestAntennaDimension(calculation: Calculation, loopShape: LoopShape)
   return calculateLargestAntennaDimension({ shape: 'loop', loopShape, primaryDimensionMetres: calculation.value.primaryDimensionMetres });
 }
 
-function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { calculation: Calculation; unitSystem: UnitSystem; radialCount: number; loopShape: LoopShape }) {
+function ResultSummary({ calculation, unitSystem, radialCount, loopShape, onPrint }: { calculation: Calculation; unitSystem: UnitSystem; radialCount: number; loopShape: LoopShape; onPrint: () => void }) {
   let headline = '';
   let primary = '';
   let details: Array<[string, string]> = [];
@@ -1362,6 +1383,8 @@ function ResultSummary({ calculation, unitSystem, radialCount, loopShape }: { ca
     {buildResults.length > 0 && <section className="result-priority-group" aria-labelledby="build-dimensions-heading"><h4 id="build-dimensions-heading">Build dimensions</h4>{renderRows(buildResults)}</section>}
     {measurementResults.length > 0 && <section className="result-priority-group result-verification-group" aria-labelledby="verify-results-heading"><h4 id="verify-results-heading">Verify on the finished build</h4>{renderRows(measurementResults)}</section>}
     {(supportingResults.length > 0 || contextResults.length > 0) && <details className="result-supporting-details"><summary>Inputs, references, and supporting calculations ({supportingResults.length + contextResults.length})</summary>{renderRows([...contextResults, ...supportingResults])}</details>}
+    <div className="result-summary-actions"><button type="button" onClick={onPrint}>Print build sheet</button><small>Prints this result, its supporting calculations, and the dimensioned drawing.</small></div>
+    <p className="antenna-print-limit">Starting dimensions only. Verify the finished antenna after installation and review the model sources, assumptions, limitations, and applicable safety guidance before use.</p>
   </div>;
 }
 
