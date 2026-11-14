@@ -6147,6 +6147,55 @@ select {
   margin: 0;
 }
 
+.starting-values-bar {
+  display: flex;
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 1.2rem;
+  padding: 0.7rem 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+
+.starting-values-bar div,
+.starting-values-bar strong,
+.starting-values-bar span {
+  display: block;
+}
+
+.starting-values-bar strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.starting-values-bar span {
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.starting-values-bar button {
+  flex: none;
+  min-height: 40px;
+  padding: 0.45rem 0.7rem;
+  white-space: nowrap;
+}
+
+.advanced-fields .starting-values-bar {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.advanced-fields .starting-values-bar button {
+  width: 100%;
+  white-space: normal;
+}
+
 .input-impact-heading h3 {
   margin-top: 0.15rem;
   font-family: var(--font-mono);
@@ -10223,6 +10272,16 @@ body.diagram-view-open {
 
   .input-impact-grid {
     grid-template-columns: 1fr;
+  }
+
+  .starting-values-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .starting-values-bar button {
+    width: 100%;
+    min-height: 44px;
   }
 
   .diagram-controls {

@@ -45,6 +45,22 @@ test('applies light, dark, and live system theme modes', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
+test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });
+  await expect(startingValues).toContainText('Using starting values');
+  await expect(startingValues.getByRole('button')).toBeDisabled();
+
+  await page.getByRole('spinbutton', { name: 'Length correction factor' }).fill('0.90');
+  await page.getByRole('spinbutton', { name: 'Extra length for trimming' }).fill('5');
+  await expect(startingValues).toContainText('2 modified values');
+  await startingValues.getByRole('button', { name: 'Restore common length settings' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Length correction factor' })).toHaveValue('0.95');
+  await expect(page.getByRole('spinbutton', { name: 'Extra length for trimming' })).toHaveValue('2.5');
+  await expect(page.getByRole('spinbutton', { name: /Design frequency/ })).toHaveValue('14.200');
+  await expect(startingValues).toContainText('Using starting values');
+});
+
 test('explains how to install and update the offline application', async ({ page }) => {
   await page.getByText('Install this app', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
@@ -1481,6 +1497,13 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.getByRole('img', { name: 'Feedline power-flow diagram' })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
   await expect(page.locator('.result-summary')).toContainText('1.80 dB');
+  const startingValues = page.getByRole('region', { name: 'Power budget inputs starting values' });
+  await expect(startingValues).toContainText('Using starting values');
+  await page.getByLabel('Cable length').fill('40');
+  await expect(startingValues).toContainText('1 modified value');
+  await startingValues.getByRole('button', { name: 'Restore power budget inputs' }).click();
+  await expect(page.getByLabel('Cable length')).toHaveValue('30');
+  await expect(startingValues).toContainText('Using starting values');
   const inputImpact = page.getByRole('region', { name: 'What these inputs affect' });
   await expect(inputImpact).toContainText('63.10 W reaches the antenna feedpoint');
   await expect(inputImpact).toContainText('SWR changes the displayed reflected and accepted fractions');
@@ -1499,6 +1522,7 @@ test('calculates feedline loss and preserves physical values across unit changes
   await expect(page.locator('.result-summary')).toContainText('63.10 W');
 
   await page.getByRole('button', { name: /Coaxial stub/ }).click();
+  await expect(page.getByRole('region', { name: 'Coaxial stub inputs starting values' })).toContainText('Using starting values');
   await expect(page.getByRole('heading', { name: 'Coaxial stub length' })).toBeVisible();
   await page.getByRole('spinbutton', { name: 'Operating frequency' }).fill('14.100');
   await expect(page.getByLabel('Velocity factor', { exact: true })).toHaveValue('0.66');

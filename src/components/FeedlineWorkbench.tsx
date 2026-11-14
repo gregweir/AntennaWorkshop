@@ -31,12 +31,58 @@ import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
 import { DiagramControls } from './DiagramControls';
 import { InputImpactPanel } from './InputImpactPanel';
+import { StartingValuesBar } from './StartingValuesBar';
 
 interface Props {
   jurisdiction: JurisdictionCode;
   unitSystem: UnitSystem;
   antennaHandoff: AntennaDesignHandoff | null;
   onAddToExposure: (transfer: StationSourceTransfer) => void;
+}
+
+const FEEDLINE_STARTING = {
+  frequencyMHz: 146.52,
+  transmitterPowerWatts: 100,
+  cableLengthMetres: 30,
+  lossDbPer100Metres: 6,
+  accessoryLossDb: 0.2,
+  swr: 1.5,
+  velocityFactor: 0.66,
+  stubFraction: 0.25 as StubFraction,
+  stubTermination: 'short' as StubTermination,
+  stubTrimAllowancePercent: 5,
+  systemResistanceOhms: 50,
+  loadResistanceOhms: 100,
+  loadReactanceOhms: -50,
+  lineCharacteristicImpedanceOhms: 50,
+  linePhysicalLengthMetres: 10,
+  lineVelocityFactor: 0.66,
+  lineMatchedLossDbPer100Metres: 6,
+  lineNearEndSectionEnabled: false,
+  lineNearEndCharacteristicImpedanceOhms: 50,
+  lineNearEndPhysicalLengthMetres: 1,
+  lineNearEndVelocityFactor: 0.66,
+  lineNearEndMatchedLossDbPer100Metres: 6,
+  transformerSourceResistanceOhms: 50,
+  transformerLoadResistanceOhms: 100,
+  transformerVelocityFactor: 0.66,
+  transformerTrimAllowancePercent: 5,
+  ratioSourceResistanceOhms: 50,
+  ratioLoadResistanceOhms: 200,
+  ratioSourceTurns: 3,
+  ratioSourceConnection: 'unbalanced' as ConnectionForm,
+  ratioLoadConnection: 'balanced' as ConnectionForm,
+  feedSystemLossDb: 1.8,
+  antennaGainDb: 2.15,
+  gainReference: 'dBi' as GainReference,
+  dutyCyclePercent: 50,
+  antennaCentreHeightMetres: 10,
+  antennaEastMetres: 0,
+  antennaNorthMetres: 0
+};
+
+function countModified(...conditions: boolean[]) {
+  return conditions.filter(Boolean).length;
 }
 
 export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, onAddToExposure }: Props) {
@@ -93,6 +139,116 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
   const antennaHeightDisplay = unitSystem === 'metric' ? antennaCentreHeightMetres : metresToFeet(antennaCentreHeightMetres);
   const antennaEastDisplay = unitSystem === 'metric' ? antennaEastMetres : metresToFeet(antennaEastMetres);
   const antennaNorthDisplay = unitSystem === 'metric' ? antennaNorthMetres : metresToFeet(antennaNorthMetres);
+  const startingFrequencyMHz = antennaHandoff?.frequencyMHz ?? FEEDLINE_STARTING.frequencyMHz;
+  const frequencyIsModified = !antennaHandoff && frequencyMHz !== startingFrequencyMHz;
+  const startingValueCount = mode === 'power' ? countModified(
+    frequencyIsModified,
+    transmitterPowerWatts !== FEEDLINE_STARTING.transmitterPowerWatts,
+    cableLengthMetres !== FEEDLINE_STARTING.cableLengthMetres,
+    lossDbPer100Metres !== FEEDLINE_STARTING.lossDbPer100Metres,
+    accessoryLossDb !== FEEDLINE_STARTING.accessoryLossDb,
+    swr !== FEEDLINE_STARTING.swr
+  ) : mode === 'stub' ? countModified(
+    frequencyIsModified,
+    velocityFactor !== FEEDLINE_STARTING.velocityFactor,
+    stubFraction !== FEEDLINE_STARTING.stubFraction,
+    stubTermination !== FEEDLINE_STARTING.stubTermination,
+    stubTrimAllowancePercent !== FEEDLINE_STARTING.stubTrimAllowancePercent
+  ) : mode === 'explore' || mode === 'match' ? countModified(
+    frequencyIsModified,
+    systemResistanceOhms !== FEEDLINE_STARTING.systemResistanceOhms,
+    loadResistanceOhms !== FEEDLINE_STARTING.loadResistanceOhms,
+    loadReactanceOhms !== FEEDLINE_STARTING.loadReactanceOhms
+  ) : mode === 'line' ? countModified(
+    frequencyIsModified,
+    lineCharacteristicImpedanceOhms !== FEEDLINE_STARTING.lineCharacteristicImpedanceOhms,
+    linePhysicalLengthMetres !== FEEDLINE_STARTING.linePhysicalLengthMetres,
+    lineVelocityFactor !== FEEDLINE_STARTING.lineVelocityFactor,
+    lineMatchedLossDbPer100Metres !== FEEDLINE_STARTING.lineMatchedLossDbPer100Metres,
+    lineNearEndSectionEnabled !== FEEDLINE_STARTING.lineNearEndSectionEnabled,
+    lineNearEndCharacteristicImpedanceOhms !== FEEDLINE_STARTING.lineNearEndCharacteristicImpedanceOhms,
+    lineNearEndPhysicalLengthMetres !== FEEDLINE_STARTING.lineNearEndPhysicalLengthMetres,
+    lineNearEndVelocityFactor !== FEEDLINE_STARTING.lineNearEndVelocityFactor,
+    lineNearEndMatchedLossDbPer100Metres !== FEEDLINE_STARTING.lineNearEndMatchedLossDbPer100Metres,
+    loadResistanceOhms !== FEEDLINE_STARTING.loadResistanceOhms,
+    loadReactanceOhms !== FEEDLINE_STARTING.loadReactanceOhms
+  ) : mode === 'transformer' ? countModified(
+    frequencyIsModified,
+    transformerSourceResistanceOhms !== FEEDLINE_STARTING.transformerSourceResistanceOhms,
+    transformerLoadResistanceOhms !== FEEDLINE_STARTING.transformerLoadResistanceOhms,
+    transformerVelocityFactor !== FEEDLINE_STARTING.transformerVelocityFactor,
+    transformerTrimAllowancePercent !== FEEDLINE_STARTING.transformerTrimAllowancePercent
+  ) : mode === 'ratio' ? countModified(
+    ratioSourceResistanceOhms !== FEEDLINE_STARTING.ratioSourceResistanceOhms,
+    ratioLoadResistanceOhms !== FEEDLINE_STARTING.ratioLoadResistanceOhms,
+    ratioSourceTurns !== FEEDLINE_STARTING.ratioSourceTurns,
+    ratioSourceConnection !== FEEDLINE_STARTING.ratioSourceConnection,
+    ratioLoadConnection !== FEEDLINE_STARTING.ratioLoadConnection
+  ) : countModified(
+    frequencyIsModified,
+    transmitterPowerWatts !== FEEDLINE_STARTING.transmitterPowerWatts,
+    feedSystemLossDb !== FEEDLINE_STARTING.feedSystemLossDb,
+    antennaGainDb !== FEEDLINE_STARTING.antennaGainDb,
+    gainReference !== FEEDLINE_STARTING.gainReference,
+    Boolean(antennaHandoff) && dutyCyclePercent !== FEEDLINE_STARTING.dutyCyclePercent,
+    Boolean(antennaHandoff) && antennaCentreHeightMetres !== FEEDLINE_STARTING.antennaCentreHeightMetres,
+    Boolean(antennaHandoff) && antennaEastMetres !== FEEDLINE_STARTING.antennaEastMetres,
+    Boolean(antennaHandoff) && antennaNorthMetres !== FEEDLINE_STARTING.antennaNorthMetres
+  );
+  const startingValueScope = mode === 'power' ? 'Power budget inputs' : mode === 'stub' ? 'Coaxial stub inputs' : mode === 'explore' ? 'Impedance explorer inputs' : mode === 'line' ? 'Line transformation inputs' : mode === 'match' ? 'L-network inputs' : mode === 'transformer' ? 'Quarter-wave transformer inputs' : mode === 'ratio' ? 'Balun and unun ratio inputs' : 'ERP and EIRP inputs';
+  const restoreStartingValues = () => {
+    if (!antennaHandoff && mode !== 'ratio') setFrequencyText(startingFrequencyMHz.toString());
+    if (mode === 'power') {
+      setTransmitterPowerWatts(FEEDLINE_STARTING.transmitterPowerWatts);
+      setCableLengthMetres(FEEDLINE_STARTING.cableLengthMetres);
+      setLossDbPer100Metres(FEEDLINE_STARTING.lossDbPer100Metres);
+      setAccessoryLossDb(FEEDLINE_STARTING.accessoryLossDb);
+      setSwr(FEEDLINE_STARTING.swr);
+    } else if (mode === 'stub') {
+      setVelocityFactor(FEEDLINE_STARTING.velocityFactor);
+      setStubFraction(FEEDLINE_STARTING.stubFraction);
+      setStubTermination(FEEDLINE_STARTING.stubTermination);
+      setStubTrimAllowancePercent(FEEDLINE_STARTING.stubTrimAllowancePercent);
+    } else if (mode === 'explore' || mode === 'match') {
+      setSystemResistanceOhms(FEEDLINE_STARTING.systemResistanceOhms);
+      setLoadResistanceOhms(FEEDLINE_STARTING.loadResistanceOhms);
+      setLoadReactanceOhms(FEEDLINE_STARTING.loadReactanceOhms);
+    } else if (mode === 'line') {
+      setLineCharacteristicImpedanceOhms(FEEDLINE_STARTING.lineCharacteristicImpedanceOhms);
+      setLinePhysicalLengthMetres(FEEDLINE_STARTING.linePhysicalLengthMetres);
+      setLineVelocityFactor(FEEDLINE_STARTING.lineVelocityFactor);
+      setLineMatchedLossDbPer100Metres(FEEDLINE_STARTING.lineMatchedLossDbPer100Metres);
+      setLineNearEndSectionEnabled(FEEDLINE_STARTING.lineNearEndSectionEnabled);
+      setLineNearEndCharacteristicImpedanceOhms(FEEDLINE_STARTING.lineNearEndCharacteristicImpedanceOhms);
+      setLineNearEndPhysicalLengthMetres(FEEDLINE_STARTING.lineNearEndPhysicalLengthMetres);
+      setLineNearEndVelocityFactor(FEEDLINE_STARTING.lineNearEndVelocityFactor);
+      setLineNearEndMatchedLossDbPer100Metres(FEEDLINE_STARTING.lineNearEndMatchedLossDbPer100Metres);
+      setLoadResistanceOhms(FEEDLINE_STARTING.loadResistanceOhms);
+      setLoadReactanceOhms(FEEDLINE_STARTING.loadReactanceOhms);
+    } else if (mode === 'transformer') {
+      setTransformerSourceResistanceOhms(FEEDLINE_STARTING.transformerSourceResistanceOhms);
+      setTransformerLoadResistanceOhms(FEEDLINE_STARTING.transformerLoadResistanceOhms);
+      setTransformerVelocityFactor(FEEDLINE_STARTING.transformerVelocityFactor);
+      setTransformerTrimAllowancePercent(FEEDLINE_STARTING.transformerTrimAllowancePercent);
+    } else if (mode === 'ratio') {
+      setRatioSourceResistanceOhms(FEEDLINE_STARTING.ratioSourceResistanceOhms);
+      setRatioLoadResistanceOhms(FEEDLINE_STARTING.ratioLoadResistanceOhms);
+      setRatioSourceTurns(FEEDLINE_STARTING.ratioSourceTurns);
+      setRatioSourceConnection(FEEDLINE_STARTING.ratioSourceConnection);
+      setRatioLoadConnection(FEEDLINE_STARTING.ratioLoadConnection);
+    } else {
+      setTransmitterPowerWatts(FEEDLINE_STARTING.transmitterPowerWatts);
+      setFeedSystemLossDb(FEEDLINE_STARTING.feedSystemLossDb);
+      setAntennaGainDb(FEEDLINE_STARTING.antennaGainDb);
+      setGainReference(FEEDLINE_STARTING.gainReference);
+      if (antennaHandoff) {
+        setDutyCyclePercent(FEEDLINE_STARTING.dutyCyclePercent);
+        setAntennaCentreHeightMetres(FEEDLINE_STARTING.antennaCentreHeightMetres);
+        setAntennaEastMetres(FEEDLINE_STARTING.antennaEastMetres);
+        setAntennaNorthMetres(FEEDLINE_STARTING.antennaNorthMetres);
+      }
+    }
+  };
 
   const powerResult = useMemo(() => {
     try {
@@ -376,6 +532,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
             <PowerField label="Installed antenna north position" value={Number(antennaNorthDisplay.toFixed(3))} unit={unitSystem === 'metric' ? 'm' : 'ft'} min={-1_000_000} max={1_000_000} step={0.1} onChange={(value) => setAntennaNorthMetres(unitSystem === 'metric' ? Number(value) : feetToMetres(Number(value)))} help="Enter a north-positive coordinate using the same site origin as evaluation points." />
           </>}
         </>}
+        <StartingValuesBar scope={startingValueScope} modifiedCount={startingValueCount} note="Restores only the visible active calculator. Linked antenna geometry, saved antenna plans, preferences, and other feed-system tools are unchanged." onRestore={restoreStartingValues} />
         <InputImpactPanel current={inputImpact.current} why={inputImpact.why} boundary={inputImpact.boundary} />
         {!result && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate the {mode === 'power' ? 'budget' : mode === 'stub' ? 'stub' : mode === 'explore' ? 'impedance point' : mode === 'line' ? 'line transformation' : mode === 'match' ? 'matching network' : mode === 'transformer' ? 'quarter-wave transformer' : mode === 'ratio' ? 'ideal transformer ratio' : 'radiated power'}.</p>}
         {mode === 'power' && powerResult && <EvidenceResultSummary headline="Forward power at antenna feedpoint" primary={`${powerResult.forwardPowerAtAntennaWatts.toFixed(2)} W`} primaryKind="calculated" items={[
