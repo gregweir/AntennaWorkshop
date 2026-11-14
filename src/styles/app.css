@@ -8271,6 +8271,39 @@ path.loading-coil {
   stroke-width: 2;
 }
 
+.halo-radiator path {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10;
+}
+
+.halo-terminals circle {
+  fill: var(--tl-navy);
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.halo-terminals line {
+  stroke: var(--accent-technical);
+  stroke-dasharray: 6 5;
+  stroke-width: 3;
+}
+
+.halo-terminals rect {
+  fill: var(--bg-elevated);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.halo-terminals text,
+.halo-labels text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
 .feedpoint rect {
   fill: var(--tl-navy);
   stroke: var(--tl-coral);
@@ -9533,6 +9566,12 @@ path.loading-coil {
   .turnstile-dipole text,
   .turnstile-labels text,
   .turnstile-feed text {
+    font-size: 20px;
+  }
+
+  .halo-figure .dimension-lines text,
+  .halo-terminals text,
+  .halo-labels text {
     font-size: 20px;
   }
 }

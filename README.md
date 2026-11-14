@@ -10,6 +10,8 @@ An optional three-design comparison aid covers required space and supports, band
 
 The crossed-dipole turnstile workflow sizes two equal orthogonal half-wave dipoles and a velocity-factor-aware quarter-wave path-difference reference. It makes equal amplitude, measured relative phase, balanced ports, lead/lag order, common-mode control, axial-ratio verification, and polarization-sense verification explicit instead of treating a quarter-wave cable as a complete quadrature feed or matching system.
 
+The halo workflow bends a corrected half-wave dipole into a circular halo or square squalo. It provides equal-arm cut lengths, both construction openings, centreline diameter or side length, responsive diagrams, and guided tuning while keeping resonance, matching, bandwidth, common mode, and pattern as measured or modelled results.
+
 Every valid antenna result can be printed as a focused build sheet containing the selected design, prioritized dimensions, installed-verification items, supporting calculations and assumptions, and the dimensioned drawing. Navigation, selectors, and unrelated workspaces are excluded from the print packet.
 
 The two-band trap-dipole workflow solves matched ideal parallel-LC traps for two design frequencies and a constrained span, then shows component targets, trap placement, operating-frequency reactances, and the intermediate trap resonance graphically. Physical component construction, power rating, parasitics, loss, heating, matching, and installed performance remain explicit measurement and verification tasks.

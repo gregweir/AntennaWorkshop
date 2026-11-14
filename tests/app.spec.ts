@@ -74,20 +74,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 30 designs')).toBeVisible();
+  await expect(page.getByText('2 of 31 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only' }).click();
-  await expect(page.getByText('5 of 30 designs')).toBeVisible();
+  await expect(page.getByText('5 of 31 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Beverage/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Dipole/ })).toHaveCount(0);
 
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('30 of 30 designs')).toBeVisible();
+  await expect(page.getByText('31 of 31 designs')).toBeVisible();
 });
 
 test('plans an equal-conductor folded dipole without presenting nominal impedance as measured', async ({ page }) => {
@@ -130,6 +130,26 @@ test('plans a crossed-dipole turnstile without treating a quarter-wave line as a
   await expect(page.getByText('Develop the quadrature feed')).toBeVisible();
   await page.getByLabel('Help: Turnstile quadrature order').click();
   await expect(page.getByRole('note').filter({ hasText: 'Turnstile quadrature order' })).toContainText('RHCP and LHCP labels depend on the observation direction');
+});
+
+test('plans circular halo and square squalo geometry without claiming an installed match', async ({ page }) => {
+  await page.getByRole('button', { name: /Halo · squalo/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('145.800');
+  await expect(page.getByRole('heading', { name: 'Halo and square squalo' })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Dimensioned circular halo construction diagram/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Bend two equal arms into a halo');
+  await expect(page.locator('.result-summary')).toContainText('34.3 cm');
+  await expect(page.locator('.result-summary')).toContainText('Not inferred · model and measure');
+  await page.getByLabel('Halo shape', { exact: true }).selectOption('square');
+  await expect(page.getByRole('img', { name: /Dimensioned square squalo construction diagram/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Bend two equal arms into a squalo');
+  await expect(page.locator('.result-summary')).toContainText('26.9 cm');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Halo tuning and pattern' })).toContainText('not a guaranteed match');
+  await expect(page.getByText('Set both construction openings')).toBeHidden();
+  await page.getByText('Build and tune a halo or squalo').click();
+  await expect(page.getByText('Set both construction openings')).toBeVisible();
+  await page.getByLabel('Help: Halo shape').click();
+  await expect(page.getByRole('note').filter({ hasText: 'Halo shape' })).toContainText('commonly called a squalo');
 });
 
 test('compares three antenna systems without ranking unmodelled performance', async ({ page }) => {
