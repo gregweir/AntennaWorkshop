@@ -1007,11 +1007,18 @@ test('plans Flag, point-fed Pennant, and EWE receive antennas with the correct d
   await expect(page.locator('.result-summary')).toContainText('Primary response toward feed45° NE');
   await expect(page.locator('.result-summary')).toContainText('Principal null toward termination225° SW');
   await expect(page.locator('.result-summary')).toContainText('Predicted gain, null depth, and front-to-back ratioNot inferred');
+  await expect(page.getByRole('heading', { name: 'Preserve the geometry, opposite endpoints, and receive system' })).toBeVisible();
+  await expect(page.locator('.compact-segment-check')).toContainText('Horizontal spans');
+  await expect(page.getByRole('spinbutton', { name: 'Compact-receive antenna winding' })).toHaveValue('13');
+  await expect(page.getByRole('spinbutton', { name: 'Compact-receive feedline winding' })).toHaveValue('3');
+  await expect(page.locator('.compact-transformer-check')).toContainText('13:3 turns');
   await expect(page.getByRole('button', { name: 'Continue to feedline and exposure' })).toHaveCount(0);
 
   await page.getByLabel('Compact receive antenna geometry', { exact: true }).selectOption('pennant');
   await expect(page.getByRole('img', { name: /point-fed Pennant receiving-antenna geometry and direction/ })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Termination resistance' })).toHaveValue('860');
+  await expect(page.locator('.compact-segment-check')).toContainText('Sloping sides');
+  await expect(page.getByRole('spinbutton', { name: 'Compact-receive antenna winding' })).toHaveValue('17');
   await expect(page.locator('.result-summary')).toContainText('Build a receive-only Point-fed Pennant');
 
   await page.getByLabel('Compact receive antenna geometry', { exact: true }).selectOption('ewe');
@@ -1020,7 +1027,13 @@ test('plans Flag, point-fed Pennant, and EWE receive antennas with the correct d
   await expect(page.getByRole('spinbutton', { name: 'Vertical height' })).toHaveValue('3.048');
   await expect(page.getByRole('spinbutton', { name: 'Termination resistance' })).toHaveValue('850');
   await expect(page.getByRole('img', { name: /EWE receiving-antenna geometry and direction/ })).toBeVisible();
+  await expect(page.locator('.compact-segment-check')).toContainText('Ground-return drops');
+  await expect(page.getByRole('spinbutton', { name: 'Compact-receive antenna winding' })).toHaveValue('9');
+  await expect(page.getByRole('spinbutton', { name: 'Compact-receive feedline winding' })).toHaveValue('3');
   await expect(page.getByRole('complementary', { name: 'Compact receive design advisories' })).toContainText('depends on two ground returns');
+  await page.getByRole('spinbutton', { name: 'Compact-receive antenna winding' }).fill('2');
+  await expect(page.getByRole('complementary', { name: 'Compact receive design advisories' })).toContainText('transformer turns');
+  await page.getByRole('spinbutton', { name: 'Compact-receive antenna winding' }).fill('9');
 
   await expect(page.getByText('Aim the feed end toward the target')).toBeHidden();
   await page.getByText('Build and commission a compact directional receiving antenna').click();
@@ -1034,6 +1047,7 @@ test('plans Flag, point-fed Pennant, and EWE receive antennas with the correct d
   await expect(page.getByRole('spinbutton', { name: 'Extra wire for connections and trimming' })).toHaveValue('2.5');
   await expect(page.locator('.caution-card').filter({ hasText: 'A compact loop is still a complete outdoor RF system' })).toBeVisible();
   await expect(page.locator('.provenance-card')).toContainText('compact-terminated-receive-planner');
+  await expect(page.locator('.provenance-card')).toContainText('Model 2.0.0');
 });
 
 test('maps four K9AY receive directions to crossed-loop switching states', async ({ page }) => {

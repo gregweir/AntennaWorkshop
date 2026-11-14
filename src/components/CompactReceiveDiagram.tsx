@@ -5,8 +5,10 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import type { CompactReceiveGeometry } from '../calculators/compactReceive';
+import { useId, type ReactNode } from 'react';
+import type { CompactReceiveGeometry, calculateCompactReceive } from '../calculators/compactReceive';
 import { formatLength, type UnitSystem } from '../lib/units';
+import { HelpTip } from './ContextHelp';
 import { DiagramDefinitions, DiagramGrid, SvgDimension } from './diagram/DiagramPrimitives';
 
 interface Props {
@@ -28,6 +30,20 @@ const geometryNames: Record<CompactReceiveGeometry, string> = {
   pennant: 'point-fed Pennant',
   ewe: 'EWE'
 };
+
+type CompactReceiveResult = ReturnType<typeof calculateCompactReceive>;
+
+function CompactReceiveNumberField({ label, value, min, max, step, unit, help, tooltip, onChange }: { label: string; value: number; min: number; max: number; step: number; unit: string; help: string; tooltip: ReactNode; onChange: (value: number) => void }) {
+  const inputId = useId();
+  return <div className="field"><span className="field-label-with-help"><label htmlFor={inputId}>{label}</label><HelpTip label={label}>{tooltip}</HelpTip></span><span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span><small>{help}</small></div>;
+}
+
+export function CompactReceiveConstructionControls({ antennaWindingTurns, setAntennaWindingTurns, feedlineWindingTurns, setFeedlineWindingTurns }: { antennaWindingTurns: number; setAntennaWindingTurns: (value: number) => void; feedlineWindingTurns: number; setFeedlineWindingTurns: (value: number) => void }) {
+  return <>
+    <CompactReceiveNumberField label="Compact-receive antenna winding" tooltip="Enter the actual whole-number turns planned on the winding connected to the antenna feedpoint. This ratio check does not select a core or predict bandwidth, loss, isolation, saturation, or winding capacitance." value={antennaWindingTurns} min={1} max={100} step={1} unit="turns" help="Use the loaded preset as a starting record, then verify the finished transformer across every intended receive band." onChange={setAntennaWindingTurns} />
+    <CompactReceiveNumberField label="Compact-receive feedline winding" tooltip="Enter the actual whole-number turns planned on the receiver-feedline winding. Keep the antenna winding electrically isolated unless a documented transformer design explicitly requires otherwise." value={feedlineWindingTurns} min={1} max={100} step={1} unit="turns" help="The squared turns ratio supplies impedance context only; it is not a complete transformer design." onChange={setFeedlineWindingTurns} />
+  </>;
+}
 
 export function CompactReceiveDiagram({ geometry, horizontalSpanMetres, verticalHeightMetres, bottomClearanceMetres, receiveBearingDegrees, receiveCompassPoint, nullBearingDegrees, nullCompassPoint, terminationResistanceOhms, transformerTurnsRatio, unitSystem }: Props) {
   const feedX = 620;
@@ -79,4 +95,14 @@ export function CompactReceiveDiagram({ geometry, horizontalSpanMetres, vertical
     </svg>
     <figcaption>Direction and elevation views, not to scale · Primary response is toward the feed end; the principal null is toward the termination. These labels show the source convention, not a predicted installed pattern.</figcaption>
   </figure>;
+}
+
+export function CompactReceiveConstructionPanel({ result, unitSystem }: { result: CompactReceiveResult; unitSystem: UnitSystem }) {
+  return <section className="compact-construction-panel" aria-labelledby="compact-construction-title">
+    <div className="compact-construction-heading"><div><p className="eyebrow">Construction and commissioning worksheet</p><h3 id="compact-construction-title">Preserve the geometry, opposite endpoints, and receive system</h3><p>Cut allowance is allocated across the geometric segments without changing the finished span or height. Keep electrically continuous paths continuous except at the intended feed and termination, and treat the transformer, feedline, protection, supports, and any ground returns as parts of the installed antenna.</p></div><dl><div><dt>Geometry</dt><dd>{geometryNames[result.geometry]}</dd></div><div><dt>Finished wire path</dt><dd>{formatLength(result.designWireLengthMetres, unitSystem)}</dd></div><div><dt>Total wire to cut</dt><dd>{formatLength(result.cutWireLengthMetres, unitSystem)}</dd></div><div><dt>Direction convention</dt><dd>Feed {result.receiveBearingDegrees.toFixed(0)}° {result.receiveCompassPoint} · termination {result.nullBearingDegrees.toFixed(0)}° {result.nullCompassPoint}</dd></div></dl></div>
+    <div className="compact-construction-grid">
+      <article className="compact-segment-check"><h4>Segment material schedule</h4><div className="table-scroll"><table><thead><tr><th scope="col">Segment</th><th scope="col">Qty</th><th scope="col">Finished each</th><th scope="col">Allowance each</th><th scope="col">Allocated total</th></tr></thead><tbody>{result.segmentSchedule.map((segment) => <tr key={segment.label}><th scope="row">{segment.label}</th><td>{segment.quantity}</td><td>{formatLength(segment.designLengthMetres, unitSystem)}</td><td>{formatLength(segment.cutLengthMetres, unitSystem)}</td><td>{formatLength(segment.totalCutLengthMetres, unitSystem)}</td></tr>)}</tbody></table></div><ol><li>Establish the feed and termination locations before cutting or joining wire.</li><li>Use these rows to allocate material, not to prescribe separate splices; preserve continuous conductors wherever the selected topology permits.</li><li>Measure finished dimensions between electrical junctions; pigtails and attachment wraps come from the separate allowance.</li><li>{result.geometry === 'ewe' ? 'Build and document two separate ground returns; record electrodes, soil, moisture, bonding, and seasonal condition.' : 'Use non-conductive supports and maintain the entered lower-wire clearance along the complete elevated loop.'}</li><li>Keep the feedline route outside the antenna field where practical and verify common-mode isolation.</li></ol></article>
+      <article className="compact-transformer-check"><p className="eyebrow">Ideal winding-ratio check</p><h4>Compare the planned winding with the impedance assumption</h4><dl><div><dt>Calculated ideal turns ratio</dt><dd>{result.transformerTurnsRatio.toFixed(2)} : 1</dd></div><div><dt>Entered winding</dt><dd>{result.antennaWindingTurns}:{result.feedlineWindingTurns} turns · {result.enteredTransformerTurnsRatio.toFixed(2)} : 1</dd></div><div><dt>Entered impedance ratio</dt><dd>{result.enteredTransformerImpedanceRatio.toFixed(2)} : 1</dd></div><div><dt>Ideal referred impedance</dt><dd>{result.enteredReferredAntennaImpedanceOhms.toFixed(1)} Ω · {result.enteredReferredImpedanceDifferencePercent.toFixed(1)}% from assumption</dd></div></dl><ol><li>Measure winding continuity and inter-winding isolation before connection.</li><li>Sweep insertion loss and transformation across every intended band using representative terminations.</li><li>Install the complete antenna, then compare signal-to-noise toward the feed, termination, and side bearings.</li><li>Adjust termination only from repeatable comparisons with receiver settings, frequency, soil, and weather recorded.</li></ol><p className="compact-transformer-limit"><strong>The ratio is not a transformer design or a pattern prediction.</strong> Core choice, winding layout, loss, isolation, feedline pickup, protection, installed impedance, gain, and null depth require separate design and measurement.</p></article>
+    </div>
+  </section>;
 }

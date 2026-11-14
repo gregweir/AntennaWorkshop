@@ -18,7 +18,9 @@ const referenceInput = {
   terminationResistanceOhms: 945,
   assumedAntennaImpedanceOhms: 945,
   feedlineImpedanceOhms: 50,
-  wireCutAllowancePercent: 2.5
+  wireCutAllowancePercent: 2.5,
+  antennaWindingTurns: 13,
+  feedlineWindingTurns: 3
 };
 
 describe('calculateCompactReceive', () => {
@@ -27,8 +29,15 @@ describe('calculateCompactReceive', () => {
 
     expect(result.designWireLengthMetres).toBeCloseTo(26.22, 10);
     expect(result.cutWireLengthMetres).toBeCloseTo(26.8755, 10);
+    expect(result.segmentSchedule).toEqual([
+      expect.objectContaining({ label: 'Horizontal spans', quantity: 2, designLengthMetres: 8.84 }),
+      expect.objectContaining({ label: 'Vertical sides', quantity: 2, designLengthMetres: 4.27 })
+    ]);
+    expect(result.segmentSchedule.reduce((total, segment) => total + segment.totalCutLengthMetres, 0)).toBeCloseTo(result.cutWireLengthMetres, 10);
     expect(result.impedanceTransformationRatio).toBeCloseTo(18.9, 10);
     expect(result.transformerTurnsRatio).toBeCloseTo(Math.sqrt(18.9), 10);
+    expect(result.enteredTransformerTurnsRatio).toBeCloseTo(13 / 3, 10);
+    expect(result.enteredReferredAntennaImpedanceOhms).toBeCloseTo(50 * (13 / 3) ** 2, 10);
     expect(result.receiveCompassPoint).toBe('NE');
     expect(result.nullBearingDegrees).toBe(225);
     expect(result.directionDescription).toContain('feed end at 45° NE');
@@ -42,6 +51,7 @@ describe('calculateCompactReceive', () => {
 
     expect(result.slopingSideMetres).toBeCloseTo(Math.hypot(8.84, 4.27 / 2), 10);
     expect(result.designWireLengthMetres).toBeCloseTo(4.27 + 2 * Math.hypot(8.84, 4.27 / 2), 10);
+    expect(result.segmentSchedule.map(({ label, quantity }) => ({ label, quantity }))).toEqual([{ label: 'Sloping sides', quantity: 2 }, { label: 'Feed-side vertical', quantity: 1 }]);
     expect(result.terminationDifferencePercent).toBeLessThan(5);
     expect(result.warnings).toEqual([]);
   });
@@ -54,6 +64,7 @@ describe('calculateCompactReceive', () => {
     expect(result.receiveCompassPoint).toBe('W');
     expect(result.nullCompassPoint).toBe('E');
     expect(result.requiresGroundReturns).toBe(true);
+    expect(result.segmentSchedule.map(({ label, quantity }) => ({ label, quantity }))).toEqual([{ label: 'Top horizontal', quantity: 1 }, { label: 'Ground-return drops', quantity: 2 }]);
     expect(result.warnings).toContainEqual(expect.stringContaining('depends on two ground returns'));
   });
 
@@ -84,10 +95,18 @@ describe('calculateCompactReceive', () => {
     expect(() => calculateCompactReceive({ ...referenceInput, geometry: 'invalid' as never })).toThrow(/Geometry/);
     expect(() => calculateCompactReceive({ ...referenceInput, receiveBearingDegrees: 360 })).toThrow(/less than 360/);
     expect(() => calculateCompactReceive({ ...referenceInput, feedlineImpedanceOhms: 0 })).toThrow(/Feedline/);
+    expect(() => calculateCompactReceive({ ...referenceInput, antennaWindingTurns: 3.5 })).toThrow(/whole number/);
+  });
+
+  it('warns when the entered winding ratio misses the explicit impedance assumption', () => {
+    const result = calculateCompactReceive({ ...referenceInput, antennaWindingTurns: 2, feedlineWindingTurns: 1 });
+
+    expect(result.enteredReferredAntennaImpedanceOhms).toBe(200);
+    expect(result.warnings).toContainEqual(expect.stringContaining('transformer turns refer an impedance more than 25%'));
   });
 
   it('carries versioned source provenance and documented presets', () => {
-    expect(COMPACT_RECEIVE_MODEL).toMatchObject({ id: 'compact-terminated-receive-planner', version: '1.0.0', reviewedOn: '2026-11-13' });
+    expect(COMPACT_RECEIVE_MODEL).toMatchObject({ id: 'compact-terminated-receive-planner', version: '2.0.0', reviewedOn: '2026-11-14' });
     expect(COMPACT_RECEIVE_MODEL.sources).toHaveLength(2);
     expect(COMPACT_RECEIVE_PRESETS.flag.terminationResistanceOhms).toBe(945);
     expect(COMPACT_RECEIVE_PRESETS.pennant.terminationResistanceOhms).toBe(860);

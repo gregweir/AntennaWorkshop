@@ -20,12 +20,14 @@ export interface CompactReceiveInput {
   assumedAntennaImpedanceOhms: number;
   feedlineImpedanceOhms: number;
   wireCutAllowancePercent: number;
+  antennaWindingTurns: number;
+  feedlineWindingTurns: number;
 }
 
 export const COMPACT_RECEIVE_MODEL = {
   id: 'compact-terminated-receive-planner',
-  version: '1.0.0',
-  reviewedOn: '2026-11-13',
+  version: '2.0.0',
+  reviewedOn: '2026-11-14',
   sources: [
     {
       title: 'Cunningham — Flags, Pennants and Other Ground-Independent Low-Band Receiving Antennas',
@@ -45,6 +47,8 @@ export const COMPACT_RECEIVE_PRESETS: Record<CompactReceiveGeometry, {
   bottomClearanceMetres: number;
   terminationResistanceOhms: number;
   assumedAntennaImpedanceOhms: number;
+  antennaWindingTurns: number;
+  feedlineWindingTurns: number;
 }> = {
   flag: {
     label: 'K6SE Flag starting geometry',
@@ -52,7 +56,9 @@ export const COMPACT_RECEIVE_PRESETS: Record<CompactReceiveGeometry, {
     verticalHeightMetres: 4.27,
     bottomClearanceMetres: 1.83,
     terminationResistanceOhms: 945,
-    assumedAntennaImpedanceOhms: 945
+    assumedAntennaImpedanceOhms: 945,
+    antennaWindingTurns: 13,
+    feedlineWindingTurns: 3
   },
   pennant: {
     label: 'K6SE point-fed Pennant starting geometry',
@@ -60,7 +66,9 @@ export const COMPACT_RECEIVE_PRESETS: Record<CompactReceiveGeometry, {
     verticalHeightMetres: 4.27,
     bottomClearanceMetres: 1.83,
     terminationResistanceOhms: 860,
-    assumedAntennaImpedanceOhms: 903
+    assumedAntennaImpedanceOhms: 903,
+    antennaWindingTurns: 17,
+    feedlineWindingTurns: 4
   },
   ewe: {
     label: 'WA2WVL 80-m EWE example',
@@ -68,7 +76,9 @@ export const COMPACT_RECEIVE_PRESETS: Record<CompactReceiveGeometry, {
     verticalHeightMetres: 3.048,
     bottomClearanceMetres: 0,
     terminationResistanceOhms: 850,
-    assumedAntennaImpedanceOhms: 450
+    assumedAntennaImpedanceOhms: 450,
+    antennaWindingTurns: 9,
+    feedlineWindingTurns: 3
   }
 };
 
@@ -76,6 +86,11 @@ function finiteRange(value: number, minimum: number, maximum: number, label: str
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
     throw new RangeError(`${label} must be between ${minimum} and ${maximum}.`);
   }
+}
+
+function wholeNumber(value: number, minimum: number, maximum: number, label: string) {
+  finiteRange(value, minimum, maximum, label);
+  if (!Number.isInteger(value)) throw new RangeError(`${label} must be a whole number.`);
 }
 
 function compassPoint(bearingDegrees: number) {
@@ -96,6 +111,8 @@ export function calculateCompactReceive(input: CompactReceiveInput) {
   finiteRange(input.assumedAntennaImpedanceOhms, 1, 10_000, 'Assumed antenna impedance');
   finiteRange(input.feedlineImpedanceOhms, 1, 1_000, 'Feedline impedance');
   finiteRange(input.wireCutAllowancePercent, 0, 25, 'Wire cut allowance');
+  wholeNumber(input.antennaWindingTurns, 1, 100, 'Antenna winding turns');
+  wholeNumber(input.feedlineWindingTurns, 1, 100, 'Feedline winding turns');
 
   const wavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (input.frequencyMHz * 1_000_000);
   const slopingSideMetres = Math.hypot(input.horizontalSpanMetres, input.verticalHeightMetres / 2);
@@ -105,12 +122,22 @@ export function calculateCompactReceive(input: CompactReceiveInput) {
       ? input.verticalHeightMetres + 2 * slopingSideMetres
       : input.horizontalSpanMetres + 2 * input.verticalHeightMetres;
   const cutWireLengthMetres = designWireLengthMetres * (1 + input.wireCutAllowancePercent / 100);
+  const segmentSchedule = (input.geometry === 'flag'
+    ? [{ label: 'Horizontal spans', quantity: 2, designLengthMetres: input.horizontalSpanMetres }, { label: 'Vertical sides', quantity: 2, designLengthMetres: input.verticalHeightMetres }]
+    : input.geometry === 'pennant'
+      ? [{ label: 'Sloping sides', quantity: 2, designLengthMetres: slopingSideMetres }, { label: 'Feed-side vertical', quantity: 1, designLengthMetres: input.verticalHeightMetres }]
+      : [{ label: 'Top horizontal', quantity: 1, designLengthMetres: input.horizontalSpanMetres }, { label: 'Ground-return drops', quantity: 2, designLengthMetres: input.verticalHeightMetres }])
+    .map((segment) => ({ ...segment, cutLengthMetres: segment.designLengthMetres * (1 + input.wireCutAllowancePercent / 100), totalCutLengthMetres: segment.quantity * segment.designLengthMetres * (1 + input.wireCutAllowancePercent / 100) }));
   const nullBearingDegrees = (input.receiveBearingDegrees + 180) % 360;
   const bearingRadians = input.receiveBearingDegrees * Math.PI / 180;
   const feedEastOffsetMetres = input.horizontalSpanMetres * Math.sin(bearingRadians);
   const feedNorthOffsetMetres = input.horizontalSpanMetres * Math.cos(bearingRadians);
   const impedanceTransformationRatio = input.assumedAntennaImpedanceOhms / input.feedlineImpedanceOhms;
   const transformerTurnsRatio = Math.sqrt(impedanceTransformationRatio);
+  const enteredTransformerTurnsRatio = input.antennaWindingTurns / input.feedlineWindingTurns;
+  const enteredTransformerImpedanceRatio = enteredTransformerTurnsRatio ** 2;
+  const enteredReferredAntennaImpedanceOhms = input.feedlineImpedanceOhms * enteredTransformerImpedanceRatio;
+  const enteredReferredImpedanceDifferencePercent = Math.abs(enteredReferredAntennaImpedanceOhms - input.assumedAntennaImpedanceOhms) / input.assumedAntennaImpedanceOhms * 100;
   const terminationDifferencePercent = Math.abs(input.terminationResistanceOhms - input.assumedAntennaImpedanceOhms) / input.assumedAntennaImpedanceOhms * 100;
   const warnings: string[] = [];
 
@@ -119,6 +146,7 @@ export function calculateCompactReceive(input: CompactReceiveInput) {
   if (input.geometry === 'ewe' && input.bottomClearanceMetres > 0) warnings.push('EWE bottom clearance is not used in the wire calculation because both vertical ends continue to their ground-return connections.');
   if (terminationDifferencePercent > 25) warnings.push('The entered termination differs by more than 25% from the assumed antenna impedance; model or measure the complete installed antenna before adjusting it.');
   if (input.wireCutAllowancePercent === 0) warnings.push('No connection, routing, or trimming allowance is included.');
+  if (enteredReferredImpedanceDifferencePercent > 25) warnings.push('The entered transformer turns refer an impedance more than 25% from the antenna-side planning assumption; verify the winding choice and complete receive system.');
   if (Math.max(input.horizontalSpanMetres, input.verticalHeightMetres) / wavelengthMetres > 0.25) warnings.push('The selected geometry is electrically large at the reference frequency; do not extrapolate the source low-band pattern without full-wave modelling.');
 
   return {
@@ -127,6 +155,7 @@ export function calculateCompactReceive(input: CompactReceiveInput) {
     slopingSideMetres: input.geometry === 'pennant' ? slopingSideMetres : null,
     designWireLengthMetres,
     cutWireLengthMetres,
+    segmentSchedule,
     horizontalSpanWavelengths: input.horizontalSpanMetres / wavelengthMetres,
     verticalHeightWavelengths: input.verticalHeightMetres / wavelengthMetres,
     receiveCompassPoint: compassPoint(input.receiveBearingDegrees),
@@ -136,6 +165,10 @@ export function calculateCompactReceive(input: CompactReceiveInput) {
     feedNorthOffsetMetres,
     impedanceTransformationRatio,
     transformerTurnsRatio,
+    enteredTransformerTurnsRatio,
+    enteredTransformerImpedanceRatio,
+    enteredReferredAntennaImpedanceOhms,
+    enteredReferredImpedanceDifferencePercent,
     terminationDifferencePercent,
     directionDescription: `Primary response toward the feed end at ${input.receiveBearingDegrees.toFixed(0)}° ${compassPoint(input.receiveBearingDegrees)}; principal null toward the termination at ${nullBearingDegrees.toFixed(0)}° ${compassPoint(nullBearingDegrees)}`,
     requiresGroundReturns: input.geometry === 'ewe',
