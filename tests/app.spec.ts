@@ -419,13 +419,14 @@ test('restores everyday wire and vertical planners without changing design frequ
   await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('14.250');
 });
 
-test('explains how to install and update the offline application', async ({ page }) => {
+test('explains how to install the offline application', async ({ page }) => {
   await page.getByText('Install this app', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'iPhone or iPad' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Other browsers' })).toBeVisible();
-  await expect(page.locator('.pwa-install-guide')).toContainText('HTTPS or a localhost address');
-  await expect(page.locator('.pwa-install-guide')).toContainText('Reconnect periodically to receive application updates');
+  await expect(page.locator('.pwa-install-guide')).not.toContainText('Local testing');
+  await expect(page.locator('.pwa-install-guide')).not.toContainText('localhost');
+  await expect(page.locator('.pwa-install-guide')).not.toContainText('local network');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
@@ -2161,7 +2162,6 @@ test('shows and dismisses an application update notice', async ({ page }) => {
 
 test('shows official RF exposure reference limits without a compliance result', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
-  await expect(page.getByText('Technical preview', { exact: true })).toBeVisible();
   await page.getByText('Review status and supported scope', { exact: true }).click();
   const reviewScope = page.locator('.exposure-review-scope');
   await expect(reviewScope).toContainText('Independent technical review has not been completed');

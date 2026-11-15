@@ -37,7 +37,7 @@ The public repository currently includes:
 - In-application installation help for Chromium browsers, iPhone and iPad Safari, other-browser fallbacks, offline first-load context, secure-origin requirements, and update reconnection.
 - Expandable technical drawings with stepped zoom, touch or pointer panning, plain-language reading guidance, and keyboard-accessible close controls.
 
-Australian beta scope deliberately stops when the official simple method is inapplicable. Pattern-specific attenuation, near-field calculation, terrain and building modelling, uncertainty analysis, and measurement interpretation are not beta features; the application directs those cases to an applicable standards-based assessment or measurement. Independent RF review and production deployment remain release blockers.
+The Australian scope deliberately stops when the official simple method is inapplicable. Pattern-specific attenuation, near-field calculation, terrain and building modelling, uncertainty analysis, and measurement interpretation are not included; the application directs those cases to an applicable standards-based assessment or measurement. Independent RF review and production deployment remain release blockers.
 
 ## Core experience
 
@@ -52,7 +52,7 @@ Users can begin either by choosing an antenna family or by describing a goal suc
 
 Contextual help must work with touch, keyboard, and pointer input. Complex sections may also provide an optional, collapsible step-by-step guide. Guidance should explain the existing workflow rather than create a separate simplified mode or conceal advanced controls.
 
-Before independent technical review is complete, the RF-exposure workspace must identify itself as a technical preview rather than a public beta. An accessible scope disclosure must distinguish implemented sourced workflows from unsupported near-field, pattern, environmental, measurement, and source-discovery work, and must state that interface output and completed records are neither reviewer sign-off nor compliance determinations.
+The RF-exposure workspace must provide an accessible scope disclosure that distinguishes implemented sourced workflows from unsupported near-field, pattern, environmental, measurement, and source-discovery work. It must state that interface output and completed records are neither reviewer sign-off nor compliance determinations, without displaying a release-stage label.
 
 The antenna workspace must provide an optional comparison of three user-selected construction planners. It must cover site footprint, band intent, feed and tuning system, directional context, build complexity, and required installed verification without assigning a performance ranking or inferring gain, efficiency, signal strength, or suitability at the user’s site.
 
@@ -205,7 +205,7 @@ The worksheet must distinguish a new clause 4 assessment under an applicable AS/
 
 The station-change log must identify the categories named in clause 5 as well as antenna-type, manufacturer/model, and responsible-person changes relevant to the retained record or declaration review. Each entry must preserve its effective date, description, post-change clause 3 review, clause 4 assessment action, clause 6 declaration action, reviewer, and supporting references. The workflow must not infer that every change invokes clause 4, that a previous assessment remains applicable, or that a new declaration is unnecessary. Entries remain part of the unsaved worksheet until the parent record is saved, at which point normal revision history applies.
 
-## Acceptance criteria for the first public beta
+## Acceptance criteria for public release
 
 - Responsive operation on current Android, iOS, and desktop browsers.
 - Automated smoke coverage on Chromium, Firefox, and WebKit desktop engines plus representative Android and iPhone profiles, with physical Android and iOS installation checks required before public release.

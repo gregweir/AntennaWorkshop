@@ -71,9 +71,7 @@ For the Australian workflow, gateway facts and model provenance can be carried i
 
 The persistent header preferences include System, Light, and Dark display modes. System follows live operating-system colour-scheme changes.
 
-The [RF exposure independent review package](docs/RF_EXPOSURE_REVIEW.md) identifies the exact implementation, governing sources, reproducible vectors, open technical decisions, and sign-off record required before public beta release.
-
-The application therefore labels the RF-exposure workspace as a technical preview and exposes its implemented scope, unsupported cases, and pending independent-review status directly in the interface.
+The [RF exposure independent review package](docs/RF_EXPOSURE_REVIEW.md) identifies the exact implementation, governing sources, reproducible vectors, open technical decisions, and sign-off record required before public release. The application exposes its implemented scope, unsupported cases, and pending independent-review status directly in the interface.
 
 ## Local development
 

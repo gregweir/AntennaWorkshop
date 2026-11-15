@@ -398,11 +398,6 @@ select {
   line-height: 1.45;
 }
 
-.pwa-install-body .pwa-install-note {
-  padding-left: 0.65rem;
-  border-left: 3px solid var(--tl-coral);
-}
-
 .tool-nav {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

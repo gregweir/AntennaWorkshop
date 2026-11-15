@@ -15,7 +15,6 @@ export function PwaInstallGuide() {
         <section><h2>iPhone or iPad</h2><p>Open the workshop in Safari, tap <strong>Share</strong>, choose <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.</p></section>
         <section><h2>Other browsers</h2><p>Look for an install or home-screen command in the browser menu. If none is offered, bookmark the workshop or use a browser that supports standalone web-app installation.</p></section>
       </div>
-      <p className="pwa-install-note"><strong>Local testing:</strong> installation normally requires HTTPS or a localhost address. A plain HTTP address on the local network may run the workshop but may not offer installation. Reconnect periodically to receive application updates.</p>
     </div>
   </details>;
 }

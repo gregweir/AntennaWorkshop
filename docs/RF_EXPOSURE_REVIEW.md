@@ -2,7 +2,7 @@
 
 ## Purpose and review status
 
-This package defines the RF-exposure implementation that requires independent technical review before public beta release. It is a reproducible map from governing sources to code, equations, test vectors, user-visible classifications, and unresolved decisions. It is not a compliance report or evidence that review has passed.
+This package defines the RF-exposure implementation that requires independent technical review before public release. It is a reproducible map from governing sources to code, equations, test vectors, user-visible classifications, and unresolved decisions. It is not a compliance report or evidence that review has passed.
 
 Review scope includes the Canadian, United States, United Kingdom, and Australian regulatory workflows; the FCC single- and multiple-source routine-evaluation exemptions; the modified-free-space preliminary screen; normalized multiple-source total; and multi-point station project. Near-field analysis, measurements, uncertainty analysis, pattern attenuation, and compliance certification are not implemented.
 
