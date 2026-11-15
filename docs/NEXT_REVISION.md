@@ -30,7 +30,7 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 
 - Export bounded, validated NEC2 models for suitable antenna families. The first centre-fed dipole deck export is implemented with explicit segmentation, source, conductor, height, and ground assumptions.
 - State conductor, segmentation, source, height, and ground assumptions in both the interface and file.
-- Validate reference cases across independent NEC tools before release.
+- Validate reference cases across independent NEC tools before release. The free-space and perfect-ground dipole references now pass optional checks with both `nec2c` 1.3.1 and PyNEC/NEC2++ 2.4.0, within 0.1 Ω cross-engine tolerance.
 - Evaluate an embedded solver only after export interoperability and reference validation are established.
 
 ## Milestone 5 — Evidence-Based Expansion

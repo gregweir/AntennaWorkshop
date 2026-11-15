@@ -21,6 +21,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:browser-matrix": "playwright test --config playwright.matrix.config.ts",
+    "test:nec2c": "node scripts/check-nec2c-dipole.mjs",
+    "test:pynec": "node scripts/check-pynec-dipole.mjs",
     "test:pwa": "playwright test --config playwright.pwa.config.ts",
     "release:check": "node scripts/check-release-build.mjs",
     "release:package": "bash scripts/package-release.sh"

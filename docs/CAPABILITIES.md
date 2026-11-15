@@ -74,7 +74,7 @@ Contextual help works with touch, keyboard, and pointer input. The antenna works
 
 Construction drawings are responsive SVG graphics intended to support fabrication. Conceptual graphics, sourced values, calculated estimates, and measurement requirements are labelled separately; colour is not the only carrier of meaning.
 
-The centre-fed dipole planner can export a bounded, fixed-column NEC-2 deck for one straight uniform round wire in free space or over infinite perfect ground. The exporter validates centre-source segmentation and conservative wire-model limits, previews the exact deck, and records its omitted feed, material, environmental, pattern, safety, and exposure details. It does not run NEC or present simulated performance.
+The centre-fed dipole planner can export a bounded, fixed-column NEC-2 deck for one straight uniform round wire in free space or over infinite perfect ground. The exporter validates centre-source segmentation and conservative wire-model limits, previews the exact deck, and records its omitted feed, material, environmental, pattern, safety, and exposure details. It does not run NEC or present simulated performance. Optional `nec2c` and PyNEC/NEC2++ integration checks exercise the generated decks and an independently constructed reference geometry; [the interoperability record](NEC2_INTEROPERABILITY.md) documents their scope and results.
 
 ## Plans, portability, and offline operation
 
