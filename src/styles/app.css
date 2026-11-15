@@ -7203,6 +7203,19 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .electrical-length-lesson > summary span,
+  .electrical-length-control label {
+    display: grid;
+  }
+
+  .electrical-length-bars > div {
+    grid-template-columns: 1fr;
+  }
+
+  .electrical-length-bars strong {
+    text-align: left;
+  }
+
   .line-cascade-figure > svg {
     display: none;
   }
@@ -7419,6 +7432,95 @@ select {
 .input-impact-heading h3,
 .input-impact-grid p {
   margin: 0;
+}
+
+.electrical-length-lesson {
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.electrical-length-lesson > summary {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.electrical-length-lesson > summary span,
+.electrical-length-control label {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.electrical-length-lesson > summary small,
+.electrical-length-control output {
+  color: var(--text-secondary);
+}
+
+.electrical-length-body {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.electrical-length-control {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.electrical-length-control input {
+  width: 100%;
+}
+
+.electrical-length-control > div {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.electrical-length-bars {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.electrical-length-bars > div {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.8fr) minmax(8rem, 1.2fr) minmax(6rem, auto);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.electrical-length-bars i {
+  display: block;
+  height: 0.8rem;
+  min-width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-technical), var(--tl-coral));
+}
+
+.electrical-length-bars strong {
+  text-align: right;
+}
+
+.electrical-length-body p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.electrical-length-observation,
+.electrical-length-limit {
+  padding: 0.75rem;
+  border-left: 3px solid var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
 }
 
 .starting-values-bar {
@@ -13251,6 +13353,7 @@ body.diagram-view-open {
 
   .assessment-evidence-guide,
   .step-by-step-help,
+  .electrical-length-lesson,
   .context-help,
   .evidence-overview {
     display: none !important;

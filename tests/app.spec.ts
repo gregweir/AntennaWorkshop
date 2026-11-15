@@ -132,6 +132,28 @@ test('layers antenna explanations without hiding controls or required checks', a
   await expect(page.getByRole('group', { name: 'Explanation depth' }).getByRole('button')).toHaveCount(3);
 });
 
+test('teaches the inverse frequency and electrical-length relationship interactively', async ({ page }) => {
+  await page.getByText('Interactive lesson: electrical length', { exact: true }).click();
+  const lesson = page.locator('.electrical-length-lesson');
+  const comparisonFrequency = page.getByLabel('Comparison frequency');
+  await expect(lesson).toContainText('14.200 MHz');
+  await expect(lesson).toContainText('21.300 MHz · 1.50×');
+  await expect(lesson).toContainText('10.556 m');
+  await expect(lesson).toContainText('7.037 m');
+  await comparisonFrequency.fill('2');
+  await expect(lesson).toContainText('28.400 MHz · 2.00×');
+  await expect(lesson).toContainText('5.278 m');
+  await expect(lesson).toContainText('0.500× the current length (−50.0%)');
+  await expect(lesson).toContainText('Frequency and free-space wavelength move in opposite directions');
+  await expect(lesson).toContainText('Construction limit');
+
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Quick/ }).click();
+  await expect(lesson.getByText(/Frequency and free-space wavelength move/)).toHaveCount(0);
+  await expect(lesson).toContainText('Construction limit');
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ }).click();
+  await expect(lesson.getByText(/λ = c ÷ f/)).toBeVisible();
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });
