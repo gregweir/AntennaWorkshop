@@ -11347,14 +11347,21 @@ body.diagram-view-open {
 .explanation-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: 0.8rem 1rem;
+  margin-top: 1.25rem;
 }
 
 .explanation-grid article {
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border-top: 3px solid var(--accent-technical);
+  background: color-mix(in srgb, var(--bg-surface) 62%, transparent);
+}
+
+.explanation-grid article:not(.caution-card):not(.provenance-card) {
+  border-inline: 0;
+  border-bottom: 0;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .explanation-grid h3 {
@@ -11368,12 +11375,54 @@ body.diagram-view-open {
 
 .provenance-card {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.35rem 1.5rem;
+  align-items: start;
+  border: 0 !important;
+  border-top: 1px dashed var(--border-strong) !important;
+  border-radius: 0 !important;
+  background: transparent;
 }
 
 .caution-card {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.25rem 1.5rem;
+  align-items: start;
+  border: 0 !important;
   border-left: 5px solid var(--tl-coral) !important;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
   background: color-mix(in srgb, var(--tl-coral) 7%, var(--bg-surface));
+}
+
+.explanation-grid .caution-card > .eyebrow,
+.explanation-grid .caution-card > h3,
+.explanation-grid .provenance-card > .eyebrow,
+.explanation-grid .provenance-card > h3,
+.explanation-grid .provenance-card > small {
+  grid-column: 1;
+}
+
+.explanation-grid .caution-card > p:last-child {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.explanation-grid .provenance-card > p:not(.eyebrow),
+.explanation-grid .provenance-card > ul {
+  grid-column: 2;
+  margin-block: 0;
+}
+
+.explanation-grid .provenance-card > p:not(.eyebrow) {
+  grid-row: 1 / span 2;
+}
+
+.explanation-grid .provenance-card > ul {
+  grid-row: 3;
 }
 
 .provenance-card ul {
@@ -11391,6 +11440,7 @@ body.diagram-view-open {
 .provenance-card small {
   color: var(--text-secondary);
   font-family: var(--font-mono);
+  font-size: 0.68rem;
 }
 
 .formula {
@@ -11639,6 +11689,17 @@ body.diagram-view-open {
   .exposure-status {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .explanation-grid .caution-card,
+  .explanation-grid .provenance-card {
+    display: block;
+  }
+
+  .explanation-grid .caution-card > p:last-child,
+  .explanation-grid .provenance-card > p:not(.eyebrow),
+  .explanation-grid .provenance-card > ul {
+    margin-top: 0.5rem;
   }
 
   .exposure-review-scope-body {
