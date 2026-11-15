@@ -7234,11 +7234,17 @@ select {
     display: grid;
   }
 
+  .ground-effects-lesson > summary span {
+    display: grid;
+  }
+
   .balance-lesson-controls fieldset,
   .balance-builder-notes,
   .matching-tuning-controls fieldset,
   .matching-plane-labels,
-  .matching-builder-notes {
+  .matching-builder-notes,
+  .ground-effects-controls fieldset,
+  .ground-effects-notes {
     grid-template-columns: 1fr;
   }
 
@@ -8042,6 +8048,206 @@ select {
   padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+}
+
+.ground-effects-lesson {
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.ground-effects-lesson > summary {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.ground-effects-lesson > summary span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ground-effects-lesson > summary small,
+.ground-effects-notes,
+.ground-effects-verification {
+  color: var(--text-secondary);
+}
+
+.ground-effects-body {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.ground-effects-controls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ground-effects-controls fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.ground-effects-controls legend {
+  padding-inline: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.ground-effects-controls button {
+  min-width: 0;
+  padding: 0.55rem;
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.ground-effects-controls button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 12%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px var(--accent-technical);
+}
+
+.ground-effects-outcome {
+  padding: 0.8rem;
+  border-left: 4px solid var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
+}
+
+.ground-effects-outcome h4,
+.ground-effects-outcome p {
+  margin-block: 0 0.4rem;
+}
+
+.ground-status-review-installation {
+  border-left-color: var(--tl-coral);
+  background: color-mix(in srgb, var(--tl-coral) 7%, var(--bg-surface));
+}
+
+.ground-effects-graphic,
+.ground-effects-notes,
+.ground-effects-body > .formula,
+.ground-effects-verification {
+  grid-column: 1 / -1;
+}
+
+.ground-effects-graphic {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.ground-effects-graphic svg {
+  display: block;
+  width: 100%;
+  max-height: 14rem;
+}
+
+.ground-effects-graphic .local-ground,
+.ground-effects-graphic .height-guide,
+.ground-effects-graphic .lesson-antenna,
+.ground-effects-graphic .return-system,
+.ground-effects-graphic .nearby-object {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ground-effects-graphic .local-ground {
+  stroke: var(--text-secondary);
+  stroke-width: 5;
+}
+
+.ground-effects-graphic .height-guide {
+  stroke: var(--tl-gold);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+
+.ground-effects-graphic .lesson-antenna,
+.ground-effects-graphic .return-system {
+  stroke: var(--accent-technical);
+  stroke-width: 5;
+}
+
+.ground-effects-graphic .return-system {
+  stroke-width: 3;
+}
+
+.ground-effects-graphic .nearby-object {
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+}
+
+.ground-effects-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.ground-effects-legend span {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.ground-effects-legend i {
+  display: inline-block;
+  width: 1.5rem;
+  border-top: 3px solid var(--accent-technical);
+}
+
+.ground-effects-legend .legend-ground {
+  border-color: var(--text-secondary);
+}
+
+.ground-effects-legend .legend-context {
+  border-color: var(--tl-gold);
+  border-top-style: dashed;
+}
+
+.ground-effects-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ground-effects-notes p,
+.ground-effects-verification {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.ground-effects-verification h4 {
+  margin-block: 0 0.4rem;
+}
+
+.ground-effects-verification ol {
+  margin-block: 0.5rem;
+  padding-left: 1.3rem;
+}
+
+.ground-effects-verification li + li {
+  margin-top: 0.35rem;
 }
 
 .starting-values-bar {
@@ -11514,6 +11720,10 @@ path.loading-coil {
     grid-template-columns: 1fr;
   }
 
+  .ground-effects-body {
+    grid-template-columns: 1fr;
+  }
+
   .balance-lesson-outcome,
   .balance-path-graphic {
     grid-column: 1;
@@ -13895,6 +14105,7 @@ body.diagram-view-open {
   .swr-impedance-lesson,
   .balance-common-mode-lesson,
   .matching-tuning-lesson,
+  .ground-effects-lesson,
   .context-help,
   .evidence-overview {
     display: none !important;

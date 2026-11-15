@@ -241,6 +241,35 @@ test('distinguishes antenna resonance from a source-plane match', async ({ page 
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
+test('frames height and ground as installed-system context rather than a pattern prediction', async ({ page }) => {
+  await page.getByText('Interactive lesson: height, ground, and surroundings', { exact: true }).click();
+  const lesson = page.locator('.ground-effects-lesson');
+  await expect(lesson).toContainText('0.25 λ at 14.200 MHz is 5.278 m');
+  await expect(lesson).toContainText('Height in wavelengths is useful context—not a pattern prediction');
+  await expect(lesson).toContainText('Model and measure');
+  await expect(lesson.getByRole('img', { name: 'Conceptual antenna height and surroundings' })).toBeVisible();
+
+  await lesson.getByRole('group', { name: 'Antenna relationship' }).getByRole('button', { name: 'Ground-referenced vertical' }).click();
+  await expect(lesson).toContainText('The RF return system is an unfinished part of this vertical');
+  await expect(lesson).toContainText('Installation detail required');
+  const returnSystem = lesson.getByRole('group', { name: 'RF return system' });
+  await returnSystem.getByRole('button', { name: 'Documented', exact: true }).click();
+  await expect(lesson).toContainText('Model and measure');
+
+  await lesson.getByRole('group', { name: 'Immediate surroundings' }).getByRole('button', { name: 'Nearby objects' }).click();
+  await expect(lesson).toContainText('Nearby objects make the installation more than antenna plus ground');
+  await expect(lesson).toContainText('Buildings, wiring, masts, trees, fences, vehicles');
+
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Quick/ }).click();
+  await expect(lesson.getByText(/Buildings, wiring, masts/)).toHaveCount(0);
+  await expect(lesson).toContainText('Interpretation limit');
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ }).click();
+  await expect(lesson.getByText(/Normalized height h\/λ/)).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });
