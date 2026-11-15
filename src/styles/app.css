@@ -5626,6 +5626,10 @@ select {
   gap: 1.25rem;
 }
 
+.measured-sweep-workbench > * {
+  min-width: 0;
+}
+
 .sweep-import-card,
 .sweep-chart-card {
   border: 1px solid var(--border);
@@ -5685,6 +5689,49 @@ select {
   width: 1px;
   height: 1px;
   opacity: 0;
+}
+
+.sweep-comparison-import {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
+}
+
+.sweep-comparison-import h3,
+.sweep-comparison-import p {
+  margin: 0;
+}
+
+.sweep-comparison-import h3 + p {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.sweep-comparison-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sweep-file-button-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.sweep-comparison-actions button {
+  min-height: 48px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 700;
 }
 
 .sweep-error {
@@ -5748,6 +5795,71 @@ select {
   padding: 1.25rem;
 }
 
+.sweep-comparison-card {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+}
+
+.comparison-warning {
+  margin: 1rem 0 0;
+  padding: 0.8rem 1rem;
+  border-left: 4px solid var(--tl-coral);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 10%, var(--bg-surface));
+}
+
+.sweep-comparison-table-wrap {
+  max-width: 100%;
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.sweep-table-scroll-hint {
+  display: none;
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.sweep-comparison-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.sweep-comparison-table th,
+.sweep-comparison-table td {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.sweep-comparison-table thead th {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sweep-comparison-table tbody th {
+  color: var(--text-primary);
+}
+
+.sweep-comparison-table td {
+  font-family: var(--font-mono);
+}
+
+.sweep-comparison-table small {
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
 .sweep-chart-heading {
   display: flex;
   align-items: end;
@@ -5807,6 +5919,15 @@ select {
   stroke-linejoin: round;
 }
 
+.sweep-trace-comparison {
+  fill: none;
+  stroke: var(--tl-blue);
+  stroke-width: 3;
+  stroke-dasharray: 10 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .sweep-marker-line {
   stroke: var(--text-primary);
   stroke-width: 1.5;
@@ -5815,6 +5936,12 @@ select {
 
 .sweep-marker-point {
   fill: var(--tl-coral);
+  stroke: var(--bg-elevated);
+  stroke-width: 3;
+}
+
+.sweep-marker-point-comparison {
+  fill: var(--tl-blue);
   stroke: var(--bg-elevated);
   stroke-width: 3;
 }
@@ -5871,6 +5998,83 @@ select {
   font-size: 0.9rem;
 }
 
+.sweep-comparison-at-marker {
+  margin: 1rem 0 0;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.sweep-smith-figure {
+  margin: 0;
+}
+
+.sweep-smith-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.5rem;
+}
+
+.sweep-smith-figure svg text {
+  paint-order: stroke fill;
+  stroke: var(--bg-elevated);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.sweep-smith-reference,
+.sweep-smith-comparison {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sweep-smith-comparison {
+  stroke: var(--tl-blue);
+  stroke-dasharray: 10 7;
+}
+
+.sweep-smith-reference-point,
+.sweep-smith-comparison-point {
+  fill: var(--tl-coral);
+  stroke: var(--bg-elevated);
+  stroke-width: 3;
+}
+
+.sweep-smith-comparison-point {
+  fill: var(--tl-blue);
+}
+
+.sweep-smith-legend rect {
+  fill: var(--bg-surface);
+  stroke: var(--border);
+}
+
+.sweep-smith-legend text {
+  fill: var(--text-primary);
+  stroke: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sweep-smith-figure figcaption {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.sweep-smith-figure figcaption strong {
+  color: var(--tl-coral);
+}
+
 @media (max-width: 900px) {
   .sweep-summary-grid,
   .sweep-marker-values {
@@ -5880,12 +6084,18 @@ select {
 
 @media (max-width: 620px) {
   .sweep-import-card,
+  .sweep-comparison-import,
   .sweep-marker-control {
     grid-template-columns: 1fr;
   }
 
   .sweep-file-button {
     width: 100%;
+  }
+
+  .sweep-comparison-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .sweep-summary-grid,
@@ -5904,6 +6114,17 @@ select {
 
   .sweep-chart-card {
     padding: 0.9rem;
+  }
+
+  .sweep-table-scroll-hint {
+    display: block;
+  }
+
+  .sweep-comparison-table th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--bg-elevated);
   }
 }
 

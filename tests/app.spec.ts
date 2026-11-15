@@ -2134,12 +2134,28 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
   await expect(summary).toContainText('14.1 MHz–14.35 MHz');
   await expect(summary).toContainText('52.03 + j1.04 Ω');
   await expect(page.getByRole('img', { name: /SWR sweep from 14 MHz to 14.45 MHz/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Smith-chart trace for the imported sweep/ })).toBeVisible();
   await expect(page.getByText(/Allocations in view: 20 m/)).toBeVisible();
+
+  await page.getByLabel('Choose comparison .s1p file').setInputFiles({
+    name: 'twenty-metres-after.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# MHz S RI R 50\n14.000 0.45 -0.10\n14.100 0.28 -0.05\n14.175 0.10 -0.01\n14.250 0 0\n14.300 0.10 0.02\n14.350 0.20 0.08\n14.450 0.35 0.15')
+  });
+  const comparison = page.getByRole('region', { name: 'What changed in the measured response?' });
+  await expect(comparison).toContainText('twenty-metres-after.s1p');
+  await expect(comparison).toContainText('1.000 : 1');
+  await expect(comparison).toContainText('−0.046 SWR');
+  await expect(page.getByText('Comparison near this frequency:')).toBeVisible();
 
   const marker = page.getByLabel('Sweep inspection point');
   await marker.fill('0');
   await expect(page.locator('.sweep-marker-values')).toContainText('2.492 : 1');
   await expect(page.locator('.sweep-marker-values')).toContainText('106.86 − j39.22 Ω');
+  await expect(page.getByText('Comparison near this frequency:').locator('..')).toContainText('2.710 : 1');
+
+  await page.getByRole('button', { name: 'Remove comparison' }).click();
+  await expect(comparison).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Measured sweep' })).toBeVisible();
