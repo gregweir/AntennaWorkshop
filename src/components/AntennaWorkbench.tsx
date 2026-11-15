@@ -256,6 +256,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
   const [estimatedOcfdImpedanceOhms, setEstimatedOcfdImpedanceOhms] = useState(200);
   const [jpoleConstruction, setJpoleConstruction] = useState<'twinlead' | 'metal'>('twinlead');
   const [jpoleTapPercent, setJpoleTapPercent] = useState(7.5);
+  const [slimJimTapPercent, setSlimJimTapPercent] = useState(7.5);
   const [slimJimGapPercent, setSlimJimGapPercent] = useState(5);
   const [moxonConductorDiameterMillimetres, setMoxonConductorDiameterMillimetres] = useState(2.05);
   const [quadElementSpacingWavelengths, setQuadElementSpacingWavelengths] = useState(0.2);
@@ -393,7 +394,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       if (antennaType === 'efhw') return { type: antennaType, value: calculateEfhw({ ...common, transformerRatio, estimatedEndImpedanceOhms }) } as const;
       if (antennaType === 'ocfd') return { type: antennaType, value: calculateOcfd({ ...common, transformerRatio, feedpointPercentFromEnd, estimatedFeedpointImpedanceOhms: estimatedOcfdImpedanceOhms }) } as const;
       if (antennaType === 'jpole') return { type: antennaType, value: calculateJpole({ ...common, feedpointPercentOfStub: jpoleTapPercent }) } as const;
-      if (antennaType === 'slim-jim') return { type: antennaType, value: calculateSlimJim({ ...common, feedpointPercentOfStub: jpoleTapPercent, gapPercentOfStub: slimJimGapPercent }) } as const;
+      if (antennaType === 'slim-jim') return { type: antennaType, value: calculateSlimJim({ ...common, feedpointPercentOfStub: slimJimTapPercent, gapPercentOfStub: slimJimGapPercent }) } as const;
       if (antennaType === 'moxon') return { type: antennaType, value: calculateMoxon({ frequencyMHz, conductorDiameterMillimetres: moxonConductorDiameterMillimetres }) } as const;
       if (antennaType === 'cubical-quad') return { type: antennaType, value: calculateTwoElementCubicalQuad({ frequencyMHz, elementSpacingWavelengths: quadElementSpacingWavelengths, trimAllowancePercent, forwardBearingDegrees: quadForwardBearingDegrees, boomCentreHeightMetres: quadBoomCentreHeightMetres, mastReference: quadMastReference }) } as const;
       if (antennaType === 'axial-helix') return { type: antennaType, value: calculateAxialModeHelix({ frequencyMHz, circumferenceWavelengths: helixCircumferenceWavelengths, pitchAngleDegrees: helixPitchAngleDegrees, turnCount: helixTurnCount, groundPlaneWavelengths: helixGroundPlaneWavelengths, trimAllowancePercent, conductorWidthMillimetres: helixConductorWidthMillimetres, diameterToleranceMillimetres: helixDiameterToleranceMillimetres, turnSpacingToleranceMillimetres: helixTurnSpacingToleranceMillimetres, feedlineImpedanceOhms: helixFeedlineImpedanceOhms }) } as const;
@@ -412,7 +413,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
     } catch {
       return null;
     }
-  }, [antennaType, beverageAntennaWindingTurns, beverageAssumedImpedanceOhms, beverageFarEndDropMetres, beverageFeedDropMetres, beverageFeedlineImpedanceOhms, beverageFeedlineWindingTurns, beverageMaximumSupportSpanMetres, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireAllowancePercent, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearMaximumJunctionPhaseErrorDegrees, collinearPhasingVelocityFactor, collinearStubLengthToleranceMillimetres, collinearStubTrimAllowancePercent, compactReceiveAntennaWindingTurns, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveFeedlineWindingTurns, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, compactReceiveWireAllowancePercent, deltaLoopFeedMode, deltaLoopOrientation, disconeConeRadialCount, disconeDiscRadialCount, disconeFeedGapMillimetres, disconeHalfAngleDegrees, disconeRadialConductorDiameterMillimetres, disconeRadialLengthToleranceMillimetres, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, halfRhombicApexHeightMetres, halfRhombicAttachmentAllowancePercent, halfRhombicForwardBearingDegrees, halfRhombicMode, halfRhombicTerminationResistanceOhms, halfRhombicWireWavelengths, haloFarEndGapMetres, haloFeedpointGapMetres, haloShape, helixCircumferenceWavelengths, helixConductorWidthMillimetres, helixDiameterToleranceMillimetres, helixFeedlineImpedanceOhms, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, helixTurnSpacingToleranceMillimetres, hexBeamBands, hexBeamWireGauge, includedAngleDegrees, jpoleTapPercent, k9ayAntennaWindingTurns, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFeedlineWindingTurns, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicBoomConductorSpacingMillimetres, logPeriodicBoomPositionToleranceMillimetres, logPeriodicElementConductorDiameterMillimetres, logPeriodicElementLengthToleranceMillimetres, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadBoomCentreHeightMetres, quadElementSpacingWavelengths, quadForwardBearingDegrees, quadMastReference, radialCount, radialSlopeDegrees, rhombicForwardBearingDegrees, rhombicIncludedAngleDegrees, rhombicMode, rhombicSideWavelengths, rhombicTerminationResistanceOhms, rhombicTrimAllowancePercent, skywireAspectRatio, skywireFeedPositionPercent, skywireFeedSide, skywireRiggingReservePercent, skywireSupportHeightsMetres, slimJimGapPercent, smallLoopAcceptedPowerWatts, smallLoopAdditionalSeriesLossMilliohms, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopConductorMaterial, smallLoopConductorOutsideDiameterMillimetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, t2fdFeedSystemImpedanceOhms, t2fdLowAttachmentHeightMetres, t2fdTerminationResistanceOhms, t2fdTiltDegrees, t2fdTransmitterPowerWatts, t2fdWireAllowancePercent, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, turnstilePhasingVelocityFactor, turnstileQuadratureOrder, vBeamLegWavelengths, vBeamMode, vBeamTargetBearingDegrees, vBeamTerminationResistanceOhms, vBeamTrimAllowancePercent, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
+  }, [antennaType, beverageAntennaWindingTurns, beverageAssumedImpedanceOhms, beverageFarEndDropMetres, beverageFeedDropMetres, beverageFeedlineImpedanceOhms, beverageFeedlineWindingTurns, beverageMaximumSupportSpanMetres, beverageReceptionMode, beverageTargetBearingDegrees, beverageTerminationResistanceOhms, beverageWireAllowancePercent, beverageWireHeightMetres, beverageWireLengthWavelengths, collinearElementCount, collinearMaximumJunctionPhaseErrorDegrees, collinearPhasingVelocityFactor, collinearStubLengthToleranceMillimetres, collinearStubTrimAllowancePercent, compactReceiveAntennaWindingTurns, compactReceiveAssumedImpedanceOhms, compactReceiveBearingDegrees, compactReceiveClearanceMetres, compactReceiveFeedlineImpedanceOhms, compactReceiveFeedlineWindingTurns, compactReceiveGeometry, compactReceiveHeightMetres, compactReceiveSpanMetres, compactReceiveTerminationOhms, compactReceiveWireAllowancePercent, deltaLoopFeedMode, deltaLoopOrientation, disconeConeRadialCount, disconeDiscRadialCount, disconeFeedGapMillimetres, disconeHalfAngleDegrees, disconeRadialConductorDiameterMillimetres, disconeRadialLengthToleranceMillimetres, doubletCheckFrequencyText, doubletLineImpedanceOhms, doubletLineLengthMetres, doubletLineVelocityFactor, estimatedEndImpedanceOhms, estimatedOcfdImpedanceOhms, fanAdditionalFrequencyTexts, feedpointPercentFromEnd, foldedDipoleFeedlineImpedanceOhms, foldedDipoleReferenceResistanceOhms, foldedDipoleSpacingMetres, frequencyMHz, g5rvCustomElectricalLineMetres, g5rvCustomRadiatorMetres, g5rvLineImpedanceOhms, g5rvLineVelocityFactor, g5rvPreset, groundRadialCount, groundRadialLengthMultiplier, halfRhombicApexHeightMetres, halfRhombicAttachmentAllowancePercent, halfRhombicForwardBearingDegrees, halfRhombicMode, halfRhombicTerminationResistanceOhms, halfRhombicWireWavelengths, haloFarEndGapMetres, haloFeedpointGapMetres, haloShape, helixCircumferenceWavelengths, helixConductorWidthMillimetres, helixDiameterToleranceMillimetres, helixFeedlineImpedanceOhms, helixGroundPlaneWavelengths, helixPitchAngleDegrees, helixTurnCount, helixTurnSpacingToleranceMillimetres, hexBeamBands, hexBeamWireGauge, includedAngleDegrees, jpoleTapPercent, k9ayAntennaWindingTurns, k9ayApexHeightMetres, k9ayAssumedImpedanceOhms, k9ayFeedlineImpedanceOhms, k9ayFeedlineWindingTurns, k9ayFirstReceiveBearingDegrees, k9ayHalfWidthMetres, k9ayLowerCornerHeightMetres, k9aySelectedDirectionIndex, k9ayTerminationResistanceOhms, k9ayWireAllowancePercent, lengthCorrectionFactor, loadedDipoleCoilPositionMetres, loadedDipoleConductorDiameterMillimetres, loadedDipoleHeightMetres, loadedDipoleSpanMetres, loadedVerticalCoilPositionMetres, loadedVerticalConductorDiameterMillimetres, loadedVerticalHeightMetres, logAntennaWindingTurns, logCoaxWindingTurns, logFeedlineImpedanceOhms, logPeriodicActiveRegionFactor, logPeriodicBoomConductorSpacingMillimetres, logPeriodicBoomPositionToleranceMillimetres, logPeriodicElementConductorDiameterMillimetres, logPeriodicElementLengthToleranceMillimetres, logPeriodicSigma, logPeriodicTau, logPeriodicUpperFrequencyText, logReceiveAxisBearingDegrees, logSideLengthMetres, logWireAllowancePercent, loopShape, moxonConductorDiameterMillimetres, quadBoomCentreHeightMetres, quadElementSpacingWavelengths, quadForwardBearingDegrees, quadMastReference, radialCount, radialSlopeDegrees, rhombicForwardBearingDegrees, rhombicIncludedAngleDegrees, rhombicMode, rhombicSideWavelengths, rhombicTerminationResistanceOhms, rhombicTrimAllowancePercent, skywireAspectRatio, skywireFeedPositionPercent, skywireFeedSide, skywireRiggingReservePercent, skywireSupportHeightsMetres, slimJimGapPercent, slimJimTapPercent, smallLoopAcceptedPowerWatts, smallLoopAdditionalSeriesLossMilliohms, smallLoopCapacitorMaximumPicofarads, smallLoopCapacitorMinimumPicofarads, smallLoopCircumferenceMetres, smallLoopConductorMaterial, smallLoopConductorOutsideDiameterMillimetres, smallLoopMeasuredInductanceMicrohenries, smallLoopStrayCapacitancePicofarads, smallLoopUpperFrequencyText, t2fdFeedSystemImpedanceOhms, t2fdLowAttachmentHeightMetres, t2fdTerminationResistanceOhms, t2fdTiltDegrees, t2fdTransmitterPowerWatts, t2fdWireAllowancePercent, transformerRatio, trapDipoleConductorDiameterMillimetres, trapDipoleHeightMetres, trapDipoleSpanMetres, trapPositionMetres, trapUpperFrequencyText, trimAllowancePercent, turnstilePhasingVelocityFactor, turnstileQuadratureOrder, vBeamLegWavelengths, vBeamMode, vBeamTargetBearingDegrees, vBeamTerminationResistanceOhms, vBeamTrimAllowancePercent, activeLoopBaseHeightMetres, activeLoopDiameterMetres, activeLoopNullAxisBearingDegrees, activeLoopUpperFrequencyText, activeLoopWireAllowancePercent]);
 
   const model = antennaType === 'dipole'
     ? HALF_WAVE_DIPOLE_MODEL
@@ -657,6 +658,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
     planBinding(k9ayFeedlineWindingTurns, setK9ayFeedlineWindingTurns),
     planBinding(beverageWireAllowancePercent, setBeverageWireAllowancePercent),
     planBinding(compactReceiveWireAllowancePercent, setCompactReceiveWireAllowancePercent),
+    planBinding(slimJimTapPercent, setSlimJimTapPercent),
   ];
   const currentWorkspace = Object.fromEntries(workspaceBindings.map(([value], index) => [`s${index}`, value])) as AntennaPlanWorkspace;
   const openAntennaPlan = (plan: AntennaPlan) => {
@@ -745,6 +747,54 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       modifiedCount: countModified(t2fdTiltDegrees !== 30, t2fdLowAttachmentHeightMetres !== 1.8288, t2fdTerminationResistanceOhms !== 600, t2fdFeedSystemImpedanceOhms !== 600, t2fdTransmitterPowerWatts !== 100, t2fdWireAllowancePercent !== 2.5),
       note,
       onRestore: () => { setT2fdTiltDegrees(30); setT2fdLowAttachmentHeightMetres(1.8288); setT2fdTerminationResistanceOhms(600); setT2fdFeedSystemImpedanceOhms(600); setT2fdTransmitterPowerWatts(100); setT2fdWireAllowancePercent(2.5); },
+    };
+    if (antennaType === 'inverted-v') return {
+      scope: 'Inverted-V geometry',
+      modifiedCount: countModified(includedAngleDegrees !== 120),
+      note,
+      onRestore: () => setIncludedAngleDegrees(120),
+    };
+    if (antennaType === 'efhw') return {
+      scope: 'EFHW feed assumptions',
+      modifiedCount: countModified(transformerRatio !== 49, estimatedEndImpedanceOhms !== 2450),
+      note: wirePlannerNote,
+      onRestore: () => { setTransformerRatio(49); setEstimatedEndImpedanceOhms(2450); },
+    };
+    if (antennaType === 'ocfd') return {
+      scope: 'OCFD feed assumptions',
+      modifiedCount: countModified(feedpointPercentFromEnd !== 33.333, transformerRatio !== 4, estimatedOcfdImpedanceOhms !== 200),
+      note: wirePlannerNote,
+      onRestore: () => { setFeedpointPercentFromEnd(33.333); setTransformerRatio(4); setEstimatedOcfdImpedanceOhms(200); },
+    };
+    if (antennaType === 'jpole') return {
+      scope: 'J-pole matching input',
+      modifiedCount: countModified(jpoleTapPercent !== 7.5),
+      note: 'Restores only the J-pole coax-tap starting point. Frequency, shared construction and length settings, saved plans, and other designs are unchanged.',
+      onRestore: () => setJpoleTapPercent(7.5),
+    };
+    if (antennaType === 'slim-jim') return {
+      scope: 'Slim Jim matching inputs',
+      modifiedCount: countModified(slimJimTapPercent !== 7.5, slimJimGapPercent !== 5),
+      note: 'Restores only the Slim Jim coax-tap and interruption-gap starting points. Frequency, shared construction and length settings, saved plans, and other designs are unchanged.',
+      onRestore: () => { setSlimJimTapPercent(7.5); setSlimJimGapPercent(5); },
+    };
+    if (antennaType === 'ground-mounted-vertical') return {
+      scope: 'Ground-radial inputs',
+      modifiedCount: countModified(groundRadialCount !== 32, groundRadialLengthMultiplier !== 1),
+      note,
+      onRestore: () => { setGroundRadialCount(32); setGroundRadialLengthMultiplier(1); },
+    };
+    if (antennaType === 'ground-plane') return {
+      scope: 'Elevated-radial inputs',
+      modifiedCount: countModified(radialCount !== 4, radialSlopeDegrees !== 45),
+      note,
+      onRestore: () => { setRadialCount(4); setRadialSlopeDegrees(45); },
+    };
+    if (antennaType === 'full-wave-loop') return {
+      scope: 'Full-wave loop geometry',
+      modifiedCount: countModified(loopShape !== 'square', deltaLoopOrientation !== 'apex-up', deltaLoopFeedMode !== 'horizontal'),
+      note,
+      onRestore: () => { setLoopShape('square'); setDeltaLoopOrientation('apex-up'); setDeltaLoopFeedMode('horizontal'); },
     };
     if (antennaType === 'loaded-dipole') return {
       scope: 'Loaded dipole inputs',
@@ -1397,7 +1447,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
               setJpoleConstruction(construction);
               setLengthCorrectionFactor(construction === 'twinlead' ? 0.83 : 0.93);
             }}><option value="twinlead">300 Ω flat twin-lead</option><option value="metal">Copper wire or pipe</option></select><small>Sets the starting material factor; preserve parallel spacing throughout the antenna.</small></div>
-            <NumberField label="Coax tap height on matching stub" tooltip="Measure upward from the shorted bottom. This is a starting location only; move the centre-conductor and shield contacts together while measuring the installed antenna." value={jpoleTapPercent} min={1} max={25} step={0.5} unit="%" help="Measured upward from the shorted bottom; adjust the two tap contacts together for minimum SWR." onChange={setJpoleTapPercent} />
+            <NumberField label="Coax tap height on matching stub" tooltip="Measure upward from the shorted bottom. This is a starting location only; move the centre-conductor and shield contacts together while measuring the installed antenna." value={slimJimTapPercent} min={1} max={25} step={0.5} unit="%" help="Measured upward from the shorted bottom; adjust the two tap contacts together for minimum SWR." onChange={setSlimJimTapPercent} />
             <NumberField label="Interruption gap" tooltip="This is the physical opening between the lower matching section and the upper folded section. Preserve parallel spacing around it; conductor width, insulation, nearby hardware, and the installed geometry affect the final tuned gap." value={slimJimGapPercent} min={1} max={15} step={0.5} unit="% of stub" help="Physical opening between the lower matching stub and upper folded section; construction details affect the final value." onChange={setSlimJimGapPercent} />
           </>}
           {antennaType === 'moxon' && <NumberField label="Conductor diameter" tooltip="Enter the actual constant outside diameter used throughout the antenna. The Cebik regression uses diameter relative to wavelength, so insulated wire, tapered elements, or an assumed equivalent diameter need separate modelling." value={moxonConductorDiameterMillimetres} min={0.01} max={100} step={0.01} unit="mm" help="Use a constant outside diameter. Tapered elements require an equivalent diameter and separate modelling." onChange={setMoxonConductorDiameterMillimetres} />}

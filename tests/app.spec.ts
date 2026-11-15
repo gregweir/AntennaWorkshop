@@ -275,6 +275,86 @@ test('restores large-wire and directional planners without changing design frequ
   await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('7.200');
 });
 
+test('restores everyday wire and vertical planners without changing design frequency', async ({ page }) => {
+  const changeDesign = async (name: RegExp) => {
+    await page.getByRole('button', { name: 'Change design' }).click();
+    await page.getByRole('button', { name }).click();
+  };
+
+  await page.getByRole('button', { name: /Inverted-V/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency', exact: true }).fill('14.250');
+  await page.getByRole('spinbutton', { name: 'Included apex angle' }).fill('100');
+  const invertedV = page.getByRole('region', { name: 'Inverted-V geometry starting values' });
+  await expect(invertedV).toContainText('1 modified value');
+  await invertedV.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Included apex angle' })).toHaveValue('120');
+
+  await changeDesign(/EFHW/);
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await page.getByRole('spinbutton', { name: 'Transformer impedance ratio' }).fill('64');
+  await page.getByRole('spinbutton', { name: 'Estimated antenna end impedance' }).fill('3200');
+  const efhw = page.getByRole('region', { name: 'EFHW feed assumptions starting values' });
+  await expect(efhw).toContainText('2 modified values');
+  await efhw.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Transformer impedance ratio' })).toHaveValue('49');
+  await expect(page.getByRole('spinbutton', { name: 'Estimated antenna end impedance' })).toHaveValue('2450');
+
+  await changeDesign(/OCFD/);
+  await page.getByRole('spinbutton', { name: 'Feedpoint position from short end' }).fill('30');
+  await page.getByRole('spinbutton', { name: 'Estimated OCFD feedpoint impedance' }).fill('250');
+  const ocfd = page.getByRole('region', { name: 'OCFD feed assumptions starting values' });
+  await expect(ocfd).toContainText('2 modified values');
+  await ocfd.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Feedpoint position from short end' })).toHaveValue('33.333');
+  await expect(page.getByRole('spinbutton', { name: 'Estimated OCFD feedpoint impedance' })).toHaveValue('200');
+
+  await changeDesign(/J-pole/);
+  await page.getByRole('spinbutton', { name: 'Coax tap height on matching stub' }).fill('10');
+  const jpole = page.getByRole('region', { name: 'J-pole matching input starting values' });
+  await expect(jpole).toContainText('1 modified value');
+
+  await changeDesign(/Slim Jim/);
+  await expect(page.getByRole('spinbutton', { name: 'Coax tap height on matching stub' })).toHaveValue('7.5');
+  await page.getByRole('spinbutton', { name: 'Coax tap height on matching stub' }).fill('12');
+  await page.getByRole('spinbutton', { name: 'Interruption gap' }).fill('7');
+  const slimJim = page.getByRole('region', { name: 'Slim Jim matching inputs starting values' });
+  await expect(slimJim).toContainText('2 modified values');
+  await slimJim.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Coax tap height on matching stub' })).toHaveValue('7.5');
+  await expect(page.getByRole('spinbutton', { name: 'Interruption gap' })).toHaveValue('5');
+  await changeDesign(/J-pole/);
+  await expect(page.getByRole('spinbutton', { name: 'Coax tap height on matching stub' })).toHaveValue('10');
+  await jpole.getByRole('button').click();
+
+  await changeDesign(/Ground vertical/);
+  await page.getByRole('spinbutton', { name: 'Number of ground radials' }).fill('48');
+  await page.getByRole('spinbutton', { name: 'Radial length multiplier' }).fill('1.2');
+  const groundVertical = page.getByRole('region', { name: 'Ground-radial inputs starting values' });
+  await expect(groundVertical).toContainText('2 modified values');
+  await groundVertical.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Number of ground radials' })).toHaveValue('32');
+  await expect(page.getByRole('spinbutton', { name: 'Radial length multiplier' })).toHaveValue('1');
+
+  await changeDesign(/Ground plane/);
+  await page.getByRole('spinbutton', { name: 'Number of radials' }).fill('6');
+  await page.getByRole('spinbutton', { name: 'Radial slope below horizontal' }).fill('30');
+  const groundPlane = page.getByRole('region', { name: 'Elevated-radial inputs starting values' });
+  await expect(groundPlane).toContainText('2 modified values');
+  await groundPlane.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Number of radials' })).toHaveValue('4');
+  await expect(page.getByRole('spinbutton', { name: 'Radial slope below horizontal' })).toHaveValue('45');
+
+  await changeDesign(/Full-wave/);
+  await page.getByLabel('Loop shape', { exact: true }).selectOption('triangle');
+  await page.getByLabel('Delta-loop orientation').selectOption('apex-down');
+  await page.getByLabel('Delta-loop feed placement goal').selectOption('vertical');
+  const fullWaveLoop = page.getByRole('region', { name: 'Full-wave loop geometry starting values' });
+  await expect(fullWaveLoop).toContainText('3 modified values');
+  await fullWaveLoop.getByRole('button').click();
+  await expect(page.getByLabel('Loop shape', { exact: true })).toHaveValue('square');
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('14.250');
+});
+
 test('explains how to install and update the offline application', async ({ page }) => {
   await page.getByText('Install this app', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
