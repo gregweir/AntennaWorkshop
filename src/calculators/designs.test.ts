@@ -196,8 +196,18 @@ describe('additional antenna calculators', () => {
     expect(result.constructionToleranceMetres / result.wavelengthMetres).toBeCloseTo(0.003, 12);
   });
 
+  it('scales the NBS five-element 0.8-wavelength reference geometry', () => {
+    const result = calculateBasicYagi({ frequencyMHz: 50.1, variant: 'five-element' });
+    expect(result.elementCount).toBe(5);
+    expect(result.directorsMetres.map((length) => length / result.wavelengthMetres)).toEqual([0.428, 0.424, 0.428]);
+    expect(result.directorSpacingsMetres.every((spacing) => Math.abs(spacing / result.wavelengthMetres - 0.2) < 1e-12)).toBe(true);
+    expect(result.boomLengthMetres / result.wavelengthMetres).toBeCloseTo(0.8, 12);
+    expect(result.measuredReferenceGainDbd).toBe(9.2);
+  });
+
   it('rejects an invalid basic Yagi frequency', () => {
     expect(() => calculateBasicYagi({ frequencyMHz: 0 })).toThrow(RangeError);
     expect(() => calculateBasicYagi({ frequencyMHz: Number.NaN })).toThrow(RangeError);
+    expect(() => calculateBasicYagi({ frequencyMHz: 146, variant: 'unsupported' as never })).toThrow(TypeError);
   });
 });

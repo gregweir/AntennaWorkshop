@@ -11,35 +11,32 @@ import { DiagramDefinitions, DiagramGrid, Feedpoint, SvgDimension } from './diag
 interface Props {
   reflectorMetres: number;
   drivenElementMetres: number;
-  directorMetres: number;
+  directorsMetres: number[];
   reflectorSpacingMetres: number;
-  directorSpacingMetres: number;
+  directorSpacingsMetres: number[];
   unitSystem: UnitSystem;
 }
 
-export function YagiDiagram({ reflectorMetres, drivenElementMetres, directorMetres, reflectorSpacingMetres, directorSpacingMetres, unitSystem }: Props) {
+export function YagiDiagram({ reflectorMetres, drivenElementMetres, directorsMetres, reflectorSpacingMetres, directorSpacingsMetres, unitSystem }: Props) {
+  const lengths = [reflectorMetres, drivenElementMetres, ...directorsMetres];
+  const spacings = [reflectorSpacingMetres, ...directorSpacingsMetres];
+  const labels = ['R', 'DE', ...directorsMetres.map((_, index) => `D${index + 1}`)];
+  const xPositions = lengths.map((_, index) => 90 + index * (560 / (lengths.length - 1)));
+  const maximumLength = Math.max(...lengths);
+  const elementHeight = (length: number) => 150 * length / maximumLength;
   return <figure className="antenna-figure">
-    <svg className="dipole-diagram" viewBox="0 0 760 340" role="img" aria-labelledby="yagi-title yagi-desc">
-      <title id="yagi-title">Dimensioned three-element Yagi</title>
-      <desc id="yagi-desc">Top view with reflector {formatLength(reflectorMetres, unitSystem)}, driven element {formatLength(drivenElementMetres, unitSystem)}, director {formatLength(directorMetres, unitSystem)}, and a two-section boom.</desc>
+    <svg className="dipole-diagram" viewBox="0 0 760 370" role="img" aria-labelledby="yagi-title yagi-desc">
+      <title id="yagi-title">Dimensioned {lengths.length}-element NBS Yagi</title>
+      <desc id="yagi-desc">Top view with one reflector, one driven element, {directorsMetres.length} {directorsMetres.length === 1 ? 'director' : 'directors'}, and {spacings.length} equal boom sections.</desc>
       <DiagramDefinitions prefix="yagi" />
       <DiagramGrid />
-      <line className="yagi-boom" x1="140" y1="165" x2="620" y2="165" />
-      <g className="yagi-elements">
-        <line className="yagi-reflector" x1="140" y1="65" x2="140" y2="265" />
-        <line className="yagi-driven" x1="380" y1="60" x2="380" y2="270" />
-        <line className="yagi-director" x1="620" y1="76" x2="620" y2="254" />
-      </g>
-      <Feedpoint x={380} y={165} label="balanced driven-element feedpoint" labelY={226} />
-      <g className="yagi-direction"><path d="M650 45 H720" /><path d="M707 34 L720 45 L707 56" /><text x="685" y="25" textAnchor="middle">forward direction</text></g>
-      <g className="end-labels">
-        <text x="140" y="48" textAnchor="middle">reflector · {formatLength(reflectorMetres, unitSystem)}</text>
-        <text x="380" y="43" textAnchor="middle">driven · {formatLength(drivenElementMetres, unitSystem)}</text>
-        <text x="620" y="66" textAnchor="middle">director · {formatLength(directorMetres, unitSystem)}</text>
-      </g>
-      <SvgDimension prefix="yagi" x1={140} y1={300} x2={380} y2={300} label={`R–DE · ${formatLength(reflectorSpacingMetres, unitSystem)}`} labelX={260} labelY={326} />
-      <SvgDimension prefix="yagi" x1={380} y1={300} x2={620} y2={300} label={`DE–D1 · ${formatLength(directorSpacingMetres, unitSystem)}`} labelX={500} labelY={326} />
+      <line className="yagi-boom" x1={xPositions[0]} y1="175" x2={xPositions[xPositions.length - 1]} y2="175" />
+      <g className="yagi-elements">{lengths.map((length, index) => <line key={labels[index]} className={index === 0 ? 'yagi-reflector' : index === 1 ? 'yagi-driven' : 'yagi-director'} x1={xPositions[index]} y1={175 - elementHeight(length) / 2} x2={xPositions[index]} y2={175 + elementHeight(length) / 2} />)}</g>
+      <Feedpoint x={xPositions[1]} y={175} label="balanced driven-element feedpoint" labelY={255} />
+      <g className="yagi-direction"><path d="M665 45 H725" /><path d="M712 34 L725 45 L712 56" /><text x="695" y="25" textAnchor="middle">forward direction</text></g>
+      <g className="end-labels">{lengths.map((length, index) => <text key={labels[index]} x={xPositions[index]} y={82 - elementHeight(length) / 2} textAnchor="middle">{labels[index]} · {formatLength(length, unitSystem)}</text>)}</g>
+      {spacings.map((spacing, index) => <SvgDimension key={`${labels[index]}-${labels[index + 1]}`} prefix={`yagi-${index}`} x1={xPositions[index]} y1={315} x2={xPositions[index + 1]} y2={315} label={`${labels[index]}–${labels[index + 1]} · ${formatLength(spacing, unitSystem)}`} labelX={(xPositions[index] + xPositions[index + 1]) / 2} labelY={342} />)}
     </svg>
-    <figcaption>Top-view reference geometry · Element lengths and boom spacings are scaled from the NBS 0.4-wavelength three-element design.</figcaption>
+    <figcaption>Top-view reference geometry · Element lengths and 0.2λ boom spacings are scaled from the NBS {lengths.length}-element design.</figcaption>
   </figure>;
 }

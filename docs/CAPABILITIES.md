@@ -11,7 +11,7 @@ Implemented families include:
 - **Everyday wire antennas:** centre-fed and folded dipoles, inverted-V, fan dipole, off-centre-fed dipole, EFHW, multiband doublet, G5RV-family systems, full-wave loop and delta loop, halo and squalo, loop skywire, and turnstile.
 - **Loaded and trapped antennas:** loaded dipole, loaded vertical, two-band trap dipole, air-core coil construction, and as-built trap commissioning records.
 - **Vertical antennas:** J-pole, Slim Jim, ground-mounted quarter-wave vertical, and elevated ground plane.
-- **Directional and broadband antennas:** Moxon rectangle, three-element Yagi, cubical quad, hex beam, axial-mode helix, discone, log-periodic dipole array, T2FD, phased wire collinear, V-beam, rhombic, and vertical half-rhombic.
+- **Directional and broadband antennas:** Moxon rectangle, three- and five-element NBS Yagis, cubical quad, hex beam, axial-mode helix, discone, log-periodic dipole array, T2FD, phased wire collinear, V-beam, rhombic, and vertical half-rhombic.
 - **Receive-only antennas:** Beverage, Flag, Pennant, EWE, K9AY, Loop-on-Ground, and untuned active receiving loop, supported by a constraint-based receive-antenna selector.
 - **Small transmitting loop:** measured-inductance tuning, capacitor-range checks, and clearly labelled centre-frequency estimates for loss, efficiency, Q, bandwidth, current, and capacitor voltage.
 

@@ -35,7 +35,7 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 
 ## Milestone 5 — Evidence-Based Expansion
 
-Use documented user needs and task-based usability testing to prioritize catalogue additions. Candidate gaps include end-fed random-wire systems, sleeve and coaxial verticals, coaxial collinears, expanded Yagi configurations, and further portable designs. Every addition requires construction guidance, measurement steps, sources, limitations, tests, and accessible graphics.
+Use documented user needs and task-based usability testing to prioritize catalogue additions. The Yagi planner now adds the documented NBS five-element 0.8λ reference alongside the existing three-element design, with distinct dimensions, source context, guidance, and graphics. Remaining candidate gaps include end-fed random-wire systems, sleeve and coaxial verticals, coaxial collinears, and further portable designs. Every addition requires construction guidance, measurement steps, sources, limitations, tests, and accessible graphics.
 
 ## Release Gates
 

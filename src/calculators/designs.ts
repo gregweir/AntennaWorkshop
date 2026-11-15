@@ -58,8 +58,11 @@ export interface MoxonInput {
   conductorDiameterMillimetres: number;
 }
 
+export type BasicYagiVariant = 'three-element' | 'five-element';
+
 export interface BasicYagiInput {
   frequencyMHz: number;
+  variant?: BasicYagiVariant;
 }
 
 export type LoopShape = 'square' | 'triangle' | 'circle';
@@ -220,9 +223,9 @@ export const ANTENNA_MODELS = {
     ]
   },
   basicYagi: {
-    id: 'nbs-three-element-0.4-wavelength-yagi',
-    version: '1.0.0',
-    reviewedOn: '2026-11-11',
+    id: 'nbs-reference-yagi-family',
+    version: '1.1.0',
+    reviewedOn: '2026-11-15',
     sources: [
       {
         title: 'NBS Technical Note 688 — Yagi Antenna Design',
@@ -502,23 +505,32 @@ export function calculateBasicYagi(input: BasicYagiInput) {
   if (!Number.isFinite(input.frequencyMHz) || input.frequencyMHz <= 0) {
     throw new RangeError('Frequency must be greater than zero.');
   }
+  const variant = input.variant ?? 'three-element';
+  if (variant !== 'three-element' && variant !== 'five-element') throw new TypeError('Unsupported NBS Yagi reference variant.');
   const wavelengthMetres = SPEED_OF_LIGHT_METRES_PER_SECOND / (input.frequencyMHz * 1_000_000);
+  const directorRatios = variant === 'three-element' ? [0.424] : [0.428, 0.424, 0.428];
+  const directorsMetres = directorRatios.map((ratio) => wavelengthMetres * ratio);
   const reflectorMetres = wavelengthMetres * 0.482;
   const drivenElementMetres = wavelengthMetres * 0.5;
-  const directorMetres = wavelengthMetres * 0.424;
   const reflectorSpacingMetres = wavelengthMetres * 0.2;
-  const directorSpacingMetres = wavelengthMetres * 0.2;
+  const directorSpacingsMetres = directorRatios.map(() => wavelengthMetres * 0.2);
+  const boomLengthMetres = reflectorSpacingMetres + directorSpacingsMetres.reduce((total, spacing) => total + spacing, 0);
   return {
+    variant,
+    referenceName: variant === 'three-element' ? '3-element · 0.4 λ boom' : '5-element · 0.8 λ boom',
+    elementCount: directorsMetres.length + 2,
     wavelengthMetres,
     reflectorMetres,
     drivenElementMetres,
-    directorMetres,
+    directorMetres: directorsMetres[0],
+    directorsMetres,
     reflectorSpacingMetres,
-    directorSpacingMetres,
-    boomLengthMetres: reflectorSpacingMetres + directorSpacingMetres,
+    directorSpacingMetres: directorSpacingsMetres[0],
+    directorSpacingsMetres,
+    boomLengthMetres,
     referenceElementDiameterMetres: wavelengthMetres * 0.0085,
     constructionToleranceMetres: wavelengthMetres * 0.003,
-    totalElementMaterialMetres: reflectorMetres + drivenElementMetres + directorMetres,
-    measuredReferenceGainDbd: 7.1
+    totalElementMaterialMetres: reflectorMetres + drivenElementMetres + directorsMetres.reduce((total, length) => total + length, 0),
+    measuredReferenceGainDbd: variant === 'three-element' ? 7.1 : 9.2
   };
 }
