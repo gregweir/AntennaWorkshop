@@ -10080,6 +10080,25 @@ path.loading-coil {
   font-weight: 700;
 }
 
+.field-invalid .input-with-unit input {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.field-invalid .input-with-unit > span {
+  border-color: var(--danger);
+}
+
+.field-invalid > label,
+.field-invalid > .field-label-with-help label,
+.field-validation {
+  color: var(--danger);
+}
+
+.field-validation {
+  font-weight: 750;
+}
+
 .result-summary {
   container-type: inline-size;
   margin-top: 1.5rem;

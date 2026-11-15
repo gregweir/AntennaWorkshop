@@ -1988,10 +1988,14 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
 
 function NumberField({ label, value, min, max, step, unit, help, tooltip, onChange }: { label: string; value: number; min: number; max: number; step: number; unit: string; help: string; tooltip?: ReactNode; onChange: (value: number) => void }) {
   const inputId = useId();
-  return <div className="field">
+  const helpId = `${inputId}-help`;
+  const errorId = `${inputId}-error`;
+  const invalid = !Number.isFinite(value) || value < min || value > max;
+  return <div className={`field${invalid ? ' field-invalid' : ''}`}>
     <span className={tooltip ? 'field-label-with-help' : undefined}><label htmlFor={inputId}>{label}</label>{tooltip && <HelpTip label={label}>{tooltip}</HelpTip>}</span>
-    <span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span>
-    <small>{help}</small>
+    <span className="input-with-unit"><input id={inputId} aria-label={label} aria-describedby={`${helpId}${invalid ? ` ${errorId}` : ''}`} aria-invalid={invalid || undefined} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span>
+    {invalid && <small id={errorId} className="field-validation">Enter a value from {min} to {max} {unit}.</small>}
+    <small id={helpId}>{help}</small>
   </div>;
 }
 

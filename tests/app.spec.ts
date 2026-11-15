@@ -66,6 +66,19 @@ test('resumes feedline and RF exposure subsections without persisting calculator
   await expect(page.getByRole('spinbutton', { name: 'Measured resistance for chart' })).toHaveValue('100');
 });
 
+test('identifies invalid calculator fields beside the value that needs correction', async ({ page }) => {
+  await page.getByRole('button', { name: /Feedline & matching/ }).click();
+  const power = page.getByRole('spinbutton', { name: 'Transmitter power' });
+
+  await power.fill('0');
+  await expect(power).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Enter a value of at least 0.001 W.')).toBeVisible();
+
+  await power.fill('10');
+  await expect(power).not.toHaveAttribute('aria-invalid');
+  await expect(page.getByText('Enter a value of at least 0.001 W.')).toHaveCount(0);
+});
+
 test('resumes the selected antenna planner with fresh starting inputs', async ({ page }) => {
   await page.getByRole('button', { name: /G5RV family/ }).click();
   await page.getByRole('spinbutton', { name: 'Inspection frequency' }).fill('18.100');

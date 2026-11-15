@@ -717,5 +717,10 @@ function formatSeriesReactance(inductanceHenries: number | null, capacitanceFara
 
 function PowerField({ label, value, unit, min, max, step, help, tooltip, readOnly = false, onChange }: { label: string; value: string | number; unit: string; min: number; max?: number; step: number; help: string; tooltip?: ReactNode; readOnly?: boolean; onChange: (value: string) => void }) {
   const inputId = useId();
-  return <div className="field"><span className={tooltip ? 'field-label-with-help' : undefined}><label htmlFor={inputId}>{label}</label>{tooltip && <HelpTip label={label}>{tooltip}</HelpTip>}</span><span className="input-with-unit"><input id={inputId} aria-label={label} type="number" min={min} max={max} step={step} value={value} readOnly={readOnly} onChange={(event) => onChange(event.target.value)} /><span>{unit}</span></span><small>{help}</small></div>;
+  const helpId = `${inputId}-help`;
+  const errorId = `${inputId}-error`;
+  const numericValue = typeof value === 'number' ? value : Number(value);
+  const invalid = !readOnly && (!Number.isFinite(numericValue) || numericValue < min || (max !== undefined && numericValue > max));
+  const requirement = max === undefined ? `Enter a value of at least ${min} ${unit}.` : `Enter a value from ${min} to ${max} ${unit}.`;
+  return <div className={`field${invalid ? ' field-invalid' : ''}`}><span className={tooltip ? 'field-label-with-help' : undefined}><label htmlFor={inputId}>{label}</label>{tooltip && <HelpTip label={label}>{tooltip}</HelpTip>}</span><span className="input-with-unit"><input id={inputId} aria-label={label} aria-describedby={`${helpId}${invalid ? ` ${errorId}` : ''}`} aria-invalid={invalid || undefined} type="number" min={min} max={max} step={step} value={value} readOnly={readOnly} onChange={(event) => onChange(event.target.value)} /><span>{unit}</span></span>{invalid && <small id={errorId} className="field-validation">{requirement}</small>}<small id={helpId}>{help}</small></div>;
 }
