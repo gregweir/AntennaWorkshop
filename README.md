@@ -70,6 +70,7 @@ See [Browser Test Matrix](docs/BROWSER_TEST_MATRIX.md) for automated coverage an
 - [Product Specification](docs/PRODUCT_SPEC.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Browser Test Matrix](docs/BROWSER_TEST_MATRIX.md)
+- [Production Deployment](docs/DEPLOYMENT.md)
 - [Regulatory Source Registry](docs/REGULATORY_SOURCES.md)
 - [RF Exposure Review Package](docs/RF_EXPOSURE_REVIEW.md)
 - [Contributing Guide](CONTRIBUTING.md)

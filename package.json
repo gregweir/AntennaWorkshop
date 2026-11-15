@@ -21,7 +21,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:browser-matrix": "playwright test --config playwright.matrix.config.ts",
-    "test:pwa": "playwright test --config playwright.pwa.config.ts"
+    "test:pwa": "playwright test --config playwright.pwa.config.ts",
+    "release:check": "node scripts/check-release-build.mjs",
+    "release:package": "bash scripts/package-release.sh"
   },
   "dependencies": {
     "react": "^19.3.1",

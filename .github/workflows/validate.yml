@@ -44,6 +44,9 @@ jobs:
       - name: Build production PWA
         run: npm run build
 
+      - name: Verify release resource inventory
+        run: npm run release:check
+
       - name: Install browser runtimes
         run: npx playwright install --with-deps chromium firefox webkit
 
