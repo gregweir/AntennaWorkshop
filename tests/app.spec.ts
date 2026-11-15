@@ -917,7 +917,8 @@ test('prints a focused antenna build sheet with dimensions and drawing', async (
 });
 
 test('separates build dimensions, assumptions, references, and field verification', async ({ page }) => {
-  await expect(page.getByRole('heading', { name: 'Know what the number means before cutting' })).toBeVisible();
+  await page.locator('.result-evidence-key summary').click();
+  await expect(page.getByRole('heading', { name: 'Know what each result means' })).toBeVisible();
   await expect(page.locator('.result-evidence-guide')).toContainText('Calculated');
   await expect(page.locator('.result-evidence-guide')).toContainText('Published starting point');
   await expect(page.locator('.result-evidence-guide')).toContainText('Entered assumption');

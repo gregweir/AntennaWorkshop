@@ -45,7 +45,7 @@ import { DipoleDiagram } from './DipoleDiagram';
 import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
 import { AntennaDesignPicker } from './AntennaDesignPicker';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
-import { ResultEvidenceGuide } from './ResultEvidenceGuide';
+import { ResultEvidenceKey } from './ResultEvidenceGuide';
 import { DiagramControls } from './DiagramControls';
 import { InputImpactPanel } from './InputImpactPanel';
 import { StartingValuesBar } from './StartingValuesBar';
@@ -1640,7 +1640,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
           {calculation && <><div className="antenna-print-heading">
             <img src="/antennas/TartanleafLogo.jpg" alt="" width="72" height="72" />
             <div><p>RadioBook Antenna Workshop</p><h1>{ANTENNA_DESIGNS[antennaType].name}</h1><span>{calculation.type === 'hex-beam' ? `${calculation.value.elements.map((element) => element.band).join(' · ')} bands` : `${frequencyMHz.toFixed(3)} MHz`} · {unitSystem === 'metric' ? 'Metric' : 'Imperial'} · Model {model.version}</span></div>
-          </div><ResultEvidenceGuide /><Suspense fallback={<div className="result-summary" role="status">Loading calculated result…</div>}><AntennaResultSummary calculation={calculation} unitSystem={unitSystem} radialCount={radialCount} loopShape={loopShape} onPrint={printBuildSheet} /></Suspense></>}
+          </div><Suspense fallback={<div className="result-summary" role="status">Loading calculated result…</div>}><AntennaResultSummary calculation={calculation} unitSystem={unitSystem} radialCount={radialCount} loopShape={loopShape} onPrint={printBuildSheet} /></Suspense><ResultEvidenceKey /></>}
           {calculation?.type === 'axial-helix' && calculation.value.warnings.length > 0 && <aside className="model-note helix-advisory" aria-label="Helix design advisories"><strong>Review these design choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'discone' && calculation.value.warnings.length > 0 && <aside className="model-note discone-advisory" aria-label="Discone design advisories"><strong>Review these construction choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
           {calculation?.type === 'log-periodic' && calculation.value.warnings.length > 0 && <aside className="model-note lpda-advisory" aria-label="Log-periodic design advisories"><strong>Review these design choices</strong><ul>{calculation.value.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>}
