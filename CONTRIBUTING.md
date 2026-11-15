@@ -2,6 +2,8 @@
 
 Thank you for helping improve RadioBook Antenna Workshop.
 
+Use the repository’s structured issue forms for reproducible bugs, bounded feature proposals, and calculation or source corrections. Report security vulnerabilities privately as described in [SECURITY.md](SECURITY.md), and follow the [Code of Conduct](CODE_OF_CONDUCT.md) in all project spaces.
+
 ## Before opening a change
 
 - Keep calculations pure and independently testable.

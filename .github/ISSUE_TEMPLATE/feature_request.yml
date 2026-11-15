@@ -1,0 +1,54 @@
+name: Feature request
+description: Suggest a user-facing improvement or a new bounded capability.
+title: "Feature: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Explain who needs this and what is difficult today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the workflow and result rather than only a preferred implementation.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Antenna design
+        - Feedline and matching
+        - RF exposure
+        - Measurements and files
+        - Accessibility and usability
+        - PWA and offline operation
+        - Documentation or contributor experience
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Supporting sources or examples
+      description: Link primary references, comparable tools, file specifications, or representative use cases.
+    validations:
+      required: false
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Important limitations or safety considerations
+      description: Identify cases the feature should reject, escalate, or avoid interpreting.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues for a similar request.
+          required: true

@@ -1,0 +1,66 @@
+name: Bug report
+description: Report reproducible incorrect or unexpected application behaviour.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for helping improve Antenna Workshop. Do not include private station records, credentials, or sensitive locations.
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Describe the observed behaviour and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open…
+        2. Select…
+        3. Enter…
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Page address
+      placeholder: https://www.radiobook.ca/antennas/
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Device, operating system, and browser
+      placeholder: iPhone 16, iOS 20, Safari
+    validations:
+      required: true
+  - type: dropdown
+    id: installed
+    attributes:
+      label: How was the application opened?
+      options:
+        - Browser tab
+        - Installed home-screen application
+        - Local development server
+        - Other or unknown
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Additional evidence
+      description: Add screenshots, console messages, or a minimal non-sensitive sample file when useful.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I removed credentials, private station data, and sensitive locations.
+          required: true

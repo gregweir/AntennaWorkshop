@@ -1,6 +1,8 @@
 # RadioBook Antenna Workshop
 
-[![Validate](https://github.com/gregweir/AntennaWorkshop/actions/workflows/validate.yml/badge.svg)](https://github.com/gregweir/AntennaWorkshop/actions/workflows/validate.yml)
+[![Validate](https://github.com/gregweir/AntennaWorkshop/actions/workflows/validate.yml/badge.svg?branch=main&event=push)](https://github.com/gregweir/AntennaWorkshop/actions/workflows/validate.yml)
+[![License: MPL-2.0](https://img.shields.io/github/license/gregweir/AntennaWorkshop)](LICENSE)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 RadioBook Antenna Workshop is an offline-first browser application for designing, understanding, building, tuning, and evaluating amateur-radio antennas. The working product direction combines construction calculators, live diagrams, educational guidance, feedline tools, and jurisdiction-specific RF exposure screening.
 

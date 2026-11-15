@@ -1,0 +1,65 @@
+name: Calculation or source correction
+description: Report a formula, boundary, unit, source, or regulatory-language concern.
+title: "Calculation: "
+labels: ["calculation-review"]
+body:
+  - type: markdown
+    attributes:
+      value: Calculation and regulatory corrections require reproducible evidence. A reported concern does not by itself establish compliance or non-compliance.
+  - type: input
+    id: calculator
+    attributes:
+      label: Calculator or workflow
+      placeholder: Canadian RF exposure single-source screen
+    validations:
+      required: true
+  - type: textarea
+    id: concern
+    attributes:
+      label: Current result or wording
+      description: Include the exact inputs, units, output, boundary, and text at issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result or wording
+      description: Show the independent calculation or precise correction where possible.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Primary sources
+      description: Provide issuer, title, edition or revision, date, page or clause, and a stable link.
+    validations:
+      required: true
+  - type: dropdown
+    id: jurisdiction
+    attributes:
+      label: Jurisdiction
+      options:
+        - Not jurisdiction-specific
+        - Canada
+        - United States
+        - United Kingdom
+        - Australia
+        - Multiple jurisdictions
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Applicability and safety impact
+      description: Identify affected frequency ranges, boundary cases, classifications, records, or user decisions.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and source documentation for this concern.
+          required: true
+        - label: I have not included private station data or sensitive locations.
+          required: true
