@@ -16,6 +16,7 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 - Attach multiple dated `.s1p` references to a plan without embedding unbounded files in browser storage. Bounded context, file fingerprints, direct in-memory analysis handoff, and structured summaries returned to plan history are implemented.
 - Guide calibration, sweep range, reference plane, and final installed geometry.
 - Compare calculated targets, sampled resonance observations, threshold spans, and dimensional changes.
+- Show chronological deltas across saved summaries while surfacing changed measurement context and avoiding causal claims.
 - Retain adjustment history without claiming that an observed change proves its cause.
 
 ## Milestone 3 — Layered Learning

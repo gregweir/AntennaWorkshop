@@ -608,6 +608,29 @@ test('saves a plan measurement and opens its in-memory sweep for analysis', asyn
   await expect(savedAnalysis).toContainText('14.000 MHz–14.400 MHz');
   await expect(savedAnalysis).toContainText('3 points');
   await expect(savedAnalysis).toContainText('2.00:1 spans');
+
+  await page.getByLabel('Entry label').fill('After equal trim');
+  await page.getByLabel('Choose measurement .s1p reference').setInputFiles({
+    name: 'after-trim.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# MHz S RI R 50\n14.0 0.5 0.2\n14.2 0.4 0.1\n14.4 0.1 0\n')
+  });
+  await page.getByLabel('Calibration context').fill('SOL calibration at the antenna feedpoint');
+  await page.getByLabel('Measurement reference plane').fill('Feedpoint terminals');
+  await page.getByLabel('Installed geometry and conditions').fill('Antenna lowered for trimming, then returned to final height');
+  await page.getByLabel('Adjustment since previous entry').fill('Both legs shortened equally by 20 mm');
+  await page.getByRole('button', { name: 'Save and analyze sweep' }).click();
+  await page.getByText('Document and export this measurement', { exact: true }).click();
+  await page.getByRole('button', { name: 'Save summary to antenna plan' }).click();
+  await page.getByRole('button', { name: /Antenna designs/ }).click();
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByText('Measurement history', { exact: true }).click();
+  const progression = page.getByRole('heading', { name: 'Compare saved summaries in measurement order' }).locator('..').locator('..');
+  await expect(progression).toContainText('Final installed sweep');
+  await expect(progression).toContainText('After equal trim');
+  await expect(progression).toContainText('Minimum-frequency change');
+  await expect(progression).toContainText('recorded geometry or conditions differ');
+  await expect(progression).toContainText('No causal conclusion');
 });
 
 test('maps a selected band to frequency and wavelength', async ({ page }) => {

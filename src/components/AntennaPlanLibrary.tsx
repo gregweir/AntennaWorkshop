@@ -28,6 +28,7 @@ import {
 } from '../projects/antennaPlans';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
+import { buildMeasurementHistoryComparison } from '../projects/measurementHistory';
 
 interface Props {
   antennaType: AntennaType;
@@ -50,6 +51,18 @@ function localDate(value: string) {
 
 function formatRecordedFrequency(frequencyHz: number) {
   return frequencyHz >= 1e9 ? `${(frequencyHz / 1e9).toFixed(6)} GHz` : frequencyHz >= 1e6 ? `${(frequencyHz / 1e6).toFixed(3)} MHz` : `${(frequencyHz / 1e3).toFixed(3)} kHz`;
+}
+
+function formatFrequencyChange(frequencyHz: number) {
+  const sign = frequencyHz > 0 ? '+' : frequencyHz < 0 ? '−' : '';
+  const absolute = Math.abs(frequencyHz);
+  return absolute >= 1e6 ? `${sign}${(absolute / 1e6).toFixed(3)} MHz` : `${sign}${(absolute / 1e3).toFixed(1)} kHz`;
+}
+
+function formatSwrChange(value: number | null) {
+  if (value === null) return 'not comparable';
+  if (Math.abs(value) < 0.0005) return '0.000';
+  return `${value > 0 ? '+' : '−'}${Math.abs(value).toFixed(3)}`;
 }
 
 function localDateTimeInput(date = new Date()) {
@@ -312,6 +325,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
   };
 
   const jurisdictionName = selected ? jurisdictionProfiles.find((profile) => profile.code === selected.jurisdiction)?.name : '';
+  const measurementComparison = selected ? buildMeasurementHistoryComparison(selected.measurements) : [];
 
   return <details className="antenna-plan-library">
     <summary><span><strong>Saved antenna plans</strong><small>Keep named designs on this device or move them as versioned JSON files.</small></span><span className="plan-count">{plans.length}</span></summary>
@@ -376,6 +390,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
               <dl>{record.calibrationContext && <div><dt>Calibration</dt><dd>{record.calibrationContext}</dd></div>}{record.referencePlane && <div><dt>Reference plane</dt><dd>{record.referencePlane}</dd></div>}{record.installedGeometry && <div><dt>Geometry and conditions</dt><dd>{record.installedGeometry}</dd></div>}{record.adjustment && <div><dt>Adjustment</dt><dd>{record.adjustment}</dd></div>}{record.observations && <div><dt>Observations</dt><dd>{record.observations}</dd></div>}</dl>
               {record.analysis && <section className="measurement-analysis-summary" aria-label={`Saved analysis for ${record.label}`}><div><strong>Saved sweep summary</strong><time dateTime={record.analysis.analyzedAt}>Analyzed {localDate(record.analysis.analyzedAt)}</time></div><dl><div><dt>Coverage</dt><dd>{formatRecordedFrequency(record.analysis.lowerFrequencyHz)}–{formatRecordedFrequency(record.analysis.upperFrequencyHz)} · {record.analysis.pointCount.toLocaleString()} points · {record.analysis.referenceImpedanceOhms.toFixed(1)} Ω</dd></div><div><dt>Minimum SWR</dt><dd>{record.analysis.minimumSwr === null ? 'Not finite' : `${record.analysis.minimumSwr.toFixed(3)} : 1`} at {formatRecordedFrequency(record.analysis.minimumSwrFrequencyHz)}</dd></div><div><dt>Closest sampled resonance</dt><dd>{formatRecordedFrequency(record.analysis.resonanceFrequencyHz)} · {record.analysis.resonanceResistanceOhms === null ? 'R not finite' : `${record.analysis.resonanceResistanceOhms.toFixed(2)} Ω`} · {record.analysis.resonanceReactanceOhms === null ? 'X not finite' : `j${record.analysis.resonanceReactanceOhms.toFixed(2)} Ω`}</dd></div><div><dt>{record.analysis.threshold.toFixed(2)}:1 spans</dt><dd>{record.analysis.thresholdWindowCount ? `${record.analysis.thresholdWindowCount} recorded ${record.analysis.thresholdWindowCount === 1 ? 'window' : 'windows'}` : 'No measured samples at or below threshold'}{record.analysis.thresholdWindowCount > record.analysis.thresholdSpans.length ? ` · first ${record.analysis.thresholdSpans.length} retained` : ''}</dd></div></dl>{record.analysis.thresholdSpans.length > 0 && <ol>{record.analysis.thresholdSpans.map((span, index) => <li key={`${span.lowerFrequencyHz}-${span.upperFrequencyHz}-${index}`}>{formatRecordedFrequency(span.lowerFrequencyHz)}–{formatRecordedFrequency(span.upperFrequencyHz)} · {span.lowerBasis} / {span.upperBasis}</li>)}</ol>}<p>Stored summary only; reopen the original fingerprinted sweep for point-level review.</p></section>}
             </li>)}</ol> : <p className="measurement-history-empty">No measurement entries have been recorded for this plan.</p>}
+            {measurementComparison.length >= 2 && <section className="measurement-progression" aria-labelledby="measurement-progression-heading"><div><p className="eyebrow">Observed progression</p><h5 id="measurement-progression-heading">Compare saved summaries in measurement order</h5><p>Frequency and SWR deltas describe the saved observations only. They do not identify why the response changed.</p></div><ol>{measurementComparison.map((point, index) => <li key={point.record.id}><div className="measurement-progression-heading"><span>{index + 1}</span><div><strong>{point.record.label}</strong><time dateTime={point.record.recordedAt}>{localDate(point.record.recordedAt)}</time></div></div>{point.record.analysis && <dl><div><dt>Minimum SWR</dt><dd>{point.record.analysis.minimumSwr === null ? 'Not finite' : `${point.record.analysis.minimumSwr.toFixed(3)} : 1`} · {formatRecordedFrequency(point.record.analysis.minimumSwrFrequencyHz)}</dd></div><div><dt>Closest resonance</dt><dd>{formatRecordedFrequency(point.record.analysis.resonanceFrequencyHz)}</dd></div>{point.delta && <><div><dt>Minimum-frequency change</dt><dd>{formatFrequencyChange(point.delta.minimumSwrFrequencyHz)}</dd></div><div><dt>Resonance-frequency change</dt><dd>{formatFrequencyChange(point.delta.resonanceFrequencyHz)}</dd></div><div><dt>Minimum-SWR change</dt><dd>{formatSwrChange(point.delta.minimumSwr)}</dd></div></>}</dl>}{point.record.adjustment && <p><strong>Recorded adjustment:</strong> {point.record.adjustment}</p>}{point.contextChanges.length > 0 && <p className="measurement-context-change"><strong>Comparison cautions:</strong> {point.contextChanges.join('; ')}.</p>}</li>)}</ol><p className="project-journey-limit"><strong>No causal conclusion.</strong> Recalibration, reference-plane movement, sweep coverage, installation conditions, analyser uncertainty, and unrecorded changes can move the displayed values.</p></section>}
             <p className="project-journey-limit"><strong>Interpretation limit.</strong> File identity, entered context, and observations do not establish calibration quality, measurement uncertainty, causation, efficiency, pattern, safe power, or compliance.</p>
           </div>
         </details>}

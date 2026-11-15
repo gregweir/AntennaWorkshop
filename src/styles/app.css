@@ -10065,6 +10065,97 @@ path.loading-coil {
   margin: 0.65rem 0 0;
 }
 
+.measurement-progression {
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.measurement-progression > div > p,
+.measurement-progression > div > h5 {
+  margin: 0;
+}
+
+.measurement-progression > div > p:last-child {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.measurement-progression > ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.7rem;
+  margin: 0.9rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.measurement-progression > ol > li {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.measurement-progression-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.measurement-progression-heading > span {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent-technical);
+  color: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.measurement-progression-heading > div {
+  display: grid;
+}
+
+.measurement-progression time,
+.measurement-progression > ol > li > p {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.measurement-progression dl {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.65rem 0;
+}
+
+.measurement-progression dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.measurement-progression dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 750;
+  text-align: right;
+}
+
+.measurement-progression > ol > li > p {
+  margin: 0.5rem 0 0;
+}
+
+.measurement-context-change {
+  padding: 0.5rem;
+  border-left: 3px solid var(--tl-coral);
+  background: var(--bg-muted);
+}
+
 .project-journey-limit {
   margin: 0;
   font-size: 0.82rem;
@@ -10718,6 +10809,10 @@ path.loading-coil {
 
   .measurement-analysis-summary > div {
     display: grid;
+  }
+
+  .measurement-progression > ol {
+    grid-template-columns: 1fr;
   }
 }
 
