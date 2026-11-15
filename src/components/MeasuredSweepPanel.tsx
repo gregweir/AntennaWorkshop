@@ -6,8 +6,8 @@
  */
 
 import { useMemo, useState, type ChangeEvent } from 'react';
-import { getBandsForJurisdiction } from '../bands/catalog';
-import { nearestTouchstonePoint, parseTouchstoneS1p, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary } from '../lib/touchstone';
+import { formatFrequencyRange, getBandsForJurisdiction, type AmateurBand } from '../bands/catalog';
+import { nearestTouchstonePoint, nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary } from '../lib/touchstone';
 import { serializeTouchstoneComparisonCsv, touchstoneReportFilename } from '../lib/touchstoneReport';
 import type { JurisdictionCode } from '../regulations/catalog';
 import { StepByStepHelp } from './ContextHelp';
@@ -24,6 +24,8 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [inspectionFrequencyText, setInspectionFrequencyText] = useState('');
+  const [reviewBandId, setReviewBandId] = useState('');
   const [comparison, setComparison] = useState<TouchstoneSweep | null>(null);
   const [comparisonFileName, setComparisonFileName] = useState('');
   const [comparisonError, setComparisonError] = useState('');
@@ -43,6 +45,7 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
     const upperMHz = Math.max(sweep.points.at(-1)!.frequencyHz, comparison?.points.at(-1)?.frequencyHz ?? 0) / 1e6;
     return getBandsForJurisdiction(jurisdiction).filter((band) => band.upperMHz >= lowerMHz && band.lowerMHz <= upperMHz);
   }, [comparison, jurisdiction, sweep]);
+  const reviewBand = bands.find((band) => band.id === reviewBandId) ?? bands[0] ?? null;
 
   async function loadFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -55,6 +58,7 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
       setSweep(parsed);
       setFileName(file.name);
       setSelectedIndex(bestIndex);
+      setInspectionFrequencyText(formatFrequencyInput(parsed.points[bestIndex].frequencyHz));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The file could not be read.');
     } finally {
@@ -104,6 +108,21 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
     }
   }
 
+  function inspectIndex(index: number) {
+    if (!sweep) return;
+    setSelectedIndex(index);
+    setInspectionFrequencyText(formatFrequencyInput(sweep.points[index].frequencyHz));
+  }
+
+  function inspectFrequency(frequencyMHz: number) {
+    if (!sweep || !Number.isFinite(frequencyMHz) || frequencyMHz <= 0) return;
+    setInspectionFrequencyText(String(frequencyMHz));
+    setSelectedIndex(nearestTouchstonePointIndex(sweep.points, frequencyMHz * 1e6));
+  }
+
+  const requestedInspectionHz = Number(inspectionFrequencyText) * 1e6;
+  const inspectionOffsetHz = Number.isFinite(requestedInspectionHz) && requestedInspectionHz > 0 ? selected?.frequencyHz ? selected.frequencyHz - requestedInspectionHz : 0 : null;
+
   return <div className="measured-sweep-workbench">
     <StepByStepHelp title="Measure, import, and interpret a sweep" intro="Use the same reference plane and installation state throughout. The file stays in this browser and is not uploaded." steps={[
       { title: 'Calibrate at the intended reference plane', detail: 'Perform open, short, and load calibration at the cable end or fixture plane where the result must apply.' },
@@ -150,7 +169,11 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
       <section className="sweep-chart-card" aria-labelledby="sweep-chart-heading">
         <div className="sweep-chart-heading"><div><p className="eyebrow">Frequency response</p><h3 id="sweep-chart-heading">SWR across the measured sweep</h3></div><p>Coral dash: 2:1. Shading: amateur allocations. {comparison ? 'Dashed blue: comparison sweep.' : ''}</p></div>
         <SweepChart sweep={sweep} comparison={comparison} selectedIndex={selectedIndex} bands={bands} />
-        <label className="sweep-marker-control"><span>Inspection point <strong>{formatMHz(selected.frequencyHz)}</strong></span><input aria-label="Sweep inspection point" type="range" min={0} max={sweep.points.length - 1} value={selectedIndex} onChange={(event) => setSelectedIndex(Number(event.target.value))} /></label>
+        <div className="sweep-inspection-tools">
+          <label className="sweep-frequency-entry"><span>Inspect frequency</span><span className="input-with-unit"><input aria-label="Inspect measured frequency" type="number" inputMode="decimal" min={sweep.points[0].frequencyHz / 1e6} max={sweep.points.at(-1)!.frequencyHz / 1e6} step="any" value={inspectionFrequencyText} onChange={(event) => { setInspectionFrequencyText(event.target.value); const frequencyMHz = Number(event.target.value); if (Number.isFinite(frequencyMHz) && frequencyMHz > 0) setSelectedIndex(nearestTouchstonePointIndex(sweep.points, frequencyMHz * 1e6)); }} /><span>MHz</span></span><small>Nearest measured sample: {formatMHz(selected.frequencyHz)}{inspectionOffsetHz !== null && inspectionOffsetHz !== 0 ? ` (${formatSignedFrequency(inspectionOffsetHz)} from request)` : ''}</small></label>
+          <div className="sweep-inspection-shortcuts" aria-label="Inspection shortcuts"><span>Jump to</span><button type="button" onClick={() => inspectIndex(sweep.points.indexOf(analysis.best))}>Lowest SWR</button><button type="button" onClick={() => inspectIndex(sweep.points.indexOf(analysis.resonant))}>Closest resonance</button>{reviewBand && <button type="button" onClick={() => inspectFrequency(reviewBand.designMHz)}>{reviewBand.label} centre</button>}</div>
+        </div>
+        <label className="sweep-marker-control"><span>Scan measured points <strong>{selectedIndex + 1} of {sweep.points.length.toLocaleString()}</strong></span><input aria-label="Sweep inspection point" type="range" min={0} max={sweep.points.length - 1} value={selectedIndex} onChange={(event) => inspectIndex(Number(event.target.value))} /></label>
         <dl className="sweep-marker-values">
           <div><dt>SWR</dt><dd>{formatRatio(selected.swr)} : 1</dd></div>
           <div><dt>Return loss</dt><dd>{formatDecibels(selected.returnLossDb)}</dd></div>
@@ -160,6 +183,8 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
         {selectedComparison && <p className="sweep-comparison-at-marker"><strong>Comparison near this frequency:</strong> {formatMHz(selectedComparison.frequencyHz)} · {formatRatio(selectedComparison.swr)} : 1 · {formatImpedance(selectedComparison)}. Difference from reference: {formatSigned(selectedComparison.swr - selected.swr, 3)} SWR.</p>}
         {bands.length > 0 && <p className="sweep-band-list"><strong>Allocations in view:</strong> {bands.map((band) => band.label).join(', ')}. Allocation shading is context, not operating authorization; verify licence class, mode, power, and local conditions.</p>}
       </section>
+
+      {reviewBand && <SweepBandReview band={reviewBand} sweep={sweep} comparison={comparison} selectedBandId={reviewBand.id} bands={bands} onBandChange={setReviewBandId} onInspect={inspectFrequency} />}
 
       <section className="sweep-chart-card" aria-labelledby="sweep-smith-heading">
         <div className="sweep-chart-heading"><div><p className="eyebrow">Complex impedance path</p><h3 id="sweep-smith-heading">Smith-chart sweep trace</h3></div><p>Follow the trace to see whether resistance, reactance, or both move as frequency changes.</p></div>
@@ -179,6 +204,27 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
 
 function SweepMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <article><p>{label}</p><strong>{value}</strong><small>{detail}</small></article>;
+}
+
+function SweepBandReview({ band, sweep, comparison, selectedBandId, bands, onBandChange, onInspect }: { band: AmateurBand; sweep: TouchstoneSweep; comparison: TouchstoneSweep | null; selectedBandId: string; bands: AmateurBand[]; onBandChange: (id: string) => void; onInspect: (frequencyMHz: number) => void }) {
+  const ranges = (band.segments ?? [{ lowerMHz: band.lowerMHz, upperMHz: band.upperMHz }]).map((range) => ({ lowerHz: range.lowerMHz * 1e6, upperHz: range.upperMHz * 1e6 }));
+  const referenceReview = summarizeTouchstoneRanges(sweep, ranges);
+  const comparisonReview = comparison ? summarizeTouchstoneRanges(comparison, ranges) : null;
+  const exactAllocationRanges = band.continuous !== false || Boolean(band.segments);
+  const spanLabel = referenceReview.sweepSpansEveryRange
+    ? exactAllocationRanges ? 'Spans the full allocation' : 'Spans the listed frequency range'
+    : exactAllocationRanges ? 'Covers only part of the allocation' : 'Covers part of the listed frequency range';
+  return <section className="sweep-band-review" aria-labelledby="sweep-band-review-heading">
+    <div className="sweep-band-review-heading"><div><p className="eyebrow">Allocation context</p><h3 id="sweep-band-review-heading">Review the measured response within a band</h3></div><label><span>Band in this sweep</span><select aria-label="Band to review" value={selectedBandId} onChange={(event) => onBandChange(event.target.value)}>{bands.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.label} · {formatFrequencyRange(candidate)}</option>)}</select></label></div>
+    <div className="sweep-band-review-grid">
+      <article><span>Sweep extent</span><strong>{spanLabel}</strong><small>{referenceReview.points.length.toLocaleString()} measured {referenceReview.points.length === 1 ? 'sample' : 'samples'} inside the listed {exactAllocationRanges ? `allocation${band.segments ? ' segments' : ''}` : 'frequency envelope'}.</small></article>
+      <article><span>Lowest measured SWR in band</span><strong>{referenceReview.lowestSwr ? `${formatRatio(referenceReview.lowestSwr.swr)} : 1` : 'No in-band sample'}</strong><small>{referenceReview.lowestSwr ? formatMHz(referenceReview.lowestSwr.frequencyHz) : 'Widen the analyser sweep or increase its point coverage.'}</small></article>
+      <article><span>Highest measured SWR in band</span><strong>{referenceReview.highestSwr ? `${formatRatio(referenceReview.highestSwr.swr)} : 1` : 'No in-band sample'}</strong><small>{referenceReview.highestSwr ? formatMHz(referenceReview.highestSwr.frequencyHz) : 'No response summary is available.'}</small></article>
+      {comparisonReview && <article><span>Comparison in-band minimum</span><strong>{comparisonReview.lowestSwr ? `${formatRatio(comparisonReview.lowestSwr.swr)} : 1` : 'No in-band sample'}</strong><small>{comparisonReview.lowestSwr ? `${formatMHz(comparisonReview.lowestSwr.frequencyHz)} · ${comparisonReview.sweepSpansEveryRange ? 'full span' : 'partial span'}` : 'The comparison does not sample this allocation.'}</small></article>}
+    </div>
+    <div className="sweep-band-review-actions"><button type="button" onClick={() => onInspect(band.lowerMHz)}>Inspect {exactAllocationRanges ? 'lower edge' : 'listed lower bound'}</button><button type="button" onClick={() => onInspect(band.designMHz)}>Inspect band centre</button><button type="button" onClick={() => onInspect(band.upperMHz)}>Inspect {exactAllocationRanges ? 'upper edge' : 'listed upper bound'}</button></div>
+    <p>These are sampled extrema, not guaranteed continuous-band limits. {band.note ? `${band.note} ` : ''}Allocation context does not establish operating privileges, antenna efficiency, acceptable SWR, or suitability for a transmitter.</p>
+  </section>;
 }
 
 function SweepComparisonTable({ reference, referenceName, referenceAnalysis, comparison, comparisonName, comparisonAnalysis, selected, comparisonSelected }: {
@@ -284,6 +330,10 @@ function SweepChart({ sweep, comparison, selectedIndex, bands }: { sweep: Touchs
 function formatMHz(frequencyHz: number) {
   const value = frequencyHz / 1e6;
   return `${value.toLocaleString(undefined, { maximumFractionDigits: value < 30 ? 4 : 3 })} MHz`;
+}
+
+function formatFrequencyInput(frequencyHz: number) {
+  return (frequencyHz / 1e6).toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
 }
 
 function formatBandwidth(spanHz: number) {

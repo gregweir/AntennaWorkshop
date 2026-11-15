@@ -30,6 +30,13 @@ export interface TouchstoneSweepSummary {
   twoToOne: { lower: TouchstonePoint; upper: TouchstonePoint } | null;
 }
 
+export interface TouchstoneRangeReview {
+  sweepSpansEveryRange: boolean;
+  points: TouchstonePoint[];
+  lowestSwr: TouchstonePoint | null;
+  highestSwr: TouchstonePoint | null;
+}
+
 const unitScale: Record<string, number> = { hz: 1, khz: 1e3, mhz: 1e6, ghz: 1e9 };
 
 function pointFromReflection(frequencyHz: number, real: number, imaginary: number, reference: number): TouchstonePoint {
@@ -123,6 +130,10 @@ export function summarizeTouchstoneSweep(sweep: TouchstoneSweep): TouchstoneSwee
 }
 
 export function nearestTouchstonePoint(points: TouchstonePoint[], frequencyHz: number) {
+  return points[nearestTouchstonePointIndex(points, frequencyHz)];
+}
+
+export function nearestTouchstonePointIndex(points: TouchstonePoint[], frequencyHz: number) {
   let low = 0;
   let high = points.length - 1;
   while (low < high) {
@@ -130,7 +141,17 @@ export function nearestTouchstonePoint(points: TouchstonePoint[], frequencyHz: n
     if (points[middle].frequencyHz < frequencyHz) low = middle + 1;
     else high = middle;
   }
-  if (low === 0) return points[0];
+  if (low === 0) return 0;
   const previous = points[low - 1];
-  return Math.abs(previous.frequencyHz - frequencyHz) <= Math.abs(points[low].frequencyHz - frequencyHz) ? previous : points[low];
+  return Math.abs(previous.frequencyHz - frequencyHz) <= Math.abs(points[low].frequencyHz - frequencyHz) ? low - 1 : low;
+}
+
+export function summarizeTouchstoneRanges(sweep: TouchstoneSweep, ranges: ReadonlyArray<{ lowerHz: number; upperHz: number }>): TouchstoneRangeReview {
+  const points = sweep.points.filter((point) => ranges.some((range) => point.frequencyHz >= range.lowerHz && point.frequencyHz <= range.upperHz));
+  return {
+    sweepSpansEveryRange: ranges.length > 0 && ranges.every((range) => sweep.points[0].frequencyHz <= range.lowerHz && sweep.points.at(-1)!.frequencyHz >= range.upperHz),
+    points,
+    lowestSwr: points.length ? points.reduce((lowest, point) => point.swr < lowest.swr ? point : lowest) : null,
+    highestSwr: points.length ? points.reduce((highest, point) => point.swr > highest.swr ? point : highest) : null
+  };
 }

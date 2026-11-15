@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { parseTouchstoneS1p } from './touchstone';
+import { nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges } from './touchstone';
 
 describe('Touchstone one-port parser', () => {
   it('parses RI data and derives impedance, SWR, and return loss', () => {
@@ -51,5 +51,21 @@ describe('Touchstone one-port parser', () => {
     const point = parseTouchstoneS1p('# MHz S RI R 50\n1 1 0').points[0];
     expect(point.resistanceOhms).toBe(Number.POSITIVE_INFINITY);
     expect(point.reactanceOhms).toBe(0);
+  });
+
+  it('locates the nearest measured frequency by index', () => {
+    const sweep = parseTouchstoneS1p('# MHz S RI R 50\n14.0 0.4 0\n14.2 0.1 0\n14.4 0.3 0');
+    expect(nearestTouchstonePointIndex(sweep.points, 14.11e6)).toBe(1);
+    expect(nearestTouchstonePointIndex(sweep.points, 13e6)).toBe(0);
+    expect(nearestTouchstonePointIndex(sweep.points, 15e6)).toBe(2);
+  });
+
+  it('reviews measured points inside continuous and segmented ranges', () => {
+    const sweep = parseTouchstoneS1p('# MHz S RI R 50\n3.4 0.5 0\n3.5 0.4 0\n3.6 0.1 0\n3.75 0.9 0\n3.78 0.2 0\n3.8 0.3 0\n3.9 0.6 0');
+    const review = summarizeTouchstoneRanges(sweep, [{ lowerHz: 3.5e6, upperHz: 3.7e6 }, { lowerHz: 3.776e6, upperHz: 3.8e6 }]);
+    expect(review.sweepSpansEveryRange).toBe(true);
+    expect(review.points.map((point) => point.frequencyHz)).toEqual([3.5e6, 3.6e6, 3.78e6, 3.8e6]);
+    expect(review.lowestSwr?.frequencyHz).toBe(3.6e6);
+    expect(review.highestSwr?.frequencyHz).toBe(3.5e6);
   });
 });

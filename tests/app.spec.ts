@@ -2137,6 +2137,19 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
   await expect(page.getByRole('img', { name: /SWR sweep from 14 MHz to 14.45 MHz/ })).toBeVisible();
   await expect(page.getByRole('img', { name: /Smith-chart trace for the imported sweep/ })).toBeVisible();
   await expect(page.getByText(/Allocations in view: 20 m/)).toBeVisible();
+  const bandReview = page.getByRole('region', { name: 'Review the measured response within a band' });
+  await expect(bandReview).toContainText('Spans the full allocation');
+  await expect(bandReview).toContainText('6 measured samples');
+  await expect(bandReview).toContainText('2.492 : 1');
+
+  await page.getByLabel('Inspect measured frequency').fill('14.16');
+  await expect(page.getByLabel('Inspect measured frequency').locator('..').locator('..')).toContainText('Nearest measured sample: 14.175 MHz (+15.0 kHz from request)');
+  await expect(page.locator('.sweep-marker-values')).toContainText('1.187 : 1');
+  await page.getByRole('button', { name: 'Lowest SWR' }).click();
+  await expect(page.getByLabel('Inspect measured frequency')).toHaveValue('14.25');
+  await page.getByRole('button', { name: 'Inspect lower edge' }).click();
+  await expect(page.getByLabel('Inspect measured frequency')).toHaveValue('14');
+  await expect(page.locator('.sweep-marker-values')).toContainText('2.492 : 1');
 
   await page.getByLabel('Choose comparison .s1p file').setInputFiles({
     name: 'twenty-metres-after.s1p',
@@ -2148,6 +2161,8 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
   await expect(comparison).toContainText('1.000 : 1');
   await expect(comparison).toContainText('−0.046 SWR');
   await expect(page.getByText('Comparison near this frequency:')).toBeVisible();
+  await expect(bandReview).toContainText('Comparison in-band minimum');
+  await expect(bandReview).toContainText('1.000 : 1');
 
   await page.getByText('Document and export this measurement').click();
   await page.getByLabel('Measurement title').fill('20 m dipole final tuning');
