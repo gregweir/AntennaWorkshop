@@ -75,10 +75,17 @@ test('supports keyboard entry and remains within the viewport', async ({ page, i
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 
   if (isMobile) {
-    await expect(page.getByRole('button', { name: /Antenna designs/ })).toHaveCSS('min-height', '44px');
-    await expect(page.getByRole('button', { name: /Feedline & matching/ })).toHaveCSS('min-height', '44px');
-    await expect(page.getByRole('button', { name: 'Change design' })).toHaveCSS('min-height', '44px');
-    await expect(page.getByRole('button', { name: 'View drawing' })).toHaveCSS('min-height', '44px');
+    const touchTargets = [
+      page.getByRole('button', { name: /Antenna designs/ }),
+      page.getByRole('button', { name: /Feedline & matching/ }),
+      page.getByRole('button', { name: 'Change design' }),
+      page.getByRole('button', { name: 'View drawing' })
+    ];
+    for (const target of touchTargets) {
+      const bounds = await target.boundingBox();
+      expect(bounds?.height ?? 0).toBeGreaterThanOrEqual(44);
+      expect(bounds?.width ?? 0).toBeGreaterThanOrEqual(44);
+    }
     await page.getByRole('button', { name: 'View drawing' }).click();
     await expect(page.locator('#design-drawing')).toBeInViewport();
     await page.getByText('Compare antenna designs', { exact: true }).click();
