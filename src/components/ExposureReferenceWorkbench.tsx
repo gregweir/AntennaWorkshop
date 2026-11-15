@@ -109,8 +109,17 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
         : 'Canadian power-density reference levels begin at 10 MHz; lower frequencies require electric- and magnetic-field treatment.';
 
   return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
-    <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div><span className="model-badge">Preliminary beta</span></div>
+    <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div><span className="model-badge">Technical preview</span></div>
     <div className="exposure-status" role="note"><strong>Preliminary tools only</strong><span>Reference lookup, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
+    <details className="exposure-review-scope">
+      <summary><span><strong>Review status and supported scope</strong><small>See what has been implemented, what remains outside these tools, and what independent review is still required.</small></span></summary>
+      <div className="exposure-review-scope-body">
+        <section><h3>Implemented</h3><p>Sourced reference lookups and bounded workflows are available for Canada, the United States, the United Kingdom, and Australia. Results retain their model identity, assumptions, applicability checks, and source links.</p></section>
+        <section><h3>Not implemented</h3><p>These tools do not calculate reactive near fields, antenna-pattern attenuation, terrain or building effects, measurement uncertainty, body coupling, induced or contact currents, or undiscovered off-site sources.</p></section>
+        <section><h3>Review still required</h3><p>Independent technical review has not been completed. No displayed value, saved record, printed report, or completed checklist is reviewer sign-off or a compliance determination.</p></section>
+        <p className="exposure-review-link"><a href="https://github.com/gregweir/AntennaWorkshop/blob/main/docs/RF_EXPOSURE_REVIEW.md" target="_blank" rel="noreferrer">Open the independent RF-exposure review package</a></p>
+      </div>
+    </details>
     {showsEvidenceLabels && <ResultEvidenceKey />}
     <div className={`exposure-mode-picker ${isUk ? 'exposure-mode-picker-uk' : ''} ${isAustralia ? 'exposure-mode-picker-au' : ''}`} aria-label="RF exposure workflow">
       {availableViews.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}

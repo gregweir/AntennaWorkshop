@@ -52,6 +52,8 @@ Users can begin either by choosing an antenna family or by describing a goal suc
 
 Contextual help must work with touch, keyboard, and pointer input. Complex sections may also provide an optional, collapsible step-by-step guide. Guidance should explain the existing workflow rather than create a separate simplified mode or conceal advanced controls.
 
+Before independent technical review is complete, the RF-exposure workspace must identify itself as a technical preview rather than a public beta. An accessible scope disclosure must distinguish implemented sourced workflows from unsupported near-field, pattern, environmental, measurement, and source-discovery work, and must state that interface output and completed records are neither reviewer sign-off nor compliance determinations.
+
 The antenna workspace must provide an optional comparison of three user-selected construction planners. It must cover site footprint, band intent, feed and tuning system, directional context, build complexity, and required installed verification without assigning a performance ranking or inferring gain, efficiency, signal strength, or suitability at the user’s site.
 
 Every valid antenna plan must provide a printable build sheet containing the active design identity, displayed dimensions, supporting calculations and assumptions, required installed verification, and construction drawing. The print view must exclude navigation, planner selection, and unrelated tools, and must retain the warning that calculated starting dimensions require field verification.

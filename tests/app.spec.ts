@@ -2161,6 +2161,12 @@ test('shows and dismisses an application update notice', async ({ page }) => {
 
 test('shows official RF exposure reference limits without a compliance result', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
+  await expect(page.getByText('Technical preview', { exact: true })).toBeVisible();
+  await page.getByText('Review status and supported scope', { exact: true }).click();
+  const reviewScope = page.locator('.exposure-review-scope');
+  await expect(reviewScope).toContainText('Independent technical review has not been completed');
+  await expect(reviewScope).toContainText('reactive near fields');
+  await expect(reviewScope.getByRole('link', { name: 'Open the independent RF-exposure review package' })).toHaveAttribute('href', /RF_EXPOSURE_REVIEW\.md$/);
   await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
   await expect(page.getByRole('note')).toContainText('do not by themselves determine compliance');
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('146.000');

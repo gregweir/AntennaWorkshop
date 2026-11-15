@@ -1150,6 +1150,69 @@ select {
   color: var(--text-secondary);
 }
 
+.exposure-review-scope {
+  margin: -0.75rem 0 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.exposure-review-scope summary {
+  min-height: 44px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+}
+
+.exposure-review-scope summary > span {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.exposure-review-scope summary strong,
+.exposure-review-scope h3 {
+  font-family: var(--font-mono);
+}
+
+.exposure-review-scope summary small,
+.exposure-review-scope p {
+  color: var(--text-secondary);
+}
+
+.exposure-review-scope-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+
+.exposure-review-scope-body section {
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.exposure-review-scope-body h3,
+.exposure-review-scope-body p {
+  margin: 0;
+}
+
+.exposure-review-scope-body h3 {
+  margin-bottom: 0.4rem;
+  font-size: 0.88rem;
+}
+
+.exposure-review-scope-body p {
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.exposure-review-link {
+  grid-column: 1 / -1;
+}
+
 .limit-frequency,
 .limit-bar text,
 .limit-caption {
@@ -10435,6 +10498,10 @@ body.diagram-view-open {
   .exposure-status {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .exposure-review-scope-body {
+    grid-template-columns: 1fr;
   }
 
   .header-inner {
