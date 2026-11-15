@@ -594,8 +594,20 @@ test('saves a plan measurement and opens its in-memory sweep for analysis', asyn
   await expect(page.getByLabel('Reference state')).toHaveValue('Final installed sweep');
   await expect(page.getByLabel('Calibration, reference plane, instrument, and conditions')).toContainText('SOL calibration at the antenna feedpoint');
   await expect(page.getByLabel('Calibration, reference plane, instrument, and conditions')).toContainText('Feedpoint terminals');
+  await page.getByRole('button', { name: 'Save summary to antenna plan' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Saved this 2:1 analysis summary' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).toContain('Final installed sweep');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).toContain('"analysis"');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).not.toContain('# MHz S RI');
+
+  await page.getByRole('button', { name: /Antenna designs/ }).click();
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByText('Measurement history', { exact: true }).click();
+  const savedAnalysis = page.getByLabel('Saved analysis for Final installed sweep');
+  await expect(savedAnalysis).toContainText('Saved sweep summary');
+  await expect(savedAnalysis).toContainText('14.000 MHz–14.400 MHz');
+  await expect(savedAnalysis).toContainText('3 points');
+  await expect(savedAnalysis).toContainText('2.00:1 spans');
 });
 
 test('maps a selected band to frequency and wavelength', async ({ page }) => {

@@ -13,7 +13,7 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 
 ## Milestone 2 — Measurement and Tuning
 
-- Attach multiple dated `.s1p` references to a plan without embedding unbounded files in browser storage. Bounded context, file fingerprints, and direct in-memory analysis handoff are implemented; attaching analysis summaries back to history remains to be added.
+- Attach multiple dated `.s1p` references to a plan without embedding unbounded files in browser storage. Bounded context, file fingerprints, direct in-memory analysis handoff, and structured summaries returned to plan history are implemented.
 - Guide calibration, sweep range, reference plane, and final installed geometry.
 - Compare calculated targets, sampled resonance observations, threshold spans, and dimensional changes.
 - Retain adjustment history without claiming that an observed change proves its cause.

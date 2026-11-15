@@ -34,6 +34,7 @@ import { InputImpactPanel } from './InputImpactPanel';
 import { StartingValuesBar } from './StartingValuesBar';
 import type { FeedlineTool } from '../preferences';
 import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
+import type { AntennaPlanMeasurementAnalysis } from '../projects/antennaPlans';
 
 const MeasuredSweepPanel = lazy(() => import('./MeasuredSweepPanel'));
 
@@ -43,6 +44,7 @@ interface Props {
   antennaHandoff: AntennaDesignHandoff | null;
   measurementSweepHandoff: MeasurementSweepHandoff | null;
   onMeasurementSweepConsumed: () => void;
+  onSaveMeasurementAnalysis: (planId: string, measurementId: string, analysis: AntennaPlanMeasurementAnalysis) => void;
   initialMode: FeedlineTool;
   onModeChange: (mode: FeedlineTool) => void;
   onAddToExposure: (transfer: StationSourceTransfer) => void;
@@ -93,7 +95,7 @@ function countModified(...conditions: boolean[]) {
   return conditions.filter(Boolean).length;
 }
 
-export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, measurementSweepHandoff, onMeasurementSweepConsumed, initialMode, onModeChange, onAddToExposure }: Props) {
+export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, measurementSweepHandoff, onMeasurementSweepConsumed, onSaveMeasurementAnalysis, initialMode, onModeChange, onAddToExposure }: Props) {
   const [mode, setMode] = useState<FeedlineTool>(measurementSweepHandoff ? 'sweep' : antennaHandoff ? 'radiated' : initialMode);
   const [frequencyText, setFrequencyText] = useState(antennaHandoff ? antennaHandoff.frequencyMHz.toString() : '146.520');
   const [transmitterPowerWatts, setTransmitterPowerWatts] = useState(100);
@@ -426,7 +428,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, me
       </div></section>
     </div>
     {mode === 'sweep' && <ResultEvidenceKey />}
-    {mode === 'sweep' ? <Suspense fallback={<div className="diagram-placeholder">Loading the measured-sweep workbench…</div>}><MeasuredSweepPanel jurisdiction={jurisdiction} incomingSweep={measurementSweepHandoff} onIncomingSweepConsumed={onMeasurementSweepConsumed} /></Suspense> : <>
+    {mode === 'sweep' ? <Suspense fallback={<div className="diagram-placeholder">Loading the measured-sweep workbench…</div>}><MeasuredSweepPanel jurisdiction={jurisdiction} incomingSweep={measurementSweepHandoff} onIncomingSweepConsumed={onMeasurementSweepConsumed} onSavePlanAnalysis={onSaveMeasurementAnalysis} /></Suspense> : <>
     {mode === 'power' && <StepByStepHelp title="Plan and verify a feedline budget" intro="Use this sequence to turn cable and accessory specifications into a traceable first-order power estimate. Experienced operators can leave the guide closed." steps={[
       { title: 'Fix the operating frequency', detail: 'Choose the actual frequency because cable attenuation changes with frequency and the calculator does not interpolate a data sheet.' },
       { title: 'Trace the complete cable path', detail: 'Measure every indoor, outdoor, mast, jumper, and service-loop section that contributes to the feedline length.' },

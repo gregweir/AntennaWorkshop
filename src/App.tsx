@@ -14,6 +14,7 @@ import { loadPreferences, savePreferences, type ExposureView, type FeedlineTool,
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 import type { MeasurementSweepHandoff } from './workflows/measurementWorkflow';
+import { saveAntennaPlanMeasurementAnalysis, type AntennaPlanMeasurementAnalysis } from './projects/antennaPlans';
 
 const initialJurisdictions = jurisdictionProfiles.filter((profile) => profile.releaseStatus === 'initial');
 const AntennaWorkbench = lazy(() => import('./components/AntennaWorkbench').then((module) => ({ default: module.AntennaWorkbench })));
@@ -126,7 +127,7 @@ export function App() {
         {workshopTool === 'antennas'
           ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} initialAntennaType={antennaDesign} onAntennaTypeChange={setAntennaDesign} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} onAnalyzeSweep={(handoff) => { setAntennaHandoff(null); setMeasurementSweepHandoff(handoff); setFeedlineTool('sweep'); setWorkshopTool('feedline'); }} />
           : workshopTool === 'feedline'
-            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} measurementSweepHandoff={measurementSweepHandoff} onMeasurementSweepConsumed={() => setMeasurementSweepHandoff(null)} initialMode={feedlineTool} onModeChange={setFeedlineTool} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
+            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} measurementSweepHandoff={measurementSweepHandoff} onMeasurementSweepConsumed={() => setMeasurementSweepHandoff(null)} onSaveMeasurementAnalysis={(planId: string, measurementId: string, analysis: AntennaPlanMeasurementAnalysis) => { saveAntennaPlanMeasurementAnalysis(planId, measurementId, analysis, window.localStorage); }} initialMode={feedlineTool} onModeChange={setFeedlineTool} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
             : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} initialView={exposureView} onViewChange={setExposureView} />}
       </Suspense>
 

@@ -35,6 +35,29 @@ export interface AntennaPlanSweepReference {
   sha256: string | null;
 }
 
+export interface AntennaPlanThresholdSpan {
+  lowerFrequencyHz: number;
+  upperFrequencyHz: number;
+  lowerBasis: 'interpolated' | 'sweep-edge' | 'measured-sample';
+  upperBasis: 'interpolated' | 'sweep-edge' | 'measured-sample';
+}
+
+export interface AntennaPlanMeasurementAnalysis {
+  analyzedAt: string;
+  pointCount: number;
+  referenceImpedanceOhms: number;
+  lowerFrequencyHz: number;
+  upperFrequencyHz: number;
+  minimumSwr: number | null;
+  minimumSwrFrequencyHz: number;
+  resonanceFrequencyHz: number;
+  resonanceResistanceOhms: number | null;
+  resonanceReactanceOhms: number | null;
+  threshold: number;
+  thresholdWindowCount: number;
+  thresholdSpans: AntennaPlanThresholdSpan[];
+}
+
 export interface AntennaPlanMeasurementRecord {
   id: string;
   recordedAt: string;
@@ -45,6 +68,7 @@ export interface AntennaPlanMeasurementRecord {
   installedGeometry: string;
   adjustment: string;
   observations: string;
+  analysis: AntennaPlanMeasurementAnalysis | null;
 }
 
 export type AntennaPlanValue = string | number | boolean | null | AntennaPlanValue[];
@@ -125,6 +149,50 @@ function normaliseSweepReference(value: unknown): AntennaPlanSweepReference | nu
   return { name, sizeBytes: sizeBytes as number, lastModifiedAt: lastModifiedAt as string | null, sha256: sha256 as string | null };
 }
 
+function finiteOrNull(value: unknown) {
+  return value === null || (typeof value === 'number' && Number.isFinite(value)) ? value as number | null : false;
+}
+
+function normaliseMeasurementAnalysis(value: unknown): AntennaPlanMeasurementAnalysis | null | false {
+  if (value === undefined || value === null) return null;
+  if (!isRecord(value) || !dateTime(value.analyzedAt) || !Array.isArray(value.thresholdSpans) || value.thresholdSpans.length > 24) return false;
+  const numericFields = ['pointCount', 'referenceImpedanceOhms', 'lowerFrequencyHz', 'upperFrequencyHz', 'minimumSwrFrequencyHz', 'resonanceFrequencyHz', 'threshold', 'thresholdWindowCount'] as const;
+  if (numericFields.some((field) => typeof value[field] !== 'number' || !Number.isFinite(value[field]) || (value[field] as number) < 0)
+    || !Number.isInteger(value.pointCount) || (value.pointCount as number) < 1 || (value.pointCount as number) > 10_000
+    || !Number.isInteger(value.thresholdWindowCount) || (value.thresholdWindowCount as number) < value.thresholdSpans.length
+    || (value.threshold as number) <= 1 || (value.threshold as number) > 10 || (value.lowerFrequencyHz as number) > (value.upperFrequencyHz as number)) return false;
+  const minimumSwr = finiteOrNull(value.minimumSwr);
+  const resonanceResistanceOhms = finiteOrNull(value.resonanceResistanceOhms);
+  const resonanceReactanceOhms = finiteOrNull(value.resonanceReactanceOhms);
+  if (minimumSwr === false || resonanceResistanceOhms === false || resonanceReactanceOhms === false) return false;
+  const bases = ['interpolated', 'sweep-edge', 'measured-sample'];
+  const thresholdSpans: AntennaPlanThresholdSpan[] = [];
+  for (const span of value.thresholdSpans) {
+    if (!isRecord(span)
+      || typeof span.lowerFrequencyHz !== 'number' || !Number.isFinite(span.lowerFrequencyHz)
+      || typeof span.upperFrequencyHz !== 'number' || !Number.isFinite(span.upperFrequencyHz)
+      || span.lowerFrequencyHz < 0 || span.lowerFrequencyHz > span.upperFrequencyHz
+      || typeof span.lowerBasis !== 'string' || !bases.includes(span.lowerBasis)
+      || typeof span.upperBasis !== 'string' || !bases.includes(span.upperBasis)) return false;
+    thresholdSpans.push({ lowerFrequencyHz: span.lowerFrequencyHz, upperFrequencyHz: span.upperFrequencyHz, lowerBasis: span.lowerBasis as AntennaPlanThresholdSpan['lowerBasis'], upperBasis: span.upperBasis as AntennaPlanThresholdSpan['upperBasis'] });
+  }
+  return {
+    analyzedAt: value.analyzedAt as string,
+    pointCount: value.pointCount as number,
+    referenceImpedanceOhms: value.referenceImpedanceOhms as number,
+    lowerFrequencyHz: value.lowerFrequencyHz as number,
+    upperFrequencyHz: value.upperFrequencyHz as number,
+    minimumSwr,
+    minimumSwrFrequencyHz: value.minimumSwrFrequencyHz as number,
+    resonanceFrequencyHz: value.resonanceFrequencyHz as number,
+    resonanceResistanceOhms,
+    resonanceReactanceOhms,
+    threshold: value.threshold as number,
+    thresholdWindowCount: value.thresholdWindowCount as number,
+    thresholdSpans
+  };
+}
+
 function normaliseMeasurements(value: unknown): AntennaPlanMeasurementRecord[] | null {
   if (value === undefined) return [];
   if (!Array.isArray(value) || value.length > ANTENNA_PLAN_MEASUREMENT_LIMIT) return null;
@@ -134,8 +202,9 @@ function normaliseMeasurements(value: unknown): AntennaPlanMeasurementRecord[] |
     const id = requiredText(candidate.id, 100);
     const label = requiredText(candidate.label, 120);
     const sweep = normaliseSweepReference(candidate.sweep);
+    const analysis = normaliseMeasurementAnalysis(candidate.analysis);
     const textFields = ['calibrationContext', 'referencePlane', 'installedGeometry', 'adjustment', 'observations'] as const;
-    if (!id || records.some((record) => record.id === id) || !label || sweep === false || textFields.some((field) => typeof candidate[field] !== 'string' || candidate[field].length > 4_000)) return null;
+    if (!id || records.some((record) => record.id === id) || !label || sweep === false || analysis === false || textFields.some((field) => typeof candidate[field] !== 'string' || candidate[field].length > 4_000)) return null;
     records.push({
       id,
       recordedAt: candidate.recordedAt as string,
@@ -145,7 +214,8 @@ function normaliseMeasurements(value: unknown): AntennaPlanMeasurementRecord[] |
       referencePlane: candidate.referencePlane as string,
       installedGeometry: candidate.installedGeometry as string,
       adjustment: candidate.adjustment as string,
-      observations: candidate.observations as string
+      observations: candidate.observations as string,
+      analysis
     });
   }
   return records.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
@@ -224,6 +294,21 @@ export function saveAntennaPlan(plan: AntennaPlan, storage?: AntennaPlanStorage)
     .slice(0, ANTENNA_PLAN_LIBRARY_LIMIT);
   storage?.setItem(ANTENNA_PLAN_LIBRARY_KEY, JSON.stringify(next));
   return next;
+}
+
+export function saveAntennaPlanMeasurementAnalysis(planId: string, measurementId: string, analysis: AntennaPlanMeasurementAnalysis, storage?: AntennaPlanStorage): AntennaPlan {
+  const plan = loadAntennaPlans(storage).find((candidate) => candidate.id === planId);
+  if (!plan) throw new TypeError('The originating antenna plan is no longer available in this browser.');
+  if (!plan.measurements.some((record) => record.id === measurementId)) throw new TypeError('The originating measurement entry is no longer available in this plan.');
+  const normalized = normaliseMeasurementAnalysis(analysis);
+  if (!normalized) throw new TypeError('The measured-sweep summary is invalid.');
+  const updated: AntennaPlan = {
+    ...plan,
+    updatedAt: new Date().toISOString(),
+    measurements: plan.measurements.map((record) => record.id === measurementId ? { ...record, analysis: normalized } : record)
+  };
+  saveAntennaPlan(updated, storage);
+  return updated;
 }
 
 export function deleteAntennaPlan(id: string, storage?: AntennaPlanStorage): AntennaPlan[] {

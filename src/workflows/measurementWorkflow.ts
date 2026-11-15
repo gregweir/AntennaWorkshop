@@ -7,6 +7,8 @@
 
 export interface MeasurementSweepHandoff {
   file: File;
+  planId: string;
+  measurementId: string;
   planName: string;
   measurementLabel: string;
   calibrationContext: string;

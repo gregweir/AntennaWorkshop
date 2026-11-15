@@ -14,6 +14,7 @@ import {
   loadAntennaPlans,
   parseAntennaPlan,
   restoreAntennaPlanWorkspace,
+  saveAntennaPlanMeasurementAnalysis,
   saveAntennaPlan,
   serializeAntennaPlan,
   type AntennaPlan,
@@ -43,7 +44,7 @@ const plan: AntennaPlan = {
     id: 'measurement-1', recordedAt: '2026-11-14T13:30:00.000Z', label: 'Initial installed sweep',
     sweep: { name: 'initial.s1p', sizeBytes: 128, lastModifiedAt: '2026-11-14T13:00:00.000Z', sha256: 'a'.repeat(64) },
     calibrationContext: 'One-port calibration at the feedline end', referencePlane: 'Station end of feedline',
-    installedGeometry: 'Final support height', adjustment: '', observations: 'Minimum sampled SWR near 14.1 MHz'
+    installedGeometry: 'Final support height', adjustment: '', observations: 'Minimum sampled SWR near 14.1 MHz', analysis: null
   }],
   workspace: { antennaType: 'dipole', frequencyText: '14.200', trimAllowancePercent: 2.5, fanAdditionalFrequencyTexts: ['21.200', '28.400'] }
 };
@@ -84,6 +85,21 @@ describe('antenna plan files', () => {
     const imported = parseAntennaPlan(JSON.stringify({ ...plan, buildRecord: undefined, measurements: undefined }), 'plan-v2-early', '2026-11-14T16:30:00.000Z');
     expect(imported.buildRecord).toEqual({ asBuiltDimensions: '', constructionDeviations: '', commissioningNotes: '' });
     expect(imported.measurements).toEqual([]);
+  });
+
+  it('writes a bounded sweep summary back to its originating measurement entry', () => {
+    const local = storage();
+    saveAntennaPlan(plan, local);
+    const updated = saveAntennaPlanMeasurementAnalysis('plan-1', 'measurement-1', {
+      analyzedAt: '2026-11-14T17:00:00.000Z', pointCount: 3, referenceImpedanceOhms: 50,
+      lowerFrequencyHz: 14_000_000, upperFrequencyHz: 14_400_000,
+      minimumSwr: 1.222, minimumSwrFrequencyHz: 14_200_000,
+      resonanceFrequencyHz: 14_200_000, resonanceResistanceOhms: 40.91, resonanceReactanceOhms: 0,
+      threshold: 2, thresholdWindowCount: 1,
+      thresholdSpans: [{ lowerFrequencyHz: 14_100_000, upperFrequencyHz: 14_300_000, lowerBasis: 'interpolated', upperBasis: 'interpolated' }]
+    }, local);
+    expect(updated.measurements[0].analysis).toMatchObject({ pointCount: 3, minimumSwr: 1.222, thresholdWindowCount: 1 });
+    expect(loadAntennaPlans(local)[0].measurements[0].analysis?.thresholdSpans).toHaveLength(1);
   });
 
   it('rejects malformed and unsupported imports', () => {

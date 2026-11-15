@@ -48,6 +48,10 @@ function localDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
+function formatRecordedFrequency(frequencyHz: number) {
+  return frequencyHz >= 1e9 ? `${(frequencyHz / 1e9).toFixed(6)} GHz` : frequencyHz >= 1e6 ? `${(frequencyHz / 1e6).toFixed(3)} MHz` : `${(frequencyHz / 1e3).toFixed(3)} kHz`;
+}
+
 function localDateTimeInput(date = new Date()) {
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
@@ -243,7 +247,8 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
         referencePlane: measurementDraft.referencePlane,
         installedGeometry: measurementDraft.installedGeometry,
         adjustment: measurementDraft.adjustment,
-        observations: measurementDraft.observations
+        observations: measurementDraft.observations,
+        analysis: null
       };
       const updated: AntennaPlan = {
         ...selected,
@@ -254,6 +259,8 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
       setMessage('Measurement history entry saved; the sweep file itself was not stored');
       if (analyzeAfterSave && measurementFile) onAnalyzeSweep({
         file: measurementFile,
+        planId: selected.id,
+        measurementId: record.id,
         planName: selected.name,
         measurementLabel: record.label,
         calibrationContext: record.calibrationContext,
@@ -367,6 +374,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
               <div className="measurement-record-heading"><div><strong>{record.label}</strong><time dateTime={record.recordedAt}>{localDate(record.recordedAt)}</time></div><button type="button" className="danger-button" onClick={() => removeMeasurementRecord(record)}>Delete entry</button></div>
               {record.sweep && <p className="measurement-record-file"><strong>{record.sweep.name}</strong> · {record.sweep.sizeBytes.toLocaleString()} bytes<br /><code>{record.sweep.sha256 ? `SHA-256 ${record.sweep.sha256}` : 'No cryptographic fingerprint recorded'}</code></p>}
               <dl>{record.calibrationContext && <div><dt>Calibration</dt><dd>{record.calibrationContext}</dd></div>}{record.referencePlane && <div><dt>Reference plane</dt><dd>{record.referencePlane}</dd></div>}{record.installedGeometry && <div><dt>Geometry and conditions</dt><dd>{record.installedGeometry}</dd></div>}{record.adjustment && <div><dt>Adjustment</dt><dd>{record.adjustment}</dd></div>}{record.observations && <div><dt>Observations</dt><dd>{record.observations}</dd></div>}</dl>
+              {record.analysis && <section className="measurement-analysis-summary" aria-label={`Saved analysis for ${record.label}`}><div><strong>Saved sweep summary</strong><time dateTime={record.analysis.analyzedAt}>Analyzed {localDate(record.analysis.analyzedAt)}</time></div><dl><div><dt>Coverage</dt><dd>{formatRecordedFrequency(record.analysis.lowerFrequencyHz)}–{formatRecordedFrequency(record.analysis.upperFrequencyHz)} · {record.analysis.pointCount.toLocaleString()} points · {record.analysis.referenceImpedanceOhms.toFixed(1)} Ω</dd></div><div><dt>Minimum SWR</dt><dd>{record.analysis.minimumSwr === null ? 'Not finite' : `${record.analysis.minimumSwr.toFixed(3)} : 1`} at {formatRecordedFrequency(record.analysis.minimumSwrFrequencyHz)}</dd></div><div><dt>Closest sampled resonance</dt><dd>{formatRecordedFrequency(record.analysis.resonanceFrequencyHz)} · {record.analysis.resonanceResistanceOhms === null ? 'R not finite' : `${record.analysis.resonanceResistanceOhms.toFixed(2)} Ω`} · {record.analysis.resonanceReactanceOhms === null ? 'X not finite' : `j${record.analysis.resonanceReactanceOhms.toFixed(2)} Ω`}</dd></div><div><dt>{record.analysis.threshold.toFixed(2)}:1 spans</dt><dd>{record.analysis.thresholdWindowCount ? `${record.analysis.thresholdWindowCount} recorded ${record.analysis.thresholdWindowCount === 1 ? 'window' : 'windows'}` : 'No measured samples at or below threshold'}{record.analysis.thresholdWindowCount > record.analysis.thresholdSpans.length ? ` · first ${record.analysis.thresholdSpans.length} retained` : ''}</dd></div></dl>{record.analysis.thresholdSpans.length > 0 && <ol>{record.analysis.thresholdSpans.map((span, index) => <li key={`${span.lowerFrequencyHz}-${span.upperFrequencyHz}-${index}`}>{formatRecordedFrequency(span.lowerFrequencyHz)}–{formatRecordedFrequency(span.upperFrequencyHz)} · {span.lowerBasis} / {span.upperBasis}</li>)}</ol>}<p>Stored summary only; reopen the original fingerprinted sweep for point-level review.</p></section>}
             </li>)}</ol> : <p className="measurement-history-empty">No measurement entries have been recorded for this plan.</p>}
             <p className="project-journey-limit"><strong>Interpretation limit.</strong> File identity, entered context, and observations do not establish calibration quality, measurement uncertainty, causation, efficiency, pattern, safe power, or compliance.</p>
           </div>

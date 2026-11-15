@@ -13,16 +13,18 @@ import type { JurisdictionCode } from '../regulations/catalog';
 import { StepByStepHelp } from './ContextHelp';
 import { SweepSmithChart } from './SweepSmithChart';
 import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
+import type { AntennaPlanMeasurementAnalysis } from '../projects/antennaPlans';
 
 interface Props {
   jurisdiction: JurisdictionCode;
   incomingSweep: MeasurementSweepHandoff | null;
   onIncomingSweepConsumed: () => void;
+  onSavePlanAnalysis: (planId: string, measurementId: string, analysis: AntennaPlanMeasurementAnalysis) => void;
 }
 
 const CHART = { width: 920, height: 360, left: 72, right: 24, top: 28, bottom: 58 };
 
-export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onIncomingSweepConsumed }: Props) {
+export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onIncomingSweepConsumed, onSavePlanAnalysis }: Props) {
   const [sweep, setSweep] = useState<TouchstoneSweep | null>(null);
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
@@ -39,6 +41,7 @@ export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onInco
   const [comparisonState, setComparisonState] = useState('Comparison');
   const [downloadMessage, setDownloadMessage] = useState('');
   const [linkedContext, setLinkedContext] = useState<MeasurementSweepHandoff | null>(incomingSweep);
+  const [planSaveMessage, setPlanSaveMessage] = useState('');
 
   useEffect(() => {
     if (!incomingSweep) return;
@@ -150,6 +153,37 @@ export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onInco
     }
   }
 
+  function saveAnalysisToPlan() {
+    if (!linkedContext || !sweep || !analysis || !swrThreshold) return;
+    const finiteOrNull = (value: number) => Number.isFinite(value) ? value : null;
+    const summary: AntennaPlanMeasurementAnalysis = {
+      analyzedAt: new Date().toISOString(),
+      pointCount: sweep.points.length,
+      referenceImpedanceOhms: sweep.referenceImpedanceOhms,
+      lowerFrequencyHz: sweep.points[0].frequencyHz,
+      upperFrequencyHz: sweep.points.at(-1)!.frequencyHz,
+      minimumSwr: finiteOrNull(analysis.best.swr),
+      minimumSwrFrequencyHz: analysis.best.frequencyHz,
+      resonanceFrequencyHz: analysis.resonant.frequencyHz,
+      resonanceResistanceOhms: finiteOrNull(analysis.resonant.resistanceOhms),
+      resonanceReactanceOhms: finiteOrNull(analysis.resonant.reactanceOhms),
+      threshold: swrThreshold,
+      thresholdWindowCount: thresholdWindows.length,
+      thresholdSpans: thresholdWindows.slice(0, 24).map((window) => ({
+        lowerFrequencyHz: window.lower.frequencyHz,
+        upperFrequencyHz: window.upper.frequencyHz,
+        lowerBasis: window.lower.basis,
+        upperBasis: window.upper.basis
+      }))
+    };
+    try {
+      onSavePlanAnalysis(linkedContext.planId, linkedContext.measurementId, summary);
+      setPlanSaveMessage(`Saved this ${formatThreshold(swrThreshold)}:1 analysis summary to “${linkedContext.measurementLabel}”. The sweep file remains outside the plan.`);
+    } catch (reason) {
+      setPlanSaveMessage(reason instanceof Error ? reason.message : 'The analysis summary could not be saved to the antenna plan.');
+    }
+  }
+
   function inspectIndex(index: number) {
     if (!sweep) return;
     setSelectedIndex(index);
@@ -196,8 +230,9 @@ export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onInco
           <label><span>Comparison state</span><input value={comparisonState} maxLength={80} placeholder="Example: After trim" disabled={!comparison} onChange={(event) => setComparisonState(event.target.value)} /></label>
           <label className="sweep-report-context"><span>Calibration, reference plane, instrument, and conditions</span><textarea value={calibrationContext} maxLength={1200} rows={3} placeholder="Record where calibration was established and the setup details needed to reproduce the sweep." onChange={(event) => setCalibrationContext(event.target.value)} /></label>
         </div>
-        <div className="sweep-report-actions"><button type="button" onClick={downloadCsv}>Download point CSV</button><button type="button" onClick={printReport}>Print measurement summary</button></div>
+        <div className="sweep-report-actions"><button type="button" onClick={downloadCsv}>Download point CSV</button><button type="button" onClick={printReport}>Print measurement summary</button>{linkedContext && <button type="button" className="secondary-button" onClick={saveAnalysisToPlan}>Save summary to antenna plan</button>}</div>
         {downloadMessage && <p className="workflow-message" role="status">{downloadMessage}</p>}
+        {planSaveMessage && <p className="workflow-message" role="status">{planSaveMessage}</p>}
         <p className="sweep-report-limit">The CSV aligns each reference frequency with the nearest measured comparison point and includes the frequency offset. Neither export identifies why the response changed.</p>
       </details>
       <div className="sweep-summary-grid" aria-label="Sweep summary">
