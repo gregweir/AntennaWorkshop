@@ -10,6 +10,9 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 
 const maximumChunkBytes = 400 * 1024;
+const maximumWorkbenchChunkBytes = 340 * 1024;
+const calculationChunkPrefix = 'calculation-models-';
+const workbenchChunkPrefix = 'AntennaWorkbench-';
 const assetsDirectory = new URL('../dist/assets/', import.meta.url);
 const indexHtml = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
 const entryMatch = indexHtml.match(/<script[^>]+src="[^"]*\/assets\/([^"/]+\.js)"/);
@@ -37,4 +40,24 @@ if (oversized.length) {
   throw new Error(`JavaScript bundle budget exceeded. Maximum is ${maximumChunkBytes / 1024} KiB per file: ${names}`);
 }
 
-console.log(`Bundle budget passed: ${rows.length} JavaScript files, each at or below ${maximumChunkBytes / 1024} KiB.`);
+const calculationChunks = rows.filter((row) => row.file.startsWith(calculationChunkPrefix));
+if (calculationChunks.length !== 1) {
+  throw new Error(`Expected one dedicated ${calculationChunkPrefix} JavaScript chunk, found ${calculationChunks.length}.`);
+}
+
+const workbenchChunks = rows.filter((row) => row.file.startsWith(workbenchChunkPrefix));
+if (workbenchChunks.length !== 1) {
+  throw new Error(`Expected one ${workbenchChunkPrefix} JavaScript chunk, found ${workbenchChunks.length}.`);
+}
+
+if (workbenchChunks[0].bytes > maximumWorkbenchChunkBytes) {
+  throw new Error(
+    `Antenna workbench structural budget exceeded. Maximum is ${maximumWorkbenchChunkBytes / 1024} KiB: `
+      + `${workbenchChunks[0].file} (${(workbenchChunks[0].bytes / 1024).toFixed(2)} KiB)`
+  );
+}
+
+console.log(
+  `Bundle budget passed: ${rows.length} JavaScript files at or below ${maximumChunkBytes / 1024} KiB; `
+    + `antenna workbench at or below ${maximumWorkbenchChunkBytes / 1024} KiB with dedicated calculation models.`
+);

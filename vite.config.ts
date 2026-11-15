@@ -57,6 +57,15 @@ export default defineConfig({
     port: 4174,
     strictPort: true
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/src/calculators/')) return 'calculation-models';
+        }
+      }
+    }
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
