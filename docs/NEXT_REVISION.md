@@ -23,7 +23,7 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 ## Milestone 3 — Layered Learning
 
 - Offer persistent Quick, Builder, and Technical explanation levels without hiding controls or required checks. The first antenna-workspace layer is implemented.
-- Add interactive lessons for electrical length, impedance, balance, common mode, matching, ground effects, and the limits of SWR. Electrical length, same-SWR/different-impedance, balance/common-mode current paths, resonance-versus-matching, and ground-context lessons are implemented; the remaining concepts follow.
+- Add interactive lessons for electrical length, impedance, balance, common mode, matching, ground effects, and the limits of SWR. The initial lesson suite now covers each of these concepts with retained measurement and interpretation boundaries.
 - Place explanations beside the decision or measurement where they are needed.
 
 ## Milestone 4 — Modelling Interoperability

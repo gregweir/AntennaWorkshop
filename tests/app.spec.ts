@@ -270,6 +270,33 @@ test('frames height and ground as installed-system context rather than a pattern
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
+test('shows why a lower source-end SWR can result from loss or matching', async ({ page }) => {
+  await page.getByText('Interactive lesson: what a low SWR does—and does not—show', { exact: true }).click();
+  const lesson = page.locator('.swr-evidence-lesson');
+  await expect(lesson).toContainText('Antenna terminal2.00 : 1 SWR');
+  await expect(lesson).toContainText('Line input2.00 : 1 SWR');
+  await expect(lesson).toContainText('A lossless line moves impedance but preserves SWR magnitude');
+
+  await lesson.getByRole('group', { name: 'Conceptual line’s one-way matched loss' }).getByRole('button', { name: '3 dB' }).click();
+  await expect(lesson).toContainText('Line input1.40 : 1 SWR');
+  await expect(lesson).toContainText('50.1% of matched forward power remains');
+  await expect(lesson).toContainText('round-trip attenuation is 6.0 dB');
+  await expect(lesson).toContainText('The lower source-end SWR includes attenuation—not a better antenna load');
+
+  await lesson.getByRole('group', { name: 'Source-side network' }).getByRole('button', { name: 'Ideal match' }).click();
+  await expect(lesson).toContainText('Source plane1.00 : 1 SWR');
+  await expect(lesson).toContainText('The source sees 1:1 while the antenna remains 2:1');
+
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Quick/ }).click();
+  await expect(lesson.getByText(/matched forward power remains/)).toHaveCount(0);
+  await expect(lesson).toContainText('Interpretation limit');
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ }).click();
+  await expect(lesson.getByText(/\|Γin\| = \|Γload\|/)).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });

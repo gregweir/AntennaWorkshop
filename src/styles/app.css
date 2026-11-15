@@ -7238,13 +7238,20 @@ select {
     display: grid;
   }
 
+  .swr-evidence-lesson > summary span {
+    display: grid;
+  }
+
   .balance-lesson-controls fieldset,
   .balance-builder-notes,
   .matching-tuning-controls fieldset,
   .matching-plane-labels,
   .matching-builder-notes,
   .ground-effects-controls fieldset,
-  .ground-effects-notes {
+  .ground-effects-notes,
+  .swr-evidence-controls fieldset,
+  .swr-evidence-planes,
+  .swr-evidence-notes {
     grid-template-columns: 1fr;
   }
 
@@ -8248,6 +8255,155 @@ select {
 
 .ground-effects-verification li + li {
   margin-top: 0.35rem;
+}
+
+.swr-evidence-lesson {
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.swr-evidence-lesson > summary {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.swr-evidence-lesson > summary span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.swr-evidence-lesson > summary small,
+.swr-evidence-notes,
+.swr-evidence-limit {
+  color: var(--text-secondary);
+}
+
+.swr-evidence-body {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.swr-evidence-controls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.swr-evidence-controls fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.swr-evidence-controls legend {
+  padding-inline: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.swr-evidence-controls button {
+  min-width: 0;
+  padding: 0.55rem;
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.swr-evidence-controls button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 12%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px var(--accent-technical);
+}
+
+.swr-evidence-outcome {
+  padding: 0.8rem;
+  border-left: 4px solid var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
+}
+
+.swr-evidence-outcome h4,
+.swr-evidence-outcome p {
+  margin-block: 0 0.4rem;
+}
+
+.swr-evidence-graphic,
+.swr-evidence-notes,
+.swr-evidence-body > .formula,
+.swr-evidence-limit {
+  grid-column: 1 / -1;
+}
+
+.swr-evidence-graphic {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.swr-evidence-graphic svg {
+  display: block;
+  width: 100%;
+  max-height: 10rem;
+  fill: var(--bg-surface);
+  stroke: var(--text-secondary);
+  stroke-width: 3;
+}
+
+.swr-evidence-graphic .line-loss-active {
+  fill: color-mix(in srgb, var(--tl-coral) 10%, var(--bg-surface));
+  stroke: var(--tl-coral);
+}
+
+.swr-evidence-graphic .source-network-active {
+  fill: color-mix(in srgb, var(--accent-technical) 15%, var(--bg-surface));
+  stroke: var(--accent-technical);
+}
+
+.swr-evidence-planes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.swr-evidence-planes div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  text-align: center;
+}
+
+.swr-evidence-planes span {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.swr-evidence-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.swr-evidence-notes p,
+.swr-evidence-limit {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .starting-values-bar {
@@ -11724,6 +11880,10 @@ path.loading-coil {
     grid-template-columns: 1fr;
   }
 
+  .swr-evidence-body {
+    grid-template-columns: 1fr;
+  }
+
   .balance-lesson-outcome,
   .balance-path-graphic {
     grid-column: 1;
@@ -14106,6 +14266,7 @@ body.diagram-view-open {
   .balance-common-mode-lesson,
   .matching-tuning-lesson,
   .ground-effects-lesson,
+  .swr-evidence-lesson,
   .context-help,
   .evidence-overview {
     display: none !important;
