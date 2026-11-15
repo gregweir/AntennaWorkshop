@@ -154,6 +154,35 @@ test('teaches the inverse frequency and electrical-length relationship interacti
   await expect(lesson.getByText(/λ = c ÷ f/)).toBeVisible();
 });
 
+test('shows why one SWR value does not identify a complex impedance', async ({ page }) => {
+  await page.getByText('Interactive lesson: one SWR, different impedances', { exact: true }).click();
+  const lesson = page.locator('.swr-impedance-lesson');
+  await expect(lesson.locator('svg')).toHaveCount(3);
+  await expect(lesson).toContainText('100.0 + j0 Ω');
+  await expect(lesson).toContainText('25.00 + j0 Ω');
+  await expect(lesson).toContainText('50.00 + j35.36 Ω');
+  await expect(lesson).toContainText('every load above is 2.00 : 1');
+  await expect(lesson).toContainText('does not establish antenna efficiency');
+
+  await page.getByLabel('Shared SWR').fill('3');
+  await expect(lesson).toContainText('150.0 + j0 Ω');
+  await expect(lesson).toContainText('16.67 + j0 Ω');
+  await expect(lesson).toContainText('50.00 + j57.74 Ω');
+  await expect(lesson).toContainText('every load above is 3.00 : 1');
+
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Quick/ }).click();
+  await expect(lesson.getByText(/require different transformations/)).toHaveCount(0);
+  await expect(lesson).toContainText('Interpretation limit');
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ }).click();
+  await expect(lesson.getByText(/Γ = \(ZL − Z0\)/)).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+  await lesson.getByRole('button', { name: 'Open full impedance explorer' }).click();
+  await expect(page.getByRole('heading', { name: 'Impedance and Smith chart' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Impedance explorer/ })).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });
