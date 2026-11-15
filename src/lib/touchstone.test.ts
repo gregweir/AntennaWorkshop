@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges } from './touchstone';
+import { estimateTouchstoneThresholdWindows, nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges } from './touchstone';
 
 describe('Touchstone one-port parser', () => {
   it('parses RI data and derives impedance, SWR, and return loss', () => {
@@ -67,5 +67,28 @@ describe('Touchstone one-port parser', () => {
     expect(review.points.map((point) => point.frequencyHz)).toEqual([3.5e6, 3.6e6, 3.78e6, 3.8e6]);
     expect(review.lowestSwr?.frequencyHz).toBe(3.6e6);
     expect(review.highestSwr?.frequencyHz).toBe(3.5e6);
+  });
+
+  it('estimates threshold crossings between adjacent finite samples', () => {
+    const sweep = parseTouchstoneS1p('# MHz S RI R 50\n10 0.5 0\n11 0.2 0\n12 0 0\n13 0.2 0\n14 0.5 0');
+    const windows = estimateTouchstoneThresholdWindows(sweep, 2);
+    expect(windows).toHaveLength(1);
+    expect(windows[0].lower.basis).toBe('interpolated');
+    expect(windows[0].upper.basis).toBe('interpolated');
+    expect(windows[0].lower.frequencyHz).toBeCloseTo(10.6666667e6, 0);
+    expect(windows[0].upper.frequencyHz).toBeCloseTo(13.3333333e6, 0);
+    expect(windows[0].measuredPointCount).toBe(3);
+    expect(windows[0].lowestSwr.frequencyHz).toBe(12e6);
+  });
+
+  it('keeps separate windows and labels sweep-edge or non-finite bounds', () => {
+    const sweep = parseTouchstoneS1p('# MHz S RI R 50\n1 0 0\n2 0.5 0\n3 1 0\n4 0.2 0\n5 0 0');
+    const windows = estimateTouchstoneThresholdWindows(sweep, 2);
+    expect(windows).toHaveLength(2);
+    expect(windows[0].lower.basis).toBe('sweep-edge');
+    expect(windows[0].upper.basis).toBe('interpolated');
+    expect(windows[1].lower.basis).toBe('measured-sample');
+    expect(windows[1].upper.basis).toBe('sweep-edge');
+    expect(() => estimateTouchstoneThresholdWindows(sweep, 1)).toThrow(/greater than 1/);
   });
 });

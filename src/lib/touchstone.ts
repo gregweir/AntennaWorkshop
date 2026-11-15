@@ -37,6 +37,19 @@ export interface TouchstoneRangeReview {
   highestSwr: TouchstonePoint | null;
 }
 
+export interface TouchstoneThresholdBoundary {
+  frequencyHz: number;
+  basis: 'interpolated' | 'sweep-edge' | 'measured-sample';
+}
+
+export interface TouchstoneThresholdWindow {
+  lower: TouchstoneThresholdBoundary;
+  upper: TouchstoneThresholdBoundary;
+  widthHz: number;
+  measuredPointCount: number;
+  lowestSwr: TouchstonePoint;
+}
+
 const unitScale: Record<string, number> = { hz: 1, khz: 1e3, mhz: 1e6, ghz: 1e9 };
 
 function pointFromReflection(frequencyHz: number, real: number, imaginary: number, reference: number): TouchstonePoint {
@@ -154,4 +167,42 @@ export function summarizeTouchstoneRanges(sweep: TouchstoneSweep, ranges: Readon
     lowestSwr: points.length ? points.reduce((lowest, point) => point.swr < lowest.swr ? point : lowest) : null,
     highestSwr: points.length ? points.reduce((highest, point) => point.swr > highest.swr ? point : highest) : null
   };
+}
+
+export function estimateTouchstoneThresholdWindows(sweep: TouchstoneSweep, threshold: number): TouchstoneThresholdWindow[] {
+  if (!Number.isFinite(threshold) || threshold <= 1) throw new RangeError('The SWR threshold must be a finite ratio greater than 1:1.');
+  const windows: TouchstoneThresholdWindow[] = [];
+  let startIndex: number | null = null;
+  for (let index = 0; index <= sweep.points.length; index += 1) {
+    const inside = index < sweep.points.length && sweep.points[index].swr <= threshold;
+    if (inside && startIndex === null) startIndex = index;
+    if (!inside && startIndex !== null) {
+      const endIndex = index - 1;
+      const lower = startIndex === 0
+        ? { frequencyHz: sweep.points[0].frequencyHz, basis: 'sweep-edge' as const }
+        : thresholdBoundary(sweep.points[startIndex - 1], sweep.points[startIndex], threshold);
+      const upper = endIndex === sweep.points.length - 1
+        ? { frequencyHz: sweep.points[endIndex].frequencyHz, basis: 'sweep-edge' as const }
+        : thresholdBoundary(sweep.points[endIndex], sweep.points[endIndex + 1], threshold);
+      const points = sweep.points.slice(startIndex, endIndex + 1);
+      windows.push({
+        lower,
+        upper,
+        widthHz: Math.max(0, upper.frequencyHz - lower.frequencyHz),
+        measuredPointCount: points.length,
+        lowestSwr: points.reduce((lowest, point) => point.swr < lowest.swr ? point : lowest)
+      });
+      startIndex = null;
+    }
+  }
+  return windows;
+}
+
+function thresholdBoundary(first: TouchstonePoint, second: TouchstonePoint, threshold: number): TouchstoneThresholdBoundary {
+  if (Number.isFinite(first.swr) && Number.isFinite(second.swr) && first.swr !== second.swr) {
+    const fraction = (threshold - first.swr) / (second.swr - first.swr);
+    if (fraction >= 0 && fraction <= 1) return { frequencyHz: first.frequencyHz + fraction * (second.frequencyHz - first.frequencyHz), basis: 'interpolated' };
+  }
+  const inside = first.swr <= threshold ? first : second;
+  return { frequencyHz: inside.frequencyHz, basis: 'measured-sample' };
 }

@@ -6173,6 +6173,165 @@ select {
   box-shadow: var(--shadow-soft);
 }
 
+.sweep-threshold-review {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-soft);
+}
+
+.sweep-threshold-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.55fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.sweep-threshold-heading h3,
+.sweep-threshold-heading p {
+  margin: 0;
+}
+
+.sweep-threshold-control {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.sweep-threshold-control label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.sweep-threshold-control input {
+  width: 100%;
+  min-width: 0;
+}
+
+.sweep-threshold-control > div {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.sweep-threshold-control button {
+  min-width: 52px;
+  min-height: 44px;
+  padding: 0.55rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sweep-threshold-control button[aria-pressed='true'] {
+  border-color: var(--tl-navy);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  box-shadow: inset 0 0 0 2px var(--accent-technical);
+}
+
+.sweep-threshold-review > .form-error {
+  margin: 1rem 0 0;
+}
+
+.sweep-threshold-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.sweep-threshold-summary article {
+  min-width: 0;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+
+.sweep-threshold-summary span,
+.sweep-threshold-summary strong,
+.sweep-threshold-summary small {
+  display: block;
+}
+
+.sweep-threshold-summary span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.sweep-threshold-summary strong {
+  margin-top: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
+.sweep-threshold-summary small {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.sweep-threshold-table-wrap {
+  max-width: 100%;
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.sweep-threshold-scroll-hint {
+  display: none;
+  margin: 0.8rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.sweep-threshold-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.sweep-threshold-table th,
+.sweep-threshold-table td {
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.sweep-threshold-table thead th {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sweep-threshold-table td {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+
+.sweep-threshold-more,
+.sweep-threshold-limit {
+  margin: 0.8rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.sweep-threshold-limit {
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--tl-coral);
+}
+
 .sweep-band-review-heading {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.45fr);
@@ -6326,7 +6485,8 @@ select {
 @media (max-width: 900px) {
   .sweep-summary-grid,
   .sweep-marker-values,
-  .sweep-band-review-grid {
+  .sweep-band-review-grid,
+  .sweep-threshold-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -6336,7 +6496,8 @@ select {
   .sweep-comparison-import,
   .sweep-marker-control,
   .sweep-inspection-tools,
-  .sweep-band-review-heading {
+  .sweep-band-review-heading,
+  .sweep-threshold-heading {
     grid-template-columns: 1fr;
   }
 
@@ -6360,7 +6521,8 @@ select {
 
   .sweep-summary-grid,
   .sweep-marker-values,
-  .sweep-band-review-grid {
+  .sweep-band-review-grid,
+  .sweep-threshold-summary {
     grid-template-columns: 1fr;
   }
 
@@ -6368,6 +6530,26 @@ select {
   .sweep-band-review-actions,
   .sweep-band-review-actions button {
     width: 100%;
+  }
+
+  .sweep-threshold-control {
+    grid-template-columns: 1fr;
+  }
+
+  .sweep-threshold-control > div,
+  .sweep-threshold-control button {
+    width: 100%;
+  }
+
+  .sweep-threshold-table th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--bg-elevated);
+  }
+
+  .sweep-threshold-scroll-hint {
+    display: block;
   }
 
   .sweep-chart-heading {

@@ -2137,6 +2137,16 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
   await expect(page.getByRole('img', { name: /SWR sweep from 14 MHz to 14.45 MHz/ })).toBeVisible();
   await expect(page.getByRole('img', { name: /Smith-chart trace for the imported sweep/ })).toBeVisible();
   await expect(page.getByText(/Allocations in view: 20 m/)).toBeVisible();
+  const thresholdReview = page.getByRole('region', { name: 'Estimate crossings for a chosen SWR threshold' });
+  await expect(thresholdReview.getByLabel('SWR analysis threshold')).toHaveValue('2');
+  await expect(thresholdReview).toContainText('Reference windows');
+  await expect(thresholdReview.getByRole('region', { name: 'Estimated SWR threshold windows' })).toContainText('interpolated crossing / interpolated crossing');
+  await thresholdReview.getByRole('button', { name: '1.5:1' }).click();
+  await expect(thresholdReview.getByLabel('SWR analysis threshold')).toHaveValue('1.5');
+  await expect(page.getByRole('img', { name: /Analysis threshold 1.5 to one/ })).toBeVisible();
+  await thresholdReview.getByLabel('SWR analysis threshold').fill('1');
+  await expect(thresholdReview.getByRole('alert')).toContainText('greater than 1:1');
+  await thresholdReview.getByRole('button', { name: '2:1' }).click();
   const bandReview = page.getByRole('region', { name: 'Review the measured response within a band' });
   await expect(bandReview).toContainText('Spans the full allocation');
   await expect(bandReview).toContainText('6 measured samples');
@@ -2174,6 +2184,8 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
   await expect(printable).toContainText('NanoVNA calibrated at the feedpoint');
   await expect(printable).toContainText('Before trim sweep');
   await expect(printable).toContainText('After trim sweep');
+  await expect(printable).toContainText('Chosen SWR threshold analysis');
+  await expect(printable).toContainText('2 : 1');
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download point CSV' }).click();

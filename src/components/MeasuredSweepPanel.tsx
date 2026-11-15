@@ -7,7 +7,7 @@
 
 import { useMemo, useState, type ChangeEvent } from 'react';
 import { formatFrequencyRange, getBandsForJurisdiction, type AmateurBand } from '../bands/catalog';
-import { nearestTouchstonePoint, nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary } from '../lib/touchstone';
+import { estimateTouchstoneThresholdWindows, nearestTouchstonePoint, nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary, type TouchstoneThresholdWindow } from '../lib/touchstone';
 import { serializeTouchstoneComparisonCsv, touchstoneReportFilename } from '../lib/touchstoneReport';
 import type { JurisdictionCode } from '../regulations/catalog';
 import { StepByStepHelp } from './ContextHelp';
@@ -26,6 +26,7 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [inspectionFrequencyText, setInspectionFrequencyText] = useState('');
   const [reviewBandId, setReviewBandId] = useState('');
+  const [swrThresholdText, setSwrThresholdText] = useState('2');
   const [comparison, setComparison] = useState<TouchstoneSweep | null>(null);
   const [comparisonFileName, setComparisonFileName] = useState('');
   const [comparisonError, setComparisonError] = useState('');
@@ -37,6 +38,10 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
 
   const analysis = useMemo(() => sweep ? summarizeTouchstoneSweep(sweep) : null, [sweep]);
   const comparisonAnalysis = useMemo(() => comparison ? summarizeTouchstoneSweep(comparison) : null, [comparison]);
+  const parsedSwrThreshold = Number(swrThresholdText);
+  const swrThreshold = Number.isFinite(parsedSwrThreshold) && parsedSwrThreshold > 1 && parsedSwrThreshold <= 10 ? parsedSwrThreshold : null;
+  const thresholdWindows = useMemo(() => sweep && swrThreshold ? estimateTouchstoneThresholdWindows(sweep, swrThreshold) : [], [sweep, swrThreshold]);
+  const comparisonThresholdWindows = useMemo(() => comparison && swrThreshold ? estimateTouchstoneThresholdWindows(comparison, swrThreshold) : [], [comparison, swrThreshold]);
   const selected = sweep?.points[Math.min(selectedIndex, sweep.points.length - 1)] ?? null;
   const selectedComparison = selected && comparison ? nearestTouchstonePoint(comparison.points, selected.frequencyHz) : null;
   const bands = useMemo(() => {
@@ -167,8 +172,8 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
       {comparison && comparisonAnalysis && selectedComparison && <SweepComparisonTable reference={sweep} referenceName={fileName} referenceAnalysis={analysis} comparison={comparison} comparisonName={comparisonFileName} comparisonAnalysis={comparisonAnalysis} selected={selected} comparisonSelected={selectedComparison} />}
 
       <section className="sweep-chart-card" aria-labelledby="sweep-chart-heading">
-        <div className="sweep-chart-heading"><div><p className="eyebrow">Frequency response</p><h3 id="sweep-chart-heading">SWR across the measured sweep</h3></div><p>Coral dash: 2:1. Shading: amateur allocations. {comparison ? 'Dashed blue: comparison sweep.' : ''}</p></div>
-        <SweepChart sweep={sweep} comparison={comparison} selectedIndex={selectedIndex} bands={bands} />
+        <div className="sweep-chart-heading"><div><p className="eyebrow">Frequency response</p><h3 id="sweep-chart-heading">SWR across the measured sweep</h3></div><p>{swrThreshold ? `Coral dash: ${formatThreshold(swrThreshold)}:1 analysis threshold.` : 'Enter a threshold from 1.01:1 to 10:1 to show the coral guide.'} Shading: amateur allocations. {comparison ? 'Dashed blue: comparison sweep.' : ''}</p></div>
+        <SweepChart sweep={sweep} comparison={comparison} selectedIndex={selectedIndex} bands={bands} threshold={swrThreshold} />
         <div className="sweep-inspection-tools">
           <label className="sweep-frequency-entry"><span>Inspect frequency</span><span className="input-with-unit"><input aria-label="Inspect measured frequency" type="number" inputMode="decimal" min={sweep.points[0].frequencyHz / 1e6} max={sweep.points.at(-1)!.frequencyHz / 1e6} step="any" value={inspectionFrequencyText} onChange={(event) => { setInspectionFrequencyText(event.target.value); const frequencyMHz = Number(event.target.value); if (Number.isFinite(frequencyMHz) && frequencyMHz > 0) setSelectedIndex(nearestTouchstonePointIndex(sweep.points, frequencyMHz * 1e6)); }} /><span>MHz</span></span><small>Nearest measured sample: {formatMHz(selected.frequencyHz)}{inspectionOffsetHz !== null && inspectionOffsetHz !== 0 ? ` (${formatSignedFrequency(inspectionOffsetHz)} from request)` : ''}</small></label>
           <div className="sweep-inspection-shortcuts" aria-label="Inspection shortcuts"><span>Jump to</span><button type="button" onClick={() => inspectIndex(sweep.points.indexOf(analysis.best))}>Lowest SWR</button><button type="button" onClick={() => inspectIndex(sweep.points.indexOf(analysis.resonant))}>Closest resonance</button>{reviewBand && <button type="button" onClick={() => inspectFrequency(reviewBand.designMHz)}>{reviewBand.label} centre</button>}</div>
@@ -184,6 +189,8 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
         {bands.length > 0 && <p className="sweep-band-list"><strong>Allocations in view:</strong> {bands.map((band) => band.label).join(', ')}. Allocation shading is context, not operating authorization; verify licence class, mode, power, and local conditions.</p>}
       </section>
 
+      <SweepThresholdReview thresholdText={swrThresholdText} threshold={swrThreshold} windows={thresholdWindows} comparisonWindows={comparison ? comparisonThresholdWindows : null} onThresholdChange={setSwrThresholdText} />
+
       {reviewBand && <SweepBandReview band={reviewBand} sweep={sweep} comparison={comparison} selectedBandId={reviewBand.id} bands={bands} onBandChange={setReviewBandId} onInspect={inspectFrequency} />}
 
       <section className="sweep-chart-card" aria-labelledby="sweep-smith-heading">
@@ -197,13 +204,30 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
         <article className="caution-card"><p className="eyebrow">Measurement boundary</p><h3>The calibration plane defines the result</h3><p>Adapters, feedline, fixtures, nearby conductors, weather, installation height, and common-mode current can move the trace. Save the calibration and setup details with each file, and remeasure after final installation.</p></article>
         <article className="provenance-card"><p className="eyebrow">File interpretation</p><h3>Touchstone one-port S11</h3><p>The importer converts the complex reflection coefficient to impedance, SWR, and return loss using the file reference impedance. It does not modify the measured data or infer antenna efficiency.</p><ul><li><a href="https://www.ibis.org/touchstone_ver2.0/" target="_blank" rel="noreferrer">IBIS Touchstone specification</a></li></ul><small>Importer 1.0 · Touchstone 1.x subset</small></article>
       </div>
-      <SweepPrintReport title={reportTitle} calibrationContext={calibrationContext} referenceState={referenceState} comparisonState={comparisonState} reference={sweep} referenceName={fileName} referenceAnalysis={analysis} selected={selected} comparison={comparison} comparisonName={comparisonFileName} comparisonAnalysis={comparisonAnalysis} comparisonSelected={selectedComparison} />
+      <SweepPrintReport title={reportTitle} calibrationContext={calibrationContext} referenceState={referenceState} comparisonState={comparisonState} reference={sweep} referenceName={fileName} referenceAnalysis={analysis} selected={selected} comparison={comparison} comparisonName={comparisonFileName} comparisonAnalysis={comparisonAnalysis} comparisonSelected={selectedComparison} threshold={swrThreshold} thresholdWindows={thresholdWindows} comparisonThresholdWindows={comparisonThresholdWindows} />
     </>}
   </div>;
 }
 
 function SweepMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <article><p>{label}</p><strong>{value}</strong><small>{detail}</small></article>;
+}
+
+function SweepThresholdReview({ thresholdText, threshold, windows, comparisonWindows, onThresholdChange }: { thresholdText: string; threshold: number | null; windows: TouchstoneThresholdWindow[]; comparisonWindows: TouchstoneThresholdWindow[] | null; onThresholdChange: (value: string) => void }) {
+  const widestFirst = [...windows].sort((first, second) => second.widthHz - first.widthHz);
+  const displayed = [...(windows.length > 6 ? widestFirst.slice(0, 6) : windows)].sort((first, second) => first.lower.frequencyHz - second.lower.frequencyHz);
+  const widest = widestFirst[0] ?? null;
+  const comparisonWidest = comparisonWindows?.length ? [...comparisonWindows].sort((first, second) => second.widthHz - first.widthHz)[0] : null;
+  return <section className="sweep-threshold-review" aria-labelledby="sweep-threshold-heading">
+    <div className="sweep-threshold-heading"><div><p className="eyebrow">Response windows</p><h3 id="sweep-threshold-heading">Estimate crossings for a chosen SWR threshold</h3></div><div className="sweep-threshold-control"><label><span>SWR threshold</span><span className="input-with-unit"><input aria-label="SWR analysis threshold" type="number" inputMode="decimal" min="1.01" max="10" step="0.01" value={thresholdText} onChange={(event) => onThresholdChange(event.target.value)} /><span>: 1</span></span></label><div aria-label="Common SWR thresholds">{[1.5, 2, 3].map((value) => <button key={value} type="button" aria-pressed={threshold === value} onClick={() => onThresholdChange(String(value))}>{value}:1</button>)}</div></div></div>
+    {!threshold && <p className="form-error" role="alert">Enter an SWR threshold greater than 1:1 and no more than 10:1.</p>}
+    {threshold && <>
+      <div className="sweep-threshold-summary"><article><span>Reference windows</span><strong>{windows.length.toLocaleString()}</strong><small>{windows.length ? `${windows.reduce((total, window) => total + window.measuredPointCount, 0).toLocaleString()} below-threshold samples in total` : `No measured samples at or below ${formatThreshold(threshold)}:1`}</small></article><article><span>Widest estimated window</span><strong>{widest ? formatBandwidth(widest.widthHz) : 'None'}</strong><small>{widest ? `${formatMHz(widest.lower.frequencyHz)}–${formatMHz(widest.upper.frequencyHz)}` : 'Raise the threshold or inspect the measured minimum.'}</small></article>{comparisonWindows && <article><span>Comparison windows</span><strong>{comparisonWindows.length.toLocaleString()}</strong><small>{comparisonWidest ? `Widest: ${formatBandwidth(comparisonWidest.widthHz)}` : `No samples at or below ${formatThreshold(threshold)}:1`}</small></article>}</div>
+      {displayed.length > 0 && <><p className="sweep-threshold-scroll-hint">Swipe the table sideways to see the measured minimum and boundary basis.</p><div className="sweep-threshold-table-wrap" role="region" tabIndex={0} aria-label="Estimated SWR threshold windows"><table className="sweep-threshold-table"><thead><tr><th scope="col">Window</th><th scope="col">Estimated frequency range</th><th scope="col">Width</th><th scope="col">Measured minimum</th><th scope="col">Boundary basis</th></tr></thead><tbody>{displayed.map((window, index) => <tr key={`${window.lower.frequencyHz}-${window.upper.frequencyHz}`}><th scope="row">{index + 1}</th><td>{formatMHz(window.lower.frequencyHz)}–{formatMHz(window.upper.frequencyHz)}</td><td>{formatBandwidth(window.widthHz)}</td><td>{formatRatio(window.lowestSwr.swr)} : 1 at {formatMHz(window.lowestSwr.frequencyHz)}</td><td>{formatThresholdBoundary(window.lower)} / {formatThresholdBoundary(window.upper)}</td></tr>)}</tbody></table></div></>}
+      {windows.length > displayed.length && <p className="sweep-threshold-more">Showing the six widest of {windows.length.toLocaleString()} separate windows; download the point CSV to inspect the complete sweep.</p>}
+      <p className="sweep-threshold-limit">Interpolated crossings assume a straight SWR change only between adjacent finite samples. Sweep-edge and measured-sample bounds are not crossing estimates. The chosen ratio is an analysis aid, not an antenna, tuner, feedline, or transmitter acceptance limit.</p>
+    </>}
+  </section>;
 }
 
 function SweepBandReview({ band, sweep, comparison, selectedBandId, bands, onBandChange, onInspect }: { band: AmateurBand; sweep: TouchstoneSweep; comparison: TouchstoneSweep | null; selectedBandId: string; bands: AmateurBand[]; onBandChange: (id: string) => void; onInspect: (frequencyMHz: number) => void }) {
@@ -255,7 +279,7 @@ function SweepComparisonTable({ reference, referenceName, referenceAnalysis, com
   </section>;
 }
 
-function SweepPrintReport({ title, calibrationContext, referenceState, comparisonState, reference, referenceName, referenceAnalysis, selected, comparison, comparisonName, comparisonAnalysis, comparisonSelected }: {
+function SweepPrintReport({ title, calibrationContext, referenceState, comparisonState, reference, referenceName, referenceAnalysis, selected, comparison, comparisonName, comparisonAnalysis, comparisonSelected, threshold, thresholdWindows, comparisonThresholdWindows }: {
   title: string;
   calibrationContext: string;
   referenceState: string;
@@ -268,13 +292,19 @@ function SweepPrintReport({ title, calibrationContext, referenceState, compariso
   comparisonName: string;
   comparisonAnalysis: TouchstoneSweepSummary | null;
   comparisonSelected: TouchstonePoint | null;
+  threshold: number | null;
+  thresholdWindows: TouchstoneThresholdWindow[];
+  comparisonThresholdWindows: TouchstoneThresholdWindow[];
 }) {
+  const widestThresholdWindow = thresholdWindows.length ? [...thresholdWindows].sort((first, second) => second.widthHz - first.widthHz)[0] : null;
+  const widestComparisonThresholdWindow = comparisonThresholdWindows.length ? [...comparisonThresholdWindows].sort((first, second) => second.widthHz - first.widthHz)[0] : null;
   return <article className="sweep-print-report" aria-label="Printable antenna sweep measurement summary">
     <header className="sweep-print-heading"><img src="/antennas/TartanleafLogo.jpg" alt="" width="64" height="64" /><div><p>RadioBook Antenna Workshop · Measured sweep record</p><h1>{title.trim() || 'Antenna sweep measurement'}</h1><span>Touchstone 1.x one-port S11 summary</span></div></header>
     <div className="sweep-print-warning"><strong>Measurement record — not a diagnosis or compliance document</strong><span>This report reproduces imported analyser data and user-entered context. It does not verify calibration, infer antenna efficiency, identify why a response changed, establish safe power, or determine regulatory compliance.</span></div>
     <section><h2>Measurement context</h2><dl className="sweep-print-grid"><PrintField label="Calibration and reference plane" value={calibrationContext} wide /><PrintField label="Reference state" value={referenceState} /><PrintField label="Comparison state" value={comparison ? comparisonState : 'No comparison loaded'} /><PrintField label="Generated" value={new Date().toLocaleString()} /></dl></section>
     <section><h2>{referenceState.trim() || 'Reference'} sweep</h2><dl className="sweep-print-grid"><PrintField label="Source file" value={referenceName} /><PrintField label="Reference impedance" value={`${reference.referenceImpedanceOhms} Ω`} /><PrintField label="Sweep coverage" value={`${formatMHz(reference.points[0].frequencyHz)}–${formatMHz(reference.points.at(-1)!.frequencyHz)} · ${reference.points.length.toLocaleString()} points`} wide /><PrintField label="Lowest SWR" value={`${formatRatio(referenceAnalysis.best.swr)} : 1 at ${formatMHz(referenceAnalysis.best.frequencyHz)}`} /><PrintField label="Closest sampled resonance" value={`${formatMHz(referenceAnalysis.resonant.frequencyHz)} · ${formatImpedance(referenceAnalysis.resonant)}`} /><PrintField label="Contiguous 2:1 span" value={formatTwoToOne(referenceAnalysis)} /></dl></section>
     {comparison && comparisonAnalysis && <section><h2>{comparisonState.trim() || 'Comparison'} sweep</h2><dl className="sweep-print-grid"><PrintField label="Source file" value={comparisonName} /><PrintField label="Reference impedance" value={`${comparison.referenceImpedanceOhms} Ω`} /><PrintField label="Sweep coverage" value={`${formatMHz(comparison.points[0].frequencyHz)}–${formatMHz(comparison.points.at(-1)!.frequencyHz)} · ${comparison.points.length.toLocaleString()} points`} wide /><PrintField label="Lowest SWR" value={`${formatRatio(comparisonAnalysis.best.swr)} : 1 at ${formatMHz(comparisonAnalysis.best.frequencyHz)} · change ${formatSigned(comparisonAnalysis.best.swr - referenceAnalysis.best.swr, 3)} SWR`} /><PrintField label="Closest sampled resonance" value={`${formatMHz(comparisonAnalysis.resonant.frequencyHz)} · ${formatImpedance(comparisonAnalysis.resonant)} · shift ${formatSignedFrequency(comparisonAnalysis.resonant.frequencyHz - referenceAnalysis.resonant.frequencyHz)}`} /><PrintField label="Contiguous 2:1 span" value={`${formatTwoToOne(comparisonAnalysis)}${comparisonAnalysis.twoToOne && referenceAnalysis.twoToOne ? ` · width change ${formatSignedFrequency((comparisonAnalysis.twoToOne.upper.frequencyHz - comparisonAnalysis.twoToOne.lower.frequencyHz) - (referenceAnalysis.twoToOne.upper.frequencyHz - referenceAnalysis.twoToOne.lower.frequencyHz))}` : ''}`} /></dl></section>}
+    {threshold && <section><h2>Chosen SWR threshold analysis</h2><dl className="sweep-print-grid"><PrintField label="Threshold" value={`${formatThreshold(threshold)} : 1`} /><PrintField label="Reference windows" value={`${thresholdWindows.length.toLocaleString()} · ${widestThresholdWindow ? `widest ${formatBandwidth(widestThresholdWindow.widthHz)}` : 'none measured'}`} /><PrintField label="Reference widest range" value={widestThresholdWindow ? `${formatMHz(widestThresholdWindow.lower.frequencyHz)}–${formatMHz(widestThresholdWindow.upper.frequencyHz)} · ${formatThresholdBoundary(widestThresholdWindow.lower)} / ${formatThresholdBoundary(widestThresholdWindow.upper)}` : 'No measured samples at or below threshold'} wide />{comparison && <PrintField label="Comparison windows" value={`${comparisonThresholdWindows.length.toLocaleString()} · ${widestComparisonThresholdWindow ? `widest ${formatBandwidth(widestComparisonThresholdWindow.widthHz)}` : 'none measured'}`} />}</dl></section>}
     <section><h2>Selected inspection point</h2><dl className="sweep-print-grid"><PrintField label={`${referenceState.trim() || 'Reference'} point`} value={`${formatMHz(selected.frequencyHz)} · ${formatRatio(selected.swr)} : 1 · ${formatDecibels(selected.returnLossDb)} return loss · ${formatImpedance(selected)}`} wide />{comparisonSelected && <PrintField label={`${comparisonState.trim() || 'Comparison'} nearest point`} value={`${formatMHz(comparisonSelected.frequencyHz)} · ${formatRatio(comparisonSelected.swr)} : 1 · ${formatDecibels(comparisonSelected.returnLossDb)} return loss · ${formatImpedance(comparisonSelected)} · change ${formatSigned(comparisonSelected.swr - selected.swr, 3)} SWR`} wide />}</dl></section>
     <footer><p>The companion CSV contains every reference point and, when loaded, the nearest comparison point with its frequency offset.</p><p>Generated from RadioBook Antenna Workshop · Tartanleaf.com Inc. · Greg Weir, VA1GW</p></footer>
   </article>;
@@ -288,7 +318,7 @@ function formatTwoToOne(summary: TouchstoneSweepSummary) {
   return summary.twoToOne ? `${formatMHz(summary.twoToOne.lower.frequencyHz)}–${formatMHz(summary.twoToOne.upper.frequencyHz)} · ${formatBandwidth(summary.twoToOne.upper.frequencyHz - summary.twoToOne.lower.frequencyHz)}` : 'No measured points at or below 2:1';
 }
 
-function SweepChart({ sweep, comparison, selectedIndex, bands }: { sweep: TouchstoneSweep; comparison: TouchstoneSweep | null; selectedIndex: number; bands: ReturnType<typeof getBandsForJurisdiction> }) {
+function SweepChart({ sweep, comparison, selectedIndex, bands, threshold }: { sweep: TouchstoneSweep; comparison: TouchstoneSweep | null; selectedIndex: number; bands: ReturnType<typeof getBandsForJurisdiction>; threshold: number | null }) {
   const innerWidth = CHART.width - CHART.left - CHART.right;
   const innerHeight = CHART.height - CHART.top - CHART.bottom;
   const firstHz = Math.min(sweep.points[0].frequencyHz, comparison?.points[0].frequencyHz ?? Number.POSITIVE_INFINITY);
@@ -296,7 +326,7 @@ function SweepChart({ sweep, comparison, selectedIndex, bands }: { sweep: Touchs
   const spanHz = Math.max(lastHz - firstHz, 1);
   const allPoints = comparison ? [...sweep.points, ...comparison.points] : sweep.points;
   const finitePeak = Math.max(...allPoints.map((point) => Number.isFinite(point.swr) ? point.swr : 10));
-  const yMaximum = Math.max(3, Math.min(10, Math.ceil(finitePeak)));
+  const yMaximum = Math.max(3, Math.min(10, Math.ceil(Math.max(finitePeak, threshold ?? 0))));
   const x = (frequencyHz: number) => CHART.left + (frequencyHz - firstHz) / spanHz * innerWidth;
   const y = (swr: number) => CHART.top + (1 - (Math.min(swr, yMaximum) - 1) / (yMaximum - 1)) * innerHeight;
   const sampleEvery = Math.max(1, Math.ceil(sweep.points.length / 1200));
@@ -308,14 +338,15 @@ function SweepChart({ sweep, comparison, selectedIndex, bands }: { sweep: Touchs
   const visibleBands = bands.flatMap((band) => (band.segments ?? [{ lowerMHz: band.lowerMHz, upperMHz: band.upperMHz }]).map((segment) => ({ ...segment, id: band.id })));
   const tickValues = [1, 2, ...Array.from({ length: Math.max(0, yMaximum - 2) }, (_, index) => index + 3)].filter((value) => value <= yMaximum);
 
-  return <svg className="sweep-chart" viewBox={`0 0 ${CHART.width} ${CHART.height}`} role="img" aria-label={`SWR sweep from ${formatMHz(firstHz)} to ${formatMHz(lastHz)}. Selected reference point ${formatMHz(selected.frequencyHz)}, SWR ${formatRatio(selected.swr)} to one.${comparisonSelected ? ` Nearest comparison point SWR ${formatRatio(comparisonSelected.swr)} to one.` : ''}`}>
+  return <svg className="sweep-chart" viewBox={`0 0 ${CHART.width} ${CHART.height}`} role="img" aria-label={`SWR sweep from ${formatMHz(firstHz)} to ${formatMHz(lastHz)}. Selected reference point ${formatMHz(selected.frequencyHz)}, SWR ${formatRatio(selected.swr)} to one.${threshold ? ` Analysis threshold ${formatThreshold(threshold)} to one.` : ''}${comparisonSelected ? ` Nearest comparison point SWR ${formatRatio(comparisonSelected.swr)} to one.` : ''}`}>
     <rect className="sweep-chart-plot" x={CHART.left} y={CHART.top} width={innerWidth} height={innerHeight} />
     {visibleBands.map((band, index) => {
       const lower = Math.max(firstHz, band.lowerMHz * 1e6);
       const upper = Math.min(lastHz, band.upperMHz * 1e6);
       return upper > lower ? <rect key={`${band.id}-${index}`} className="sweep-chart-band" x={x(lower)} y={CHART.top} width={Math.max(1, x(upper) - x(lower))} height={innerHeight} /> : null;
     })}
-    {tickValues.map((tick) => <g key={tick}><line className={tick === 2 ? 'sweep-threshold-line' : 'sweep-grid-line'} x1={CHART.left} x2={CHART.width - CHART.right} y1={y(tick)} y2={y(tick)} /><text x={CHART.left - 12} y={y(tick) + 5} textAnchor="end">{tick}:1</text></g>)}
+    {tickValues.map((tick) => <g key={tick}><line className="sweep-grid-line" x1={CHART.left} x2={CHART.width - CHART.right} y1={y(tick)} y2={y(tick)} /><text x={CHART.left - 12} y={y(tick) + 5} textAnchor="end">{tick}:1</text></g>)}
+    {threshold && <line className="sweep-threshold-line" x1={CHART.left} x2={CHART.width - CHART.right} y1={y(threshold)} y2={y(threshold)} />}
     <polyline className="sweep-trace" points={plotPoints.map((point) => `${x(point.frequencyHz).toFixed(2)},${y(point.swr).toFixed(2)}`).join(' ')} />
     {comparison && <polyline className="sweep-trace-comparison" points={comparisonPlotPoints.map((point) => `${x(point.frequencyHz).toFixed(2)},${y(point.swr).toFixed(2)}`).join(' ')} />}
     <line className="sweep-marker-line" x1={x(selected.frequencyHz)} x2={x(selected.frequencyHz)} y1={CHART.top} y2={CHART.top + innerHeight} />
@@ -342,6 +373,16 @@ function formatBandwidth(spanHz: number) {
 
 function formatRatio(value: number) {
   return Number.isFinite(value) ? value.toFixed(value < 10 ? 3 : 1) : '∞';
+}
+
+function formatThreshold(value: number) {
+  return value.toLocaleString(undefined, { minimumFractionDigits: value % 1 === 0 ? 0 : 1, maximumFractionDigits: 2 });
+}
+
+function formatThresholdBoundary(boundary: TouchstoneThresholdWindow['lower']) {
+  if (boundary.basis === 'interpolated') return 'interpolated crossing';
+  if (boundary.basis === 'sweep-edge') return 'sweep edge';
+  return 'measured sample bound';
 }
 
 function formatDecibels(value: number) {
