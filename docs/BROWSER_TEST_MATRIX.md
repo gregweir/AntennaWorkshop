@@ -10,7 +10,7 @@ npm run test:browser-matrix
 npm run test:pwa
 ```
 
-The matrix covers desktop Chromium, Firefox, and WebKit plus representative Pixel 7 and iPhone 13 profiles. Every profile opens all three workspaces, checks representative antenna, feedline, and RF-reference results, persists a preference, exercises the keyboard skip link and numeric entry, and rejects horizontal overflow. Mobile profiles additionally check the 44-pixel navigation target minimum.
+The matrix covers desktop Chromium, Firefox, and WebKit plus representative Pixel 7 and iPhone 13 profiles. Every profile opens all three workspaces, checks representative antenna, feedline, and RF-reference results, persists a preference, exercises the keyboard skip link and numeric entry, and rejects horizontal overflow. Mobile profiles additionally check the 44-pixel navigation target minimum. The production PWA check also saves an antenna plan, returns with networking disabled, reopens that plan, and then opens every precached workspace.
 
 These profiles validate browser-engine and responsive behaviour. They do not prove behaviour on physical hardware, with a vendor keyboard, or under a mobile operating system’s installation and storage policies.
 

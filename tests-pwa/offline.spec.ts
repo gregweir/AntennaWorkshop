@@ -36,9 +36,13 @@ test('publishes an installable scoped manifest and active worker', async ({ page
   expect(worker.scope).toBe('http://127.0.0.1:4174/antennas/');
 });
 
-test('returns offline and opens every precached workspace', async ({ context, page }) => {
+test('returns offline, preserves a saved antenna plan, and opens every precached workspace', async ({ context, page }) => {
   await page.goto('./');
   await expect(page.getByRole('heading', { name: 'Centre-fed half-wave dipole' })).toBeVisible();
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByLabel('New plan name').fill('Offline dipole plan');
+  await page.getByRole('button', { name: 'Save new plan' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'New plan saved' })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
@@ -47,6 +51,10 @@ test('returns offline and opens every precached workspace', async ({ context, pa
   try {
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Centre-fed half-wave dipole' })).toBeVisible();
+    await page.getByText('Saved antenna plans', { exact: true }).click();
+    await expect(page.getByLabel('Saved antenna plan')).toContainText('Offline dipole plan');
+    await page.getByRole('button', { name: 'Open plan' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Opened Offline dipole plan' })).toBeVisible();
 
     await page.getByRole('button', { name: /Feedline & matching/ }).click();
     await expect(page.getByRole('heading', { name: 'Feedline power budget' })).toBeVisible();
