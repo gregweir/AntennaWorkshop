@@ -710,6 +710,42 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       note: wirePlannerNote,
       onRestore: () => { setHaloShape('circular'); setHaloFarEndGapMetres(0.05); setHaloFeedpointGapMetres(0.025); },
     };
+    if (antennaType === 'skywire') return {
+      scope: 'Loop skywire inputs',
+      modifiedCount: countModified(skywireAspectRatio !== 1.5, skywireSupportHeightsMetres.some((height) => height !== 12), skywireRiggingReservePercent !== 3, skywireFeedSide !== 'north', skywireFeedPositionPercent !== 50),
+      note,
+      onRestore: () => { setSkywireAspectRatio(1.5); setSkywireSupportHeightsMetres([12, 12, 12, 12]); setSkywireRiggingReservePercent(3); setSkywireFeedSide('north'); setSkywireFeedPositionPercent(50); },
+    };
+    if (antennaType === 'hex-beam') return {
+      scope: 'Hex beam inputs',
+      modifiedCount: countModified(hexBeamBands.join(',') !== '20m,17m,15m,12m,10m', hexBeamWireGauge !== '14-16'),
+      note,
+      onRestore: () => { setHexBeamBands(['20m', '17m', '15m', '12m', '10m']); setHexBeamWireGauge('14-16'); },
+    };
+    if (antennaType === 'v-beam') return {
+      scope: 'V-beam inputs',
+      modifiedCount: countModified(vBeamLegWavelengths !== 2, vBeamTargetBearingDegrees !== 0, vBeamMode !== 'open', vBeamTerminationResistanceOhms !== 300, vBeamTrimAllowancePercent !== 2.5),
+      note,
+      onRestore: () => { setVBeamLegWavelengths(2); setVBeamTargetBearingDegrees(0); setVBeamMode('open'); setVBeamTerminationResistanceOhms(300); setVBeamTrimAllowancePercent(2.5); },
+    };
+    if (antennaType === 'rhombic') return {
+      scope: 'Rhombic inputs',
+      modifiedCount: countModified(rhombicSideWavelengths !== 2, rhombicIncludedAngleDegrees !== 60, rhombicForwardBearingDegrees !== 0, rhombicMode !== 'open', rhombicTerminationResistanceOhms !== 600, rhombicTrimAllowancePercent !== 2.5),
+      note,
+      onRestore: () => { setRhombicSideWavelengths(2); setRhombicIncludedAngleDegrees(60); setRhombicForwardBearingDegrees(0); setRhombicMode('open'); setRhombicTerminationResistanceOhms(600); setRhombicTrimAllowancePercent(2.5); },
+    };
+    if (antennaType === 'vertical-half-rhombic') return {
+      scope: 'Vertical half-rhombic inputs',
+      modifiedCount: countModified(halfRhombicWireWavelengths !== 2, halfRhombicApexHeightMetres !== 6, halfRhombicForwardBearingDegrees !== 0, halfRhombicMode !== 'terminated', halfRhombicTerminationResistanceOhms !== 550, halfRhombicAttachmentAllowancePercent !== 2.5),
+      note,
+      onRestore: () => { setHalfRhombicWireWavelengths(2); setHalfRhombicApexHeightMetres(6); setHalfRhombicForwardBearingDegrees(0); setHalfRhombicMode('terminated'); setHalfRhombicTerminationResistanceOhms(550); setHalfRhombicAttachmentAllowancePercent(2.5); },
+    };
+    if (antennaType === 't2fd') return {
+      scope: 'T2FD inputs',
+      modifiedCount: countModified(t2fdTiltDegrees !== 30, t2fdLowAttachmentHeightMetres !== 1.8288, t2fdTerminationResistanceOhms !== 600, t2fdFeedSystemImpedanceOhms !== 600, t2fdTransmitterPowerWatts !== 100, t2fdWireAllowancePercent !== 2.5),
+      note,
+      onRestore: () => { setT2fdTiltDegrees(30); setT2fdLowAttachmentHeightMetres(1.8288); setT2fdTerminationResistanceOhms(600); setT2fdFeedSystemImpedanceOhms(600); setT2fdTransmitterPowerWatts(100); setT2fdWireAllowancePercent(2.5); },
+    };
     if (antennaType === 'loaded-dipole') return {
       scope: 'Loaded dipole inputs',
       modifiedCount: countModified(loadedDipoleSpanMetres !== 7.5, loadedDipoleCoilPositionMetres !== 2.5, loadedDipoleHeightMetres !== 8, loadedDipoleConductorDiameterMillimetres !== 2, lengthCorrectionFactor !== 0.95),

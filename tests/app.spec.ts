@@ -212,6 +212,69 @@ test('restores wire-planner construction and feed inputs without changing freque
   await expect(page.getByRole('spinbutton', { name: 'Far-end opening' })).toHaveValue('0.05');
 });
 
+test('restores large-wire and directional planners without changing design frequency', async ({ page }) => {
+  const changeDesign = async (name: RegExp) => {
+    await page.getByRole('button', { name: 'Change design' }).click();
+    await page.getByRole('button', { name }).click();
+  };
+
+  await page.getByRole('button', { name: /Loop skywire/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency', exact: true }).fill('7.200');
+  await page.getByRole('spinbutton', { name: 'Long-to-short aspect ratio' }).fill('2');
+  await page.getByRole('spinbutton', { name: 'Support A height' }).fill('10');
+  const skywire = page.getByRole('region', { name: 'Loop skywire inputs starting values' });
+  await expect(skywire).toContainText('2 modified values');
+  await skywire.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Long-to-short aspect ratio' })).toHaveValue('1.5');
+  await expect(page.getByRole('spinbutton', { name: 'Support A height' })).toHaveValue('12');
+
+  await changeDesign(/Hex beam/);
+  await page.getByLabel('17m', { exact: true }).uncheck();
+  await page.getByLabel('Hex-beam wire gauge schedule', { exact: true }).selectOption('12');
+  const hexBeam = page.getByRole('region', { name: 'Hex beam inputs starting values' });
+  await expect(hexBeam).toContainText('2 modified values');
+  await hexBeam.getByRole('button').click();
+  await expect(page.getByLabel('17m', { exact: true })).toBeChecked();
+  await expect(page.getByLabel('Hex-beam wire gauge schedule', { exact: true })).toHaveValue('14-16');
+
+  await changeDesign(/V-beam/);
+  await page.getByLabel('V-beam leg electrical length', { exact: true }).selectOption('4');
+  await page.getByRole('spinbutton', { name: 'V-beam forward true bearing' }).fill('90');
+  const vBeam = page.getByRole('region', { name: 'V-beam inputs starting values' });
+  await expect(vBeam).toContainText('2 modified values');
+  await vBeam.getByRole('button').click();
+  await expect(page.getByLabel('V-beam leg electrical length', { exact: true })).toHaveValue('2');
+  await expect(page.getByRole('spinbutton', { name: 'V-beam forward true bearing' })).toHaveValue('0');
+
+  await changeDesign(/Rhombic/);
+  await page.getByRole('spinbutton', { name: 'Rhombic side electrical length' }).fill('3');
+  await page.getByLabel('Rhombic far-apex configuration', { exact: true }).selectOption('terminated');
+  const rhombic = page.getByRole('region', { name: 'Rhombic inputs starting values' });
+  await expect(rhombic).toContainText('2 modified values');
+  await rhombic.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Rhombic side electrical length' })).toHaveValue('2');
+  await expect(page.getByLabel('Rhombic far-apex configuration', { exact: true })).toHaveValue('open');
+
+  await changeDesign(/Half-rhombic/);
+  await page.getByRole('spinbutton', { name: 'Half-rhombic apex height' }).fill('8');
+  await page.getByLabel('Half-rhombic far-end configuration', { exact: true }).selectOption('open');
+  const halfRhombic = page.getByRole('region', { name: 'Vertical half-rhombic inputs starting values' });
+  await expect(halfRhombic).toContainText('2 modified values');
+  await halfRhombic.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Half-rhombic apex height' })).toHaveValue('6');
+  await expect(page.getByLabel('Half-rhombic far-end configuration', { exact: true })).toHaveValue('terminated');
+
+  await changeDesign(/T2FD · W3HH/);
+  await page.getByRole('spinbutton', { name: 'T2FD tilt' }).fill('20');
+  await page.getByRole('spinbutton', { name: 'T2FD transmitter output' }).fill('200');
+  const t2fd = page.getByRole('region', { name: 'T2FD inputs starting values' });
+  await expect(t2fd).toContainText('2 modified values');
+  await t2fd.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'T2FD tilt' })).toHaveValue('30');
+  await expect(page.getByRole('spinbutton', { name: 'T2FD transmitter output' })).toHaveValue('100');
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('7.200');
+});
+
 test('explains how to install and update the offline application', async ({ page }) => {
   await page.getByText('Install this app', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
