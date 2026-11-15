@@ -145,6 +145,73 @@ test('restores specialized antenna planners without changing their design freque
   await expect(page.getByRole('spinbutton', { name: 'Active-loop upper operating frequency' })).toHaveValue('7.300');
 });
 
+test('restores wire-planner construction and feed inputs without changing frequencies', async ({ page }) => {
+  const changeDesign = async (name: RegExp) => {
+    await page.getByRole('button', { name: 'Change design' }).click();
+    await page.getByRole('button', { name }).click();
+  };
+
+  await page.getByRole('button', { name: /Folded dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency', exact: true }).fill('14.250');
+  await page.getByRole('spinbutton', { name: 'Parallel conductor spacing' }).fill('0.2');
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await page.getByRole('spinbutton', { name: 'Reference single-dipole resistance' }).fill('80');
+  const folded = page.getByRole('region', { name: 'Folded dipole construction inputs starting values' });
+  await expect(folded).toContainText('2 modified values');
+  await folded.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Parallel conductor spacing' })).toHaveValue('0.15');
+  await expect(page.getByRole('spinbutton', { name: 'Reference single-dipole resistance' })).toHaveValue('73');
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('14.250');
+
+  await changeDesign(/Doublet/);
+  await page.getByLabel('Doublet feedline check frequency').fill('18.100');
+  await page.getByLabel('Balanced-line physical length').fill('15');
+  await page.getByLabel('Tuner interface', { exact: true }).selectOption('external-balun');
+  const doublet = page.getByRole('region', { name: 'Doublet feed-system inputs starting values' });
+  await expect(doublet).toContainText('2 modified values');
+  await doublet.getByRole('button').click();
+  await expect(page.getByLabel('Balanced-line physical length')).toHaveValue('12');
+  await expect(page.getByLabel('Tuner interface', { exact: true })).toHaveValue('balanced');
+  await expect(page.getByLabel('Doublet feedline check frequency')).toHaveValue('18.100');
+
+  await changeDesign(/G5RV family/);
+  await page.getByRole('spinbutton', { name: 'Inspection frequency' }).fill('18.100');
+  await page.getByLabel('G5RV-family design', { exact: true }).selectOption('custom');
+  await page.getByRole('spinbutton', { name: 'Custom total radiator length' }).fill('26');
+  const g5rv = page.getByRole('region', { name: 'G5RV family inputs starting values' });
+  await expect(g5rv).toContainText('2 modified values');
+  await g5rv.getByRole('button').click();
+  await expect(page.getByLabel('G5RV-family design', { exact: true })).toHaveValue('classic');
+  await expect(page.getByRole('spinbutton', { name: 'Inspection frequency' })).toHaveValue('18.100');
+
+  await changeDesign(/Collinear/);
+  await page.getByRole('spinbutton', { name: 'Radiating half-wave sections' }).fill('3');
+  await page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' }).fill('0.8');
+  const collinear = page.getByRole('region', { name: 'Phased collinear inputs starting values' });
+  await expect(collinear).toContainText('2 modified values');
+  await collinear.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Radiating half-wave sections' })).toHaveValue('4');
+  await expect(page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' })).toHaveValue('0.95');
+
+  await changeDesign(/Turnstile/);
+  await page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' }).fill('0.82');
+  await page.getByLabel('Turnstile quadrature order', { exact: true }).selectOption('b-leads-a');
+  const turnstile = page.getByRole('region', { name: 'Turnstile feed inputs starting values' });
+  await expect(turnstile).toContainText('2 modified values');
+  await turnstile.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Phasing-line velocity factor' })).toHaveValue('0.66');
+  await expect(page.getByLabel('Turnstile quadrature order', { exact: true })).toHaveValue('b-lags-a');
+
+  await changeDesign(/Halo · squalo/);
+  await page.getByLabel('Halo shape', { exact: true }).selectOption('square');
+  await page.getByRole('spinbutton', { name: 'Far-end opening' }).fill('0.08');
+  const halo = page.getByRole('region', { name: 'Halo and squalo inputs starting values' });
+  await expect(halo).toContainText('2 modified values');
+  await halo.getByRole('button').click();
+  await expect(page.getByLabel('Halo shape', { exact: true })).toHaveValue('circular');
+  await expect(page.getByRole('spinbutton', { name: 'Far-end opening' })).toHaveValue('0.05');
+});
+
 test('explains how to install and update the offline application', async ({ page }) => {
   await page.getByText('Install this app', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();

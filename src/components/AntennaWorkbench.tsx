@@ -673,6 +673,43 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
   const commonStartingValueChanges = Number(lengthCorrectionFactor !== recommendedFactor) + Number(commonTrimIsVisible && trimAllowancePercent !== 2.5);
   const specializedStartingValues: SpecializedStartingValues | null = (() => {
     const note = 'Restores only this planner’s geometry, component assumptions, and construction allowances. Design frequency or range, saved plans, and other designs are unchanged.';
+    const wirePlannerNote = 'Restores only this planner’s construction and feed-system inputs. Design and inspection frequencies, shared length settings, saved plans, and other designs are unchanged.';
+    if (antennaType === 'folded-dipole') return {
+      scope: 'Folded dipole construction inputs',
+      modifiedCount: countModified(foldedDipoleSpacingMetres !== 0.15, foldedDipoleReferenceResistanceOhms !== 73, foldedDipoleFeedlineImpedanceOhms !== 50),
+      note: wirePlannerNote,
+      onRestore: () => { setFoldedDipoleSpacingMetres(0.15); setFoldedDipoleReferenceResistanceOhms(73); setFoldedDipoleFeedlineImpedanceOhms(50); },
+    };
+    if (antennaType === 'doublet') return {
+      scope: 'Doublet feed-system inputs',
+      modifiedCount: countModified(doubletLineLengthMetres !== 12, doubletLineVelocityFactor !== 0.95, doubletLineImpedanceOhms !== 450, doubletTunerInterface !== 'balanced'),
+      note: wirePlannerNote,
+      onRestore: () => { setDoubletLineLengthMetres(12); setDoubletLineVelocityFactor(0.95); setDoubletLineImpedanceOhms(450); setDoubletTunerInterface('balanced'); },
+    };
+    if (antennaType === 'g5rv') return {
+      scope: 'G5RV family inputs',
+      modifiedCount: countModified(g5rvPreset !== 'classic', g5rvLineVelocityFactor !== 0.95, g5rvLineImpedanceOhms !== 450, g5rvCustomRadiatorMetres !== 31.1, g5rvCustomElectricalLineMetres !== 10.36),
+      note: wirePlannerNote,
+      onRestore: () => { setG5rvPreset('classic'); setG5rvLineVelocityFactor(0.95); setG5rvLineImpedanceOhms(450); setG5rvCustomRadiatorMetres(31.1); setG5rvCustomElectricalLineMetres(10.36); },
+    };
+    if (antennaType === 'phased-collinear') return {
+      scope: 'Phased collinear inputs',
+      modifiedCount: countModified(collinearElementCount !== 4, collinearPhasingVelocityFactor !== 0.95, collinearStubTrimAllowancePercent !== 2.5, collinearStubLengthToleranceMillimetres !== 5, collinearMaximumJunctionPhaseErrorDegrees !== 5),
+      note: wirePlannerNote,
+      onRestore: () => { setCollinearElementCount(4); setCollinearPhasingVelocityFactor(0.95); setCollinearStubTrimAllowancePercent(2.5); setCollinearStubLengthToleranceMillimetres(5); setCollinearMaximumJunctionPhaseErrorDegrees(5); },
+    };
+    if (antennaType === 'turnstile') return {
+      scope: 'Turnstile feed inputs',
+      modifiedCount: countModified(turnstilePhasingVelocityFactor !== 0.66, turnstileQuadratureOrder !== 'b-lags-a'),
+      note: wirePlannerNote,
+      onRestore: () => { setTurnstilePhasingVelocityFactor(0.66); setTurnstileQuadratureOrder('b-lags-a'); },
+    };
+    if (antennaType === 'halo') return {
+      scope: 'Halo and squalo inputs',
+      modifiedCount: countModified(haloShape !== 'circular', haloFarEndGapMetres !== 0.05, haloFeedpointGapMetres !== 0.025),
+      note: wirePlannerNote,
+      onRestore: () => { setHaloShape('circular'); setHaloFarEndGapMetres(0.05); setHaloFeedpointGapMetres(0.025); },
+    };
     if (antennaType === 'loaded-dipole') return {
       scope: 'Loaded dipole inputs',
       modifiedCount: countModified(loadedDipoleSpanMetres !== 7.5, loadedDipoleCoilPositionMetres !== 2.5, loadedDipoleHeightMetres !== 8, loadedDipoleConductorDiameterMillimetres !== 2, lengthCorrectionFactor !== 0.95),
