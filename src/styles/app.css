@@ -13114,6 +13114,10 @@ body.diagram-view-open {
   }
 }
 
+.antenna-project-print-record {
+  display: none;
+}
+
 @media print {
   @page {
     margin: 12mm;
@@ -13151,6 +13155,200 @@ body.diagram-view-open {
   .context-help,
   .evidence-overview {
     display: none !important;
+  }
+
+  body.antenna-project-print .workspace > :not(.antenna-plan-library):not(.calculator-layout),
+  body.antenna-project-print .antenna-plan-library > summary,
+  body.antenna-project-print .antenna-plan-library-body > :not(.antenna-project-print-record),
+  body.antenna-project-print .calculator-layout > :not(.input-panel):not(.visual-panel),
+  body.antenna-project-print .input-panel > :not(.antenna-print-heading):not(.result-summary),
+  body.antenna-project-print .visual-panel > :not(.antenna-print-diagram),
+  body.antenna-project-print .result-summary-actions {
+    display: none !important;
+  }
+
+  body.antenna-project-print .workspace,
+  body.antenna-project-print .antenna-plan-library,
+  body.antenna-project-print .antenna-plan-library-body,
+  body.antenna-project-print .antenna-project-print-record,
+  body.antenna-project-print .calculator-layout,
+  body.antenna-project-print .input-panel,
+  body.antenna-project-print .visual-panel,
+  body.antenna-project-print .antenna-print-diagram,
+  body.antenna-project-print .result-priority-group,
+  body.antenna-project-print .result-supporting-details,
+  body.antenna-project-print .result-supporting-details > dl,
+  body.antenna-project-print .antenna-print-limit {
+    display: block !important;
+  }
+
+  body.antenna-project-print .workspace,
+  body.antenna-project-print .antenna-plan-library,
+  body.antenna-project-print .antenna-plan-library-body,
+  body.antenna-project-print .input-panel,
+  body.antenna-project-print .visual-panel {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: white;
+    box-shadow: none;
+  }
+
+  body.antenna-project-print .antenna-project-print-record {
+    color: black;
+    font: 9pt/1.4 Arial, sans-serif;
+  }
+
+  body.antenna-project-print .antenna-project-print-record > header {
+    display: flex;
+    gap: 5mm;
+    align-items: center;
+    padding-bottom: 4mm;
+    border-bottom: 2px solid #163348;
+  }
+
+  body.antenna-project-print .antenna-project-print-record > header img {
+    width: 16mm;
+    height: 16mm;
+    object-fit: contain;
+  }
+
+  body.antenna-project-print .antenna-project-print-record h1,
+  body.antenna-project-print .antenna-project-print-record h2,
+  body.antenna-project-print .antenna-project-print-record h3,
+  body.antenna-project-print .antenna-project-print-record h5,
+  body.antenna-project-print .antenna-project-print-record p {
+    margin-block: 0 2mm;
+  }
+
+  body.antenna-project-print .antenna-project-print-record h1 {
+    font-size: 18pt;
+    line-height: 1.1;
+  }
+
+  body.antenna-project-print .antenna-project-print-record h2 {
+    margin-top: 6mm;
+    padding-bottom: 1mm;
+    border-bottom: 1px solid #9aa4aa;
+    color: #163348;
+    font-size: 13pt;
+  }
+
+  body.antenna-project-print .antenna-project-print-record h3,
+  body.antenna-project-print .antenna-project-print-record h5 {
+    font-size: 10pt;
+  }
+
+  body.antenna-project-print .antenna-project-print-record dl,
+  body.antenna-project-print .antenna-project-print-record ol {
+    margin-block: 2mm;
+  }
+
+  body.antenna-project-print .antenna-project-print-record dl div,
+  body.antenna-project-print .project-print-measurements > ol > li,
+  body.antenna-project-print .project-print-progression > ol > li {
+    break-inside: avoid;
+  }
+
+  body.antenna-project-print .antenna-project-print-record dt {
+    color: #4b5862;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  body.antenna-project-print .antenna-project-print-record dd {
+    margin: 0 0 2mm;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  body.antenna-project-print .project-print-progress ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2mm 6mm;
+    padding-left: 5mm;
+  }
+
+  body.antenna-project-print .project-print-progress li span {
+    display: block;
+    color: #4b5862;
+  }
+
+  body.antenna-project-print .project-print-measurements > ol,
+  body.antenna-project-print .project-print-progression > ol {
+    padding-left: 5mm;
+  }
+
+  body.antenna-project-print .project-print-measurements > ol > li,
+  body.antenna-project-print .project-print-progression > ol > li {
+    margin-bottom: 5mm;
+    padding: 3mm;
+    border: 1px solid #c5ccd0;
+  }
+
+  body.antenna-project-print .project-print-measurements header {
+    display: flex;
+    justify-content: space-between;
+    gap: 4mm;
+  }
+
+  body.antenna-project-print .project-print-file code {
+    overflow-wrap: anywhere;
+  }
+
+  body.antenna-project-print .antenna-project-print-record > footer {
+    margin-top: 7mm;
+    padding-top: 3mm;
+    border-top: 2px solid #163348;
+  }
+
+  body.antenna-project-print .antenna-print-heading {
+    margin-top: 8mm;
+    break-before: page;
+  }
+
+  body.antenna-project-print .antenna-print-heading,
+  body.antenna-project-print .result-summary,
+  body.antenna-project-print .visual-panel,
+  body.antenna-project-print .antenna-print-diagram {
+    color: black;
+  }
+
+  body.antenna-project-print .antenna-print-heading {
+    display: flex !important;
+    gap: 5mm;
+    align-items: center;
+    padding-bottom: 4mm;
+    border-bottom: 2px solid #163348;
+  }
+
+  body.antenna-project-print .antenna-print-heading img {
+    width: 16mm;
+    height: 16mm;
+    object-fit: contain;
+  }
+
+  body.antenna-project-print .antenna-print-heading p,
+  body.antenna-project-print .antenna-print-heading h1,
+  body.antenna-project-print .antenna-print-heading span {
+    margin: 0;
+  }
+
+  body.antenna-project-print .result-supporting-details > summary {
+    display: none;
+  }
+
+  body.antenna-project-print .result-summary,
+  body.antenna-project-print .visual-panel {
+    margin-top: 5mm;
+  }
+
+  body.antenna-project-print .antenna-print-diagram svg {
+    width: 100%;
+    max-height: 175mm;
   }
 
   body.antenna-build-print .workspace > :not(.calculator-layout),

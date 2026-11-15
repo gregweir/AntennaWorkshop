@@ -980,6 +980,26 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
     }
   };
 
+  const printCompleteProjectRecord = (plan: AntennaPlan) => {
+    openAntennaPlan(plan);
+    const printClass = 'antenna-project-print';
+    globalThis.requestAnimationFrame?.(() => globalThis.requestAnimationFrame?.(() => {
+      const closedDetails = [...document.querySelectorAll<HTMLDetailsElement>('.result-supporting-details:not([open])')];
+      const cleanup = () => {
+        document.body.classList.remove(printClass);
+        closedDetails.forEach((details) => details.removeAttribute('open'));
+      };
+      document.body.classList.add(printClass);
+      closedDetails.forEach((details) => details.setAttribute('open', ''));
+      window.addEventListener('afterprint', cleanup, { once: true });
+      try {
+        window.print();
+      } finally {
+        window.setTimeout(cleanup, 0);
+      }
+    }));
+  };
+
   const design = ANTENNA_DESIGNS[antennaType];
   const currentAntennaImpact = calculation
     ? `At ${frequencyMHz.toFixed(3)} MHz, the current settings produce a largest displayed dimension of ${formatLength(largestAntennaDimension(calculation, loopShape), unitSystem)}. The result cards and drawing update with every valid edit.`
@@ -1020,7 +1040,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       </div>
 
       <Suspense fallback={<div className="antenna-plan-loading" role="status">Loading saved plans…</div>}>
-        <AntennaPlanLibrary antennaType={antennaType} jurisdiction={jurisdiction} unitSystem={unitSystem} modelId={model.id} modelVersion={model.version} workspace={currentWorkspace} onOpen={openAntennaPlan} onAnalyzeSweep={onAnalyzeSweep} />
+        <AntennaPlanLibrary antennaType={antennaType} jurisdiction={jurisdiction} unitSystem={unitSystem} modelId={model.id} modelVersion={model.version} workspace={currentWorkspace} onOpen={openAntennaPlan} onPrint={printCompleteProjectRecord} onAnalyzeSweep={onAnalyzeSweep} />
       </Suspense>
 
       <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />

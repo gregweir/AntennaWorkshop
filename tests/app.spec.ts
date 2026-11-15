@@ -567,6 +567,62 @@ test('saves, reopens, duplicates, exports, and imports complete antenna plans', 
   await expect(page.locator('.measurement-record-list')).toContainText('SHA-256');
 });
 
+test('prints a saved plan as a complete project record with its restored build sheet', async ({ page }) => {
+  await page.getByRole('button', { name: /Folded dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByLabel('New plan name').fill('Printable folded dipole');
+  await page.getByRole('button', { name: 'Save new plan' }).click();
+  await page.getByText('As-built and commissioning record', { exact: true }).click();
+  await page.getByLabel('Final measured dimensions').fill('Two equal 10.12 m conductors');
+  await page.getByLabel('Commissioning notes').fill('Feedpoint-plane sweep retained with the station records');
+  await page.getByRole('button', { name: 'Save build record' }).click();
+  await page.getByText('Measurement history', { exact: true }).click();
+  await page.getByLabel('Entry label').fill('Installed verification');
+  await page.getByLabel('Observed results and follow-up').fill('Recheck after seasonal support movement');
+  await page.getByRole('button', { name: 'Add measurement entry' }).click();
+
+  await page.getByRole('button', { name: 'Change design' }).click();
+  await page.getByRole('button', { name: /^Dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('14.200');
+  await page.evaluate(() => {
+    (window as typeof window & { projectPrintSnapshot?: Record<string, unknown> }).projectPrintSnapshot = undefined;
+    window.print = () => {
+      (window as typeof window & { projectPrintSnapshot?: Record<string, unknown> }).projectPrintSnapshot = {
+        printClass: document.body.classList.contains('antenna-project-print'),
+        record: document.querySelector('.antenna-project-print-record')?.textContent,
+        heading: document.querySelector('.antenna-print-heading h1')?.textContent,
+        frequency: (document.querySelector('[aria-label="Design frequency"]') as HTMLInputElement | null)?.value,
+        detailsOpen: document.querySelector<HTMLDetailsElement>('.result-supporting-details')?.open
+      };
+    };
+  });
+  await page.getByRole('button', { name: 'Print complete record' }).click();
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { projectPrintSnapshot?: Record<string, unknown> }).projectPrintSnapshot)).toMatchObject({
+    printClass: true,
+    heading: 'Equal-conductor folded dipole',
+    frequency: '7.100',
+    detailsOpen: true
+  });
+  const printedRecord = await page.evaluate(() => String((window as typeof window & { projectPrintSnapshot?: Record<string, unknown> }).projectPrintSnapshot?.record));
+  expect(printedRecord).toContain('Printable folded dipole');
+  expect(printedRecord).toContain('Two equal 10.12 m conductors');
+  expect(printedRecord).toContain('Installed verification');
+  expect(printedRecord).toContain('Recheck after seasonal support movement');
+  expect(printedRecord).toContain('does not demonstrate installed performance');
+
+  await page.emulateMedia({ media: 'print' });
+  await page.evaluate(() => {
+    document.body.classList.add('antenna-project-print');
+    document.querySelector<HTMLDetailsElement>('.result-supporting-details')?.setAttribute('open', '');
+  });
+  await expect(page.locator('.antenna-project-print-record')).toBeVisible();
+  await expect(page.locator('.antenna-print-diagram')).toBeVisible();
+  await expect(page.getByLabel('New plan name')).toBeHidden();
+  const widths = await page.evaluate(() => ({ page: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
+  expect(widths.content).toBeLessThanOrEqual(widths.page);
+});
+
 test('saves a plan measurement and opens its in-memory sweep for analysis', async ({ page }) => {
   await page.getByText('Saved antenna plans', { exact: true }).click();
   await page.getByLabel('New plan name').fill('20 metre commissioning');

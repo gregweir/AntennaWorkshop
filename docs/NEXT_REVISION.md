@@ -7,8 +7,9 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 ## Milestone 1 — Connected Build Journey
 
 - Preserve project progress through **Choose → Plan → Build → Measure → Tune → Verify → Document**.
-- Add as-built dimensions, deviations, construction notes, and commissioning evidence to saved plans.
-- Link each stage to the relevant planner, measurement, feed-system, exposure, print, or export action.
+- Preserve as-built dimensions, deviations, construction notes, and commissioning evidence in saved plans.
+- Print the selected plan's calculated build sheet, drawing, build record, measurement history, saved summaries, and progression as one project record.
+- Continue linking each stage to the relevant planner, measurement, feed-system, exposure, print, or export action.
 - Keep checked workflow steps distinct from technical acceptance or compliance.
 
 ## Milestone 2 — Measurement and Tuning

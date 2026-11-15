@@ -38,6 +38,7 @@ interface Props {
   modelVersion: string;
   workspace: AntennaPlanWorkspace;
   onOpen: (plan: AntennaPlan) => void;
+  onPrint: (plan: AntennaPlan) => void;
   onAnalyzeSweep: (handoff: MeasurementSweepHandoff) => void;
 }
 
@@ -94,7 +95,87 @@ const projectStageDetails: Record<AntennaProjectStage, { label: string; detail: 
   document: { label: 'Document', detail: 'Portable records retained with the finished antenna.' }
 };
 
-export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, modelId, modelVersion, workspace, onOpen, onAnalyzeSweep }: Props) {
+function PrintAnalysisSummary({ record }: { record: AntennaPlanMeasurementRecord }) {
+  if (!record.analysis) return null;
+  return <section className="project-print-analysis">
+    <h5>Saved sweep summary</h5>
+    <dl>
+      <div><dt>Analyzed</dt><dd>{localDate(record.analysis.analyzedAt)}</dd></div>
+      <div><dt>Coverage</dt><dd>{formatRecordedFrequency(record.analysis.lowerFrequencyHz)}–{formatRecordedFrequency(record.analysis.upperFrequencyHz)} · {record.analysis.pointCount.toLocaleString()} points · {record.analysis.referenceImpedanceOhms.toFixed(1)} Ω</dd></div>
+      <div><dt>Minimum SWR</dt><dd>{record.analysis.minimumSwr === null ? 'Not finite' : `${record.analysis.minimumSwr.toFixed(3)} : 1`} at {formatRecordedFrequency(record.analysis.minimumSwrFrequencyHz)}</dd></div>
+      <div><dt>Closest sampled resonance</dt><dd>{formatRecordedFrequency(record.analysis.resonanceFrequencyHz)} · {record.analysis.resonanceResistanceOhms === null ? 'R not finite' : `${record.analysis.resonanceResistanceOhms.toFixed(2)} Ω`} · {record.analysis.resonanceReactanceOhms === null ? 'X not finite' : `j${record.analysis.resonanceReactanceOhms.toFixed(2)} Ω`}</dd></div>
+      <div><dt>{record.analysis.threshold.toFixed(2)}:1 spans</dt><dd>{record.analysis.thresholdWindowCount ? `${record.analysis.thresholdWindowCount} recorded ${record.analysis.thresholdWindowCount === 1 ? 'window' : 'windows'}` : 'No measured samples at or below threshold'}</dd></div>
+    </dl>
+    {record.analysis.thresholdSpans.length > 0 && <ol>{record.analysis.thresholdSpans.map((span, index) => <li key={`${span.lowerFrequencyHz}-${span.upperFrequencyHz}-${index}`}>{formatRecordedFrequency(span.lowerFrequencyHz)}–{formatRecordedFrequency(span.upperFrequencyHz)} · {span.lowerBasis} / {span.upperBasis}</li>)}</ol>}
+  </section>;
+}
+
+function AntennaProjectPrintRecord({ plan, jurisdictionName }: { plan: AntennaPlan; jurisdictionName: string }) {
+  const comparison = buildMeasurementHistoryComparison(plan.measurements);
+  const buildFields = [
+    ['Final measured dimensions', plan.buildRecord.asBuiltDimensions],
+    ['Construction departures', plan.buildRecord.constructionDeviations],
+    ['Commissioning notes', plan.buildRecord.commissioningNotes]
+  ] as const;
+  return <article className="antenna-project-print-record" aria-label="Printable antenna project record">
+    <header>
+      <img src="/antennas/TartanleafLogo.jpg" alt="" width="72" height="72" />
+      <div><p>RadioBook Antenna Workshop</p><h1>{plan.name}</h1><span>Complete antenna project record</span></div>
+    </header>
+    <section className="project-print-metadata">
+      <h2>Plan identity</h2>
+      <dl>
+        <div><dt>Design</dt><dd>{ANTENNA_DESIGNS[plan.antennaType].name}</dd></div>
+        <div><dt>Jurisdiction and units</dt><dd>{jurisdictionName} · {plan.unitSystem === 'metric' ? 'Metric' : 'Imperial'}</dd></div>
+        <div><dt>Created</dt><dd>{localDate(plan.createdAt)}</dd></div>
+        <div><dt>Last updated</dt><dd>{localDate(plan.updatedAt)}</dd></div>
+        <div><dt>Calculation model</dt><dd>{plan.modelId} · version {plan.modelVersion}</dd></div>
+        <div><dt>Record format</dt><dd>Schema {plan.schemaVersion}</dd></div>
+      </dl>
+    </section>
+    <section className="project-print-progress">
+      <h2>Build journey</h2>
+      <ol>{ANTENNA_PROJECT_STAGES.map((stage) => <li key={stage}><strong>{plan.progress.completedStages.includes(stage) ? 'Complete' : 'Not recorded'} · {projectStageDetails[stage].label}</strong><span>{projectStageDetails[stage].detail}</span></li>)}</ol>
+      <p>A completed step records workflow progress only; it does not establish measurement quality, antenna performance, structural safety, or regulatory compliance.</p>
+    </section>
+    <section className="project-print-build-record">
+      <h2>Recorded construction and commissioning</h2>
+      <dl>{buildFields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || 'Not recorded'}</dd></div>)}</dl>
+    </section>
+    <section className="project-print-measurements">
+      <h2>Recorded measurements</h2>
+      {plan.measurements.length ? <ol>{[...plan.measurements].reverse().map((record) => <li key={record.id}>
+        <header><h3>{record.label}</h3><time dateTime={record.recordedAt}>{localDate(record.recordedAt)}</time></header>
+        {record.sweep && <p className="project-print-file"><strong>{record.sweep.name}</strong> · {record.sweep.sizeBytes.toLocaleString()} bytes<br /><code>{record.sweep.sha256 ? `SHA-256 ${record.sweep.sha256}` : 'No cryptographic fingerprint recorded'}</code></p>}
+        <dl>
+          {record.calibrationContext && <div><dt>Calibration</dt><dd>{record.calibrationContext}</dd></div>}
+          {record.referencePlane && <div><dt>Reference plane</dt><dd>{record.referencePlane}</dd></div>}
+          {record.installedGeometry && <div><dt>Geometry and conditions</dt><dd>{record.installedGeometry}</dd></div>}
+          {record.adjustment && <div><dt>Adjustment</dt><dd>{record.adjustment}</dd></div>}
+          {record.observations && <div><dt>Observations</dt><dd>{record.observations}</dd></div>}
+        </dl>
+        <PrintAnalysisSummary record={record} />
+      </li>)}</ol> : <p>No measurement entries recorded.</p>}
+    </section>
+    {comparison.length >= 2 && <section className="project-print-progression">
+      <h2>Recorded progression</h2>
+      <ol>{comparison.map((point, index) => <li key={point.record.id}>
+        <h3>{index + 1}. {point.record.label}</h3>
+        {point.record.analysis && <dl>
+          <div><dt>Minimum SWR</dt><dd>{point.record.analysis.minimumSwr === null ? 'Not finite' : `${point.record.analysis.minimumSwr.toFixed(3)} : 1`} · {formatRecordedFrequency(point.record.analysis.minimumSwrFrequencyHz)}</dd></div>
+          <div><dt>Closest resonance</dt><dd>{formatRecordedFrequency(point.record.analysis.resonanceFrequencyHz)}</dd></div>
+          {point.delta && <><div><dt>Minimum-frequency change</dt><dd>{formatFrequencyChange(point.delta.minimumSwrFrequencyHz)}</dd></div><div><dt>Resonance-frequency change</dt><dd>{formatFrequencyChange(point.delta.resonanceFrequencyHz)}</dd></div><div><dt>Minimum-SWR change</dt><dd>{formatSwrChange(point.delta.minimumSwr)}</dd></div></>}
+        </dl>}
+        {point.record.adjustment && <p><strong>Recorded adjustment:</strong> {point.record.adjustment}</p>}
+        {point.contextChanges.length > 0 && <p><strong>Comparison cautions:</strong> {point.contextChanges.join('; ')}.</p>}
+      </li>)}</ol>
+      <p>These deltas describe saved observations only. They do not establish causation or improvement.</p>
+    </section>}
+    <footer><strong>Record limits</strong><p>This record preserves calculation starting points and entered observations. It does not demonstrate installed performance, structural safety, safe power, RF-exposure compliance, or regulatory approval. Retain original instrument files and other supporting records separately.</p></footer>
+  </article>;
+}
+
+export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, modelId, modelVersion, workspace, onOpen, onPrint, onAnalyzeSweep }: Props) {
   const initialPlans = useMemo(() => loadAntennaPlans(window.localStorage), []);
   const [plans, setPlans] = useState(initialPlans);
   const [selectedId, setSelectedId] = useState(initialPlans[0]?.id ?? '');
@@ -324,7 +405,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
     }
   };
 
-  const jurisdictionName = selected ? jurisdictionProfiles.find((profile) => profile.code === selected.jurisdiction)?.name : '';
+  const jurisdictionName = selected ? jurisdictionProfiles.find((profile) => profile.code === selected.jurisdiction)?.name ?? selected.jurisdiction : '';
   const measurementComparison = selected ? buildMeasurementHistoryComparison(selected.measurements) : [];
 
   return <details className="antenna-plan-library">
@@ -343,6 +424,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
           <span>{jurisdictionName} · {selected.unitSystem === 'metric' ? 'Metric' : 'Imperial'} · saved {localDate(selected.updatedAt)}</span>
           <code>{selected.modelId} · model {selected.modelVersion} · file schema {selected.schemaVersion}</code>
         </div>}
+        {selected && <AntennaProjectPrintRecord plan={selected} jurisdictionName={jurisdictionName} />}
         {selected && <section className="antenna-project-journey" aria-labelledby="antenna-project-journey-title">
           <div className="project-journey-heading">
             <div><p className="eyebrow">Build journey</p><h4 id="antenna-project-journey-title">From selected design to retained record</h4></div>
@@ -394,7 +476,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
             <p className="project-journey-limit"><strong>Interpretation limit.</strong> File identity, entered context, and observations do not establish calibration quality, measurement uncertainty, causation, efficiency, pattern, safe power, or compliance.</p>
           </div>
         </details>}
-        <div className="plan-actions"><button type="button" onClick={openSelected}>Open plan</button><button type="button" className="secondary-button" onClick={duplicateSelected}>Duplicate</button><button type="button" className="secondary-button" onClick={downloadSelected}>Download JSON</button><button type="button" className="danger-button" onClick={removeSelected}>Delete</button></div>
+        <div className="plan-actions"><button type="button" onClick={openSelected}>Open plan</button><button type="button" className="secondary-button" onClick={() => selected && onPrint(selected)}>Print complete record</button><button type="button" className="secondary-button" onClick={duplicateSelected}>Duplicate</button><button type="button" className="secondary-button" onClick={downloadSelected}>Download JSON</button><button type="button" className="danger-button" onClick={removeSelected}>Delete</button></div>
       </> : <p className="plan-empty">No plans are saved in this browser yet.</p>}
       <label className="plan-import"><span>Import JSON plan</span><input ref={importInput} type="file" accept=".json,application/json" aria-label="Import antenna plan JSON" onChange={(event) => void importPlan(event.target.files?.[0])} /></label>
       <p className="plan-message" role="status" aria-live="polite">{message}</p>
