@@ -25,7 +25,13 @@ describe('application preferences', () => {
 
   it('round-trips supported preferences', () => {
     const storage = memoryStorage();
-    const preferences = { jurisdiction: 'US', unitSystem: 'imperial', advancedOpen: true, theme: 'dark' } as const;
+    const preferences = {
+      jurisdiction: 'US',
+      unitSystem: 'imperial',
+      advancedOpen: true,
+      theme: 'dark',
+      activeWorkspace: 'feedline'
+    } as const;
     savePreferences(preferences, storage);
     expect(loadPreferences(storage)).toEqual(preferences);
   });
@@ -37,13 +43,24 @@ describe('application preferences', () => {
 
   it('migrates older preferences to system theme and preserves Australia', () => {
     const storage = memoryStorage(JSON.stringify({ jurisdiction: 'AU', unitSystem: 'metric', advancedOpen: false }));
-    expect(loadPreferences(storage)).toMatchObject({ jurisdiction: 'AU', theme: 'system' });
+    expect(loadPreferences(storage)).toMatchObject({ jurisdiction: 'AU', theme: 'system', activeWorkspace: 'antennas' });
+  });
+
+  it('restores a supported top-level workspace', () => {
+    const storage = memoryStorage(JSON.stringify({ activeWorkspace: 'exposure' }));
+    expect(loadPreferences(storage).activeWorkspace).toBe('exposure');
   });
 
   it('fails closed to valid defaults for malformed or unsupported values', () => {
     expect(loadPreferences(memoryStorage('{bad json'))).toEqual(defaultPreferences);
     expect(
-      loadPreferences(memoryStorage(JSON.stringify({ jurisdiction: 'XX', unitSystem: 'yards', advancedOpen: 'yes', theme: 'neon' })))
+      loadPreferences(memoryStorage(JSON.stringify({
+        jurisdiction: 'XX',
+        unitSystem: 'yards',
+        advancedOpen: 'yes',
+        theme: 'neon',
+        activeWorkspace: 'settings'
+      })))
     ).toEqual(defaultPreferences);
   });
 });

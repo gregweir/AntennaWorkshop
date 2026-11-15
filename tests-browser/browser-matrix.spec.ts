@@ -50,6 +50,8 @@ test('opens every workspace and preserves a user preference', async ({ page }) =
   await page.reload();
   await expect(page.getByLabel('Theme')).toHaveValue('dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.getByRole('button', { name: /RF exposure/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
 });
 
 test('supports keyboard entry and remains within the viewport', async ({ page, isMobile }) => {

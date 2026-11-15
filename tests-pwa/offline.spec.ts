@@ -61,6 +61,9 @@ test('returns offline, preserves a saved antenna plan, and opens every precached
 
     await page.getByRole('button', { name: /RF exposure/ }).click();
     await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('button', { name: /RF exposure/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
   } finally {
     await context.setOffline(false);
   }

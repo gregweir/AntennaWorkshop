@@ -13,9 +13,11 @@ export interface AppPreferences {
   unitSystem: UnitSystem;
   advancedOpen: boolean;
   theme: ThemePreference;
+  activeWorkspace: WorkshopWorkspace;
 }
 
 export type ThemePreference = 'system' | 'light' | 'dark';
+export type WorkshopWorkspace = 'antennas' | 'feedline' | 'exposure';
 
 interface StorageLike {
   getItem(key: string): string | null;
@@ -28,7 +30,8 @@ export const defaultPreferences: AppPreferences = {
   jurisdiction: 'CA',
   unitSystem: 'metric',
   advancedOpen: false,
-  theme: 'system'
+  theme: 'system',
+  activeWorkspace: 'antennas'
 };
 
 function isJurisdiction(value: unknown): value is JurisdictionCode {
@@ -41,6 +44,10 @@ function isUnitSystem(value: unknown): value is UnitSystem {
 
 function isThemePreference(value: unknown): value is ThemePreference {
   return value === 'system' || value === 'light' || value === 'dark';
+}
+
+function isWorkshopWorkspace(value: unknown): value is WorkshopWorkspace {
+  return value === 'antennas' || value === 'feedline' || value === 'exposure';
 }
 
 export function loadPreferences(storage?: StorageLike): AppPreferences {
@@ -60,7 +67,10 @@ export function loadPreferences(storage?: StorageLike): AppPreferences {
       unitSystem: isUnitSystem(candidate.unitSystem) ? candidate.unitSystem : defaultPreferences.unitSystem,
       advancedOpen:
         typeof candidate.advancedOpen === 'boolean' ? candidate.advancedOpen : defaultPreferences.advancedOpen,
-      theme: isThemePreference(candidate.theme) ? candidate.theme : defaultPreferences.theme
+      theme: isThemePreference(candidate.theme) ? candidate.theme : defaultPreferences.theme,
+      activeWorkspace: isWorkshopWorkspace(candidate.activeWorkspace)
+        ? candidate.activeWorkspace
+        : defaultPreferences.activeWorkspace
     };
   } catch {
     return defaultPreferences;

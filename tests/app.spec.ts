@@ -31,6 +31,22 @@ test('persists jurisdiction, units, theme, and advanced controls', async ({ page
   await expect(page.getByRole('spinbutton', { name: /Length correction factor/ })).toBeVisible();
 });
 
+test('resumes the last top-level workspace', async ({ page }) => {
+  const feedlineButton = page.getByRole('button', { name: /Feedline & matching/ });
+  await feedlineButton.click();
+  await expect(page.getByRole('heading', { name: 'Feedline power budget' })).toBeVisible();
+  await page.reload();
+  await expect(feedlineButton).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', { name: 'Feedline power budget' })).toBeVisible();
+
+  const exposureButton = page.getByRole('button', { name: /RF exposure/ });
+  await exposureButton.click();
+  await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
+  await page.reload();
+  await expect(exposureButton).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
+});
+
 test('applies light, dark, and live system theme modes', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.getByLabel('Theme').selectOption('system');

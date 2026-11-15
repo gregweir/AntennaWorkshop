@@ -9,7 +9,7 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState, type Mou
 import { PwaInstallGuide } from './components/PwaInstallGuide';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
-import { loadPreferences, savePreferences, type ThemePreference } from './preferences';
+import { loadPreferences, savePreferences, type ThemePreference, type WorkshopWorkspace } from './preferences';
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 
@@ -24,13 +24,13 @@ export function App() {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(savedPreferences.unitSystem);
   const [advancedOpen, setAdvancedOpen] = useState(savedPreferences.advancedOpen);
   const [theme, setTheme] = useState<ThemePreference>(savedPreferences.theme);
-  const [workshopTool, setWorkshopTool] = useState<'antennas' | 'feedline' | 'exposure'>('antennas');
+  const [workshopTool, setWorkshopTool] = useState<WorkshopWorkspace>(savedPreferences.activeWorkspace);
   const [antennaHandoff, setAntennaHandoff] = useState<AntennaDesignHandoff | null>(null);
   const [stationSourceTransfer, setStationSourceTransfer] = useState<StationSourceTransfer | null>(null);
 
   useEffect(() => {
-    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme }, window.localStorage);
-  }, [jurisdiction, unitSystem, advancedOpen, theme]);
+    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme, activeWorkspace: workshopTool }, window.localStorage);
+  }, [jurisdiction, unitSystem, advancedOpen, theme, workshopTool]);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
