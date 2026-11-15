@@ -466,7 +466,7 @@ test('restores everyday wire and vertical planners without changing design frequ
 });
 
 test('explains how to install the offline application', async ({ page }) => {
-  await page.getByText('Install this app', { exact: true }).click();
+  await page.getByText('Install for offline use', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'iPhone or iPad' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Other browsers' })).toBeVisible();
@@ -2308,7 +2308,7 @@ test('shows and dismisses an application update notice', async ({ page }) => {
 
 test('shows official RF exposure reference limits without a compliance result', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
-  await page.getByText('Review status and supported scope', { exact: true }).click();
+  await page.getByText('Scope and limitations', { exact: true }).click();
   const reviewScope = page.locator('.exposure-review-scope');
   await expect(reviewScope).toContainText('Independent technical review has not been completed');
   await expect(reviewScope).toContainText('reactive near fields');
@@ -2444,7 +2444,7 @@ test('combines FCC multiple-source exemption fractions and special low-power con
 
 test('applies the Ofcom assessment and distance workflows for United Kingdom stations', async ({ page }) => {
   await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('GB');
-  await expect(page.getByText('Jurisdiction: United Kingdom')).toBeVisible();
+  await expect(page.getByLabel('Station jurisdiction', { exact: true })).toHaveValue('GB');
   await page.getByRole('button', { name: /RF exposure/ }).click();
 
   await expect(page.getByRole('button', { name: /Ofcom gateway/ })).toBeVisible();
@@ -2510,7 +2510,7 @@ test('applies the Ofcom assessment and distance workflows for United Kingdom sta
 
 test('applies the Australian ACMA gateway and ARPANSA reference levels', async ({ page }) => {
   await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
-  await expect(page.getByText('Jurisdiction: Australia')).toBeVisible();
+  await expect(page.getByLabel('Station jurisdiction', { exact: true })).toHaveValue('AU');
   await page.getByRole('button', { name: /RF exposure/ }).click();
 
   await expect(page.getByRole('button', { name: /ACMA gateway/ })).toBeVisible();

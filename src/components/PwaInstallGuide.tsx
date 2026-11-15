@@ -7,7 +7,7 @@
 
 export function PwaInstallGuide() {
   return <details className="pwa-install-guide">
-    <summary><span><strong>Install this app</strong><small>Keep the workshop on your phone, tablet, or desktop and reopen it offline.</small></span></summary>
+    <summary><span><strong>Install for offline use</strong><small>Add the workshop to a phone, tablet, or desktop.</small></span></summary>
     <div className="pwa-install-body">
       <p>Open the workshop once while online so its application files can be stored. Installation commands differ by browser:</p>
       <div className="pwa-install-platforms">

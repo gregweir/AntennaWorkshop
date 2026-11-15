@@ -112,9 +112,9 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
 
   return <section className="workspace shell exposure-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
     <div className="workspace-heading"><div><p className="eyebrow">RF exposure · sourced engineering tools</p><h2 id="calculator-title">RF exposure workbench</h2></div></div>
-    <div className="exposure-status" role="note"><strong>Preliminary tools only</strong><span>Reference lookup, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
+    <div className="exposure-status" role="note"><strong>Reference tools</strong><span>Lookups, far-field estimates, and normalized totals do not by themselves determine compliance.</span></div>
     <details className="exposure-review-scope">
-      <summary><span><strong>Review status and supported scope</strong><small>See what has been implemented, what remains outside these tools, and what independent review is still required.</small></span></summary>
+      <summary><span><strong>Scope and limitations</strong><small>What these tools cover, what remains outside them, and where independent review is required.</small></span></summary>
       <div className="exposure-review-scope-body">
         <section><h3>Implemented</h3><p>Sourced reference lookups and bounded workflows are available for Canada, the United States, the United Kingdom, and Australia. Results retain their model identity, assumptions, applicability checks, and source links.</p></section>
         <section><h3>Not implemented</h3><p>These tools do not calculate reactive near fields, antenna-pattern attenuation, terrain or building effects, measurement uncertainty, body coupling, induced or contact currents, or undiscovered off-site sources.</p></section>
@@ -128,6 +128,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     </div>
 
     <form className={`exposure-context-panel ${contextClass}`} onSubmit={(event) => event.preventDefault()}>
+      <div className="panel-kicker"><span>Assessment setup</span><small>Confirm the governing context before reading a result.</small></div>
       <label className="field"><span>Active station jurisdiction</span><input value={profile?.name ?? jurisdiction} readOnly /><small>Change jurisdiction using the persistent selector at the top of the application.</small></label>
       {needsEnvironment && <div className="field"><span className="field-label-with-help"><label htmlFor="exposure-environment">Exposure environment</label><HelpTip label="Exposure environment">Use uncontrolled limits wherever the general public may be exposed or whenever the jurisdiction's controlled-environment conditions are not met. Controlled limits require characterized fields, RF awareness, appropriate training or information, and the ability to control or mitigate exposure.</HelpTip></span><select id="exposure-environment" value={environment} onChange={(event) => setEnvironment(event.target.value as ExposureEnvironment)}><option value="uncontrolled">General public / uncontrolled</option><option value="controlled">Occupational / controlled</option></select><small>Controlled limits require the jurisdiction’s awareness, training, characterization, and exposure-control conditions.</small></div>}
       {needsFrequency && <>

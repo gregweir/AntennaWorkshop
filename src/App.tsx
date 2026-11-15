@@ -52,7 +52,6 @@ export function App() {
     return () => darkMode.removeEventListener('change', apply);
   }, [theme]);
 
-  const jurisdictionName = jurisdictionProfiles.find((profile) => profile.code === jurisdiction)?.name ?? 'Unknown';
   const skipToCalculator = (event: MouseEvent<HTMLAnchorElement>) => {
     const calculator = document.getElementById('calculator');
     if (!calculator) return;
@@ -102,16 +101,10 @@ export function App() {
     </header>
 
     <main>
-      <section className="hero shell">
+      <section className={`hero shell ${workshopTool === 'antennas' ? '' : 'hero-compact'}`}>
         <p className="eyebrow">Design · understand · build · tune</p>
         <h1>Build antennas with the measurements—and the reasoning—to get them right.</h1>
         <p>Choose a proven starting design, inspect every assumption, and take a dimensioned construction drawing to the workbench. RF exposure tools will use the rules for the station location you select.</p>
-        <div className="status-row" aria-label="Current application settings">
-          <span className="status-chip">Jurisdiction: {jurisdictionName}</span>
-          <span className="status-chip">Units: {unitSystem === 'metric' ? 'Metric' : 'Imperial'}</span>
-          <span className="status-chip">Theme: {theme === 'system' ? 'System' : theme === 'light' ? 'Light' : 'Dark'}</span>
-          <span className="status-chip status-chip-muted">Works offline after the first online load</span>
-        </div>
         <PwaInstallGuide />
       </section>
 
@@ -123,11 +116,11 @@ export function App() {
           <span>02</span><strong>Feedline &amp; matching</strong><small>Loss, SWR, and power flow</small>
         </button>
         <button type="button" aria-pressed={workshopTool === 'exposure'} onClick={() => setWorkshopTool('exposure')}>
-          <span>03</span><strong>RF exposure</strong><small>Official limits · screening under review</small>
+          <span>03</span><strong>RF exposure</strong><small>Reference limits and assessment tools</small>
         </button>
       </nav>
 
-      <Suspense fallback={<section className="workspace shell tool-loading" role="status" aria-live="polite"><p className="eyebrow">Opening workshop</p><h2>Loading the selected tool…</h2><p>The calculator and its saved on-device data will be ready momentarily.</p></section>}>
+      <Suspense fallback={<section className="workspace shell tool-loading" role="status" aria-live="polite"><div className="tool-loading-skeleton" aria-hidden="true"><span /><span /><span /></div><p className="eyebrow">Opening workshop</p><h2>Loading the selected tool…</h2><p>The calculator and its saved on-device data will be ready momentarily.</p></section>}>
         {workshopTool === 'antennas'
           ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} initialAntennaType={antennaDesign} onAntennaTypeChange={setAntennaDesign} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
           : workshopTool === 'feedline'

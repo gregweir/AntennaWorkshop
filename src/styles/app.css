@@ -251,7 +251,7 @@ select {
 }
 
 .hero {
-  padding-block: clamp(4rem, 9vw, 7rem);
+  padding-block: clamp(2.75rem, 6vw, 4.5rem);
   text-align: center;
 }
 
@@ -282,6 +282,10 @@ select {
   font-size: clamp(1rem, 2vw, 1.2rem);
 }
 
+.hero-compact {
+  display: none;
+}
+
 .status-row {
   display: flex;
   flex-wrap: wrap;
@@ -304,10 +308,10 @@ select {
 }
 
 .pwa-install-guide {
-  max-width: 56rem;
-  margin: 1rem auto 0;
+  max-width: 42rem;
+  margin: 1.25rem auto 0;
   overflow: clip;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   text-align: left;
@@ -318,8 +322,8 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 48px;
-  padding: 0.7rem 0.85rem;
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
   color: var(--text-primary);
   cursor: pointer;
   list-style: none;
@@ -350,10 +354,12 @@ select {
 
 .pwa-install-guide > summary strong {
   font-family: var(--font-mono);
+  font-size: 0.85rem;
 }
 
 .pwa-install-guide > summary small {
-  margin-top: 0.15rem;
+  display: inline;
+  margin-left: 0.45rem;
   color: var(--text-secondary);
 }
 
@@ -400,7 +406,7 @@ select {
 
 .tool-nav {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.8rem;
   margin-bottom: 1rem;
 }
@@ -457,6 +463,7 @@ select {
 }
 
 .workspace {
+  scroll-margin-top: 6.5rem;
   margin-bottom: 5rem;
   padding: clamp(1.2rem, 3vw, 2.25rem);
   border: 1px solid var(--border);
@@ -480,6 +487,27 @@ select {
   justify-items: center;
   gap: 0.45rem;
   text-align: center;
+}
+
+.tool-loading-skeleton {
+  display: grid;
+  width: min(100%, 34rem);
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.tool-loading-skeleton span {
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+}
+
+.tool-loading-skeleton span:nth-child(2) {
+  width: 78%;
+}
+
+.tool-loading-skeleton span:nth-child(3) {
+  width: 55%;
 }
 
 .tool-loading h2,
@@ -519,9 +547,9 @@ select {
 .antenna-picker-shell {
   margin: 0 0 1.5rem;
   padding: 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: var(--radius-lg);
-  background: var(--bg-surface);
+  background: color-mix(in srgb, var(--bg-elevated) 52%, var(--bg-surface));
 }
 
 .antenna-picker-toolbar {
@@ -1130,26 +1158,27 @@ select {
   display: flex;
   gap: 0.75rem;
   align-items: baseline;
-  margin-bottom: 1.5rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--tl-coral);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 4px solid var(--tl-coral);
+  background: color-mix(in srgb, var(--tl-coral) 6%, var(--bg-elevated));
 }
 
 .exposure-status strong {
+  flex: 0 0 auto;
   font-family: var(--font-mono);
+  font-size: 0.82rem;
 }
 
 .exposure-status span {
   color: var(--text-secondary);
+  font-size: 0.86rem;
 }
 
 .exposure-review-scope {
-  margin: -0.75rem 0 1.5rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
+  margin: 0 0 1rem;
+  border-block: 1px solid var(--border);
+  background: transparent;
 }
 
 .exposure-review-scope summary {
@@ -1301,6 +1330,27 @@ select {
   padding: 1rem;
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
+}
+
+.panel-kicker {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: baseline;
+  gap: 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-kicker span {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.panel-kicker small {
+  color: var(--text-secondary);
 }
 
 .exposure-context-panel .field {
@@ -5414,6 +5464,12 @@ select {
   grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.65fr);
   gap: 1.5rem;
   align-items: start;
+}
+
+.calculator-layout > .visual-panel {
+  position: sticky;
+  top: 6.5rem;
+  scroll-margin-top: 6.5rem;
 }
 
 .g5rv-layout,
@@ -12184,6 +12240,169 @@ body.diagram-view-open {
   .plan-actions button,
   .plan-import {
     width: 100%;
+  }
+}
+
+/* Compact task-first presentation on phones and small tablets. */
+@media (max-width: 820px) {
+  .header-inner {
+    gap: 0.75rem;
+    min-height: 0;
+    padding-block: 0.55rem;
+  }
+
+  .brand-cluster {
+    align-self: flex-start;
+  }
+
+  .tartanleaf-mark img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .global-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr) minmax(12rem, 0.9fr);
+    width: 100%;
+    gap: 0.6rem;
+  }
+
+  .global-controls label,
+  .global-controls select,
+  .segmented-control {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .segmented-control legend {
+    position: static;
+    transform: none;
+  }
+
+  .hero {
+    padding-block: 2.2rem;
+  }
+
+  .hero h1 {
+    max-width: 34rem;
+    margin-bottom: 0.85rem;
+    font-size: clamp(1.65rem, 7vw, 2.2rem);
+    line-height: 1.12;
+  }
+
+  .hero > p:not(.eyebrow) {
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .pwa-install-guide {
+    margin-top: 1rem;
+  }
+
+  .tool-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .tool-nav button {
+    display: flex;
+    min-width: 0;
+    min-height: 64px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.1rem;
+    padding: 0.6rem;
+  }
+
+  .tool-nav span {
+    grid-row: auto;
+  }
+
+  .tool-nav strong {
+    font-size: 0.76rem;
+    line-height: 1.2;
+  }
+
+  .tool-nav small {
+    display: none;
+  }
+
+  .calculator-layout > .visual-panel {
+    position: static;
+    scroll-margin-top: 1rem;
+  }
+
+  .workspace {
+    scroll-margin-top: 1rem;
+  }
+
+  .mobile-work-summary {
+    position: static;
+    z-index: 12;
+    margin-bottom: 1.5rem;
+    padding: 0.45rem 0.55rem;
+  }
+
+  .mobile-work-summary button {
+    min-height: 40px;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .exposure-status {
+    gap: 0.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .exposure-review-scope summary {
+    padding-inline: 0.25rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .global-controls {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  }
+
+  .segmented-control {
+    grid-column: 1 / -1;
+  }
+
+  .hero {
+    padding-block: 1.75rem;
+  }
+
+  .hero .eyebrow {
+    margin-bottom: 0.45rem;
+    font-size: 0.68rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.5rem, 7.5vw, 1.9rem);
+  }
+
+  .pwa-install-guide > summary small {
+    display: block;
+    margin: 0.05rem 0 0;
+  }
+
+  .workspace-heading {
+    margin-bottom: 1rem;
+  }
+
+  .workspace-heading h2,
+  .roadmap h2 {
+    font-size: clamp(1.45rem, 8vw, 1.9rem);
+    overflow-wrap: anywhere;
+  }
+
+  .panel-kicker {
+    display: block;
+  }
+
+  .panel-kicker small {
+    display: block;
+    margin-top: 0.15rem;
   }
 }
 
