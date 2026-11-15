@@ -22,10 +22,20 @@ const [index, worker, manifestText] = await Promise.all([
 if (!index.includes('/antennas/')) {
   throw new Error('Production index does not use the /antennas/ base path.');
 }
+if (!index.includes('rel="apple-touch-icon"') || !index.includes('/antennas/pwa-192.png')) {
+  throw new Error('Production index does not publish the Antenna Workshop Apple touch icon.');
+}
 
 const manifest = JSON.parse(manifestText);
 if (manifest.start_url !== './' || manifest.scope !== './') {
   throw new Error('PWA manifest must keep its start URL and scope relative to /antennas/.');
+}
+const requiredIconSizes = new Set(['192x192', '512x512']);
+for (const icon of manifest.icons ?? []) {
+  if (icon.purpose?.split(/\s+/).includes('maskable')) requiredIconSizes.delete(icon.sizes);
+}
+if (requiredIconSizes.size > 0) {
+  throw new Error(`PWA manifest is missing maskable install icons: ${[...requiredIconSizes].join(', ')}`);
 }
 
 const precacheUrls = [...worker.matchAll(/\{url:"([^"]+)"/g)].map((match) => match[1]);
