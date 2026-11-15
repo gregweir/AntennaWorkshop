@@ -6,7 +6,7 @@
  */
 
 import { useId } from 'react';
-import type { TouchstonePoint, TouchstoneSweep } from '../lib/touchstone';
+import { nearestTouchstonePoint, type TouchstonePoint, type TouchstoneSweep } from '../lib/touchstone';
 
 const CX = 380;
 const CY = 255;
@@ -25,7 +25,7 @@ interface Props {
 export function SweepSmithChart({ reference, referenceName, comparison, comparisonName, selectedIndex }: Props) {
   const clipId = `sweep-smith-${useId().replace(/:/g, '')}`;
   const selected = reference.points[selectedIndex];
-  const comparisonPoint = comparison ? nearestPoint(comparison.points, selected.frequencyHz) : null;
+  const comparisonPoint = comparison ? nearestTouchstonePoint(comparison.points, selected.frequencyHz) : null;
   const referenceTrace = tracePoints(reference.points);
   const comparisonTrace = comparison ? tracePoints(comparison.points) : [];
   const outsideCount = reference.points.filter((point) => point.reflectionMagnitude > 1).length
@@ -60,19 +60,6 @@ export function SweepSmithChart({ reference, referenceName, comparison, comparis
     </svg>
     <figcaption><span>The trace shows how complex impedance moves with frequency; the centre is a match to each file’s reference impedance.</span>{outsideCount > 0 && <strong>{outsideCount.toLocaleString()} active or calibration-error {outsideCount === 1 ? 'point lies' : 'points lie'} outside the passive-chart boundary and {outsideCount === 1 ? 'is' : 'are'} clipped.</strong>}</figcaption>
   </figure>;
-}
-
-export function nearestPoint(points: TouchstonePoint[], frequencyHz: number) {
-  let low = 0;
-  let high = points.length - 1;
-  while (low < high) {
-    const middle = Math.floor((low + high) / 2);
-    if (points[middle].frequencyHz < frequencyHz) low = middle + 1;
-    else high = middle;
-  }
-  if (low === 0) return points[0];
-  const previous = points[low - 1];
-  return Math.abs(previous.frequencyHz - frequencyHz) <= Math.abs(points[low].frequencyHz - frequencyHz) ? previous : points[low];
 }
 
 function tracePoints(points: TouchstonePoint[]) {

@@ -7,6 +7,7 @@
 
 import { expect, test } from '@playwright/test';
 import { Buffer } from 'node:buffer';
+import { readFile } from 'node:fs/promises';
 
 test.beforeEach(async ({ page }, testInfo) => {
   await page.goto('./');
@@ -2147,6 +2148,34 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
   await expect(comparison).toContainText('1.000 : 1');
   await expect(comparison).toContainText('−0.046 SWR');
   await expect(page.getByText('Comparison near this frequency:')).toBeVisible();
+
+  await page.getByText('Document and export this measurement').click();
+  await page.getByLabel('Measurement title').fill('20 m dipole final tuning');
+  await page.getByLabel('Reference state').fill('Before trim');
+  await page.getByLabel('Comparison state').fill('After trim');
+  await page.getByLabel('Calibration, reference plane, instrument, and conditions').fill('NanoVNA calibrated at the feedpoint; antenna at installed height.');
+  const printable = page.getByLabel('Printable antenna sweep measurement summary');
+  await expect(printable).toContainText('20 m dipole final tuning');
+  await expect(printable).toContainText('NanoVNA calibrated at the feedpoint');
+  await expect(printable).toContainText('Before trim sweep');
+  await expect(printable).toContainText('After trim sweep');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download point CSV' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('20-m-dipole-final-tuning-measurement.csv');
+  const csv = await readFile(await download.path(), 'utf8');
+  expect(csv.trim().split('\r\n')).toHaveLength(8);
+  expect(csv).toContain('comparison_frequency_hz,frequency_offset_hz');
+  expect(csv).toContain('twenty-metres-after.s1p');
+  await expect(page.getByRole('status')).toContainText('Downloaded 7 reference points with nearest comparison samples as CSV.');
+
+  await page.evaluate(() => {
+    window.print = () => { document.body.dataset.sweepPrintCalled = 'true'; };
+  });
+  await page.getByRole('button', { name: 'Print measurement summary' }).click();
+  await expect.poll(() => page.evaluate(() => document.body.dataset.sweepPrintCalled)).toBe('true');
+  await expect.poll(() => page.evaluate(() => document.body.classList.contains('sweep-report-print'))).toBe(false);
 
   const marker = page.getByLabel('Sweep inspection point');
   await marker.fill('0');

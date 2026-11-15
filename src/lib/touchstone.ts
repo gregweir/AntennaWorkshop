@@ -24,6 +24,12 @@ export interface TouchstoneSweep {
   points: TouchstonePoint[];
 }
 
+export interface TouchstoneSweepSummary {
+  best: TouchstonePoint;
+  resonant: TouchstonePoint;
+  twoToOne: { lower: TouchstonePoint; upper: TouchstonePoint } | null;
+}
+
 const unitScale: Record<string, number> = { hz: 1, khz: 1e3, mhz: 1e6, ghz: 1e9 };
 
 function pointFromReflection(frequencyHz: number, real: number, imaginary: number, reference: number): TouchstonePoint {
@@ -98,4 +104,33 @@ export function parseTouchstoneS1p(source: string): TouchstoneSweep {
     if (points[index].frequencyHz <= points[index - 1].frequencyHz) throw new Error('Sweep frequencies must be strictly increasing.');
   }
   return { format, referenceImpedanceOhms: reference, points };
+}
+
+export function summarizeTouchstoneSweep(sweep: TouchstoneSweep): TouchstoneSweepSummary {
+  const bestIndex = sweep.points.reduce((best, point, index) => point.swr < sweep.points[best].swr ? index : best, 0);
+  const resonant = sweep.points.reduce((best, point) => Math.abs(point.reactanceOhms) < Math.abs(best.reactanceOhms) ? point : best);
+  let lowerIndex = bestIndex;
+  let upperIndex = bestIndex;
+  if (sweep.points[bestIndex].swr <= 2) {
+    while (lowerIndex > 0 && sweep.points[lowerIndex - 1].swr <= 2) lowerIndex -= 1;
+    while (upperIndex < sweep.points.length - 1 && sweep.points[upperIndex + 1].swr <= 2) upperIndex += 1;
+  }
+  return {
+    best: sweep.points[bestIndex],
+    resonant,
+    twoToOne: sweep.points[bestIndex].swr <= 2 ? { lower: sweep.points[lowerIndex], upper: sweep.points[upperIndex] } : null
+  };
+}
+
+export function nearestTouchstonePoint(points: TouchstonePoint[], frequencyHz: number) {
+  let low = 0;
+  let high = points.length - 1;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (points[middle].frequencyHz < frequencyHz) low = middle + 1;
+    else high = middle;
+  }
+  if (low === 0) return points[0];
+  const previous = points[low - 1];
+  return Math.abs(previous.frequencyHz - frequencyHz) <= Math.abs(points[low].frequencyHz - frequencyHz) ? previous : points[low];
 }

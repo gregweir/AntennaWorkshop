@@ -5738,6 +5738,107 @@ select {
   margin: 0;
 }
 
+.sweep-report-tools {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-soft);
+}
+
+.sweep-report-tools > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+}
+
+.sweep-report-tools > summary span,
+.sweep-report-tools > summary strong,
+.sweep-report-tools > summary small {
+  display: block;
+}
+
+.sweep-report-tools > summary small {
+  margin-top: 0.2rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.sweep-report-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.sweep-report-fields label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.sweep-report-fields input,
+.sweep-report-fields textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 400;
+}
+
+.sweep-report-fields textarea {
+  resize: vertical;
+}
+
+.sweep-report-context {
+  grid-column: 1 / -1;
+}
+
+.sweep-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.sweep-report-actions button {
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-md);
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sweep-report-actions button + button {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.sweep-report-tools .workflow-message,
+.sweep-report-limit {
+  margin: 0 1.25rem 1rem;
+}
+
+.sweep-report-limit {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.sweep-print-report {
+  display: none;
+}
+
 .sweep-placeholder {
   min-height: 240px;
   display: grid;
@@ -6096,6 +6197,15 @@ select {
   .sweep-comparison-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .sweep-report-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .sweep-report-actions,
+  .sweep-report-actions button {
+    width: 100%;
   }
 
   .sweep-summary-grid,
@@ -12193,6 +12303,138 @@ body.diagram-view-open {
   }
 
   .acma-print-report footer p {
+    margin: 0.7mm 0;
+  }
+
+  body.sweep-report-print .feedline-workspace > :not(.measured-sweep-workbench),
+  body.sweep-report-print .measured-sweep-workbench > :not(.sweep-print-report) {
+    display: none !important;
+  }
+
+  body.sweep-report-print .feedline-workspace,
+  body.sweep-report-print .measured-sweep-workbench,
+  body.sweep-report-print .sweep-print-report {
+    display: block !important;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: white;
+    box-shadow: none;
+  }
+
+  body.sweep-report-print .sweep-print-report {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    line-height: 1.35;
+  }
+
+  body.sweep-report-print .sweep-print-heading {
+    display: flex;
+    gap: 5mm;
+    align-items: center;
+    padding-bottom: 5mm;
+    border-bottom: 2px solid #163348;
+  }
+
+  body.sweep-report-print .sweep-print-heading img {
+    width: 15mm;
+    height: 15mm;
+    object-fit: contain;
+  }
+
+  body.sweep-report-print .sweep-print-heading p,
+  body.sweep-report-print .sweep-print-heading h1,
+  body.sweep-report-print .sweep-print-heading span {
+    margin: 0;
+  }
+
+  body.sweep-report-print .sweep-print-heading p,
+  body.sweep-report-print .sweep-print-heading span {
+    color: #4b5862;
+    font-size: 8pt;
+  }
+
+  body.sweep-report-print .sweep-print-heading h1 {
+    margin-block: 1mm;
+    font-size: 18pt;
+    line-height: 1.1;
+  }
+
+  body.sweep-report-print .sweep-print-warning {
+    display: grid;
+    gap: 1mm;
+    margin: 5mm 0;
+    padding: 3mm;
+    border: 1px solid #a14135;
+    border-left-width: 4px;
+    background: #fff8f6;
+  }
+
+  body.sweep-report-print .sweep-print-warning span,
+  body.sweep-report-print footer {
+    font-size: 8pt;
+  }
+
+  body.sweep-report-print .sweep-print-report section {
+    margin: 5mm 0;
+  }
+
+  body.sweep-report-print .sweep-print-report h2 {
+    margin: 0 0 2mm;
+    padding-bottom: 1mm;
+    border-bottom: 1px solid #87959f;
+    color: #163348;
+    font-size: 12pt;
+    break-after: avoid;
+  }
+
+  body.sweep-report-print .sweep-print-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid #c8ced2;
+    border-left: 1px solid #c8ced2;
+  }
+
+  body.sweep-report-print .sweep-print-field {
+    min-width: 0;
+    padding: 2mm;
+    border-right: 1px solid #c8ced2;
+    border-bottom: 1px solid #c8ced2;
+    break-inside: avoid;
+  }
+
+  body.sweep-report-print .sweep-print-wide {
+    grid-column: 1 / -1;
+  }
+
+  body.sweep-report-print .sweep-print-field dt {
+    margin-bottom: 0.7mm;
+    color: #4b5862;
+    font-size: 6.5pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  body.sweep-report-print .sweep-print-field dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  body.sweep-report-print .sweep-print-report footer {
+    margin-top: 7mm;
+    padding-top: 3mm;
+    border-top: 2px solid #163348;
+    color: #4b5862;
+    overflow-wrap: anywhere;
+  }
+
+  body.sweep-report-print .sweep-print-report footer p {
     margin: 0.7mm 0;
   }
 

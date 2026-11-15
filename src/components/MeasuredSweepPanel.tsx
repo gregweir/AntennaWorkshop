@@ -7,10 +7,11 @@
 
 import { useMemo, useState, type ChangeEvent } from 'react';
 import { getBandsForJurisdiction } from '../bands/catalog';
-import { parseTouchstoneS1p, type TouchstonePoint, type TouchstoneSweep } from '../lib/touchstone';
+import { nearestTouchstonePoint, parseTouchstoneS1p, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary } from '../lib/touchstone';
+import { serializeTouchstoneComparisonCsv, touchstoneReportFilename } from '../lib/touchstoneReport';
 import type { JurisdictionCode } from '../regulations/catalog';
 import { StepByStepHelp } from './ContextHelp';
-import { nearestPoint, SweepSmithChart } from './SweepSmithChart';
+import { SweepSmithChart } from './SweepSmithChart';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -26,11 +27,16 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
   const [comparison, setComparison] = useState<TouchstoneSweep | null>(null);
   const [comparisonFileName, setComparisonFileName] = useState('');
   const [comparisonError, setComparisonError] = useState('');
+  const [reportTitle, setReportTitle] = useState('');
+  const [calibrationContext, setCalibrationContext] = useState('');
+  const [referenceState, setReferenceState] = useState('Reference');
+  const [comparisonState, setComparisonState] = useState('Comparison');
+  const [downloadMessage, setDownloadMessage] = useState('');
 
-  const analysis = useMemo(() => sweep ? analyseSweep(sweep) : null, [sweep]);
-  const comparisonAnalysis = useMemo(() => comparison ? analyseSweep(comparison) : null, [comparison]);
+  const analysis = useMemo(() => sweep ? summarizeTouchstoneSweep(sweep) : null, [sweep]);
+  const comparisonAnalysis = useMemo(() => comparison ? summarizeTouchstoneSweep(comparison) : null, [comparison]);
   const selected = sweep?.points[Math.min(selectedIndex, sweep.points.length - 1)] ?? null;
-  const selectedComparison = selected && comparison ? nearestPoint(comparison.points, selected.frequencyHz) : null;
+  const selectedComparison = selected && comparison ? nearestTouchstonePoint(comparison.points, selected.frequencyHz) : null;
   const bands = useMemo(() => {
     if (!sweep) return [];
     const lowerMHz = Math.min(sweep.points[0].frequencyHz, comparison?.points[0].frequencyHz ?? Number.POSITIVE_INFINITY) / 1e6;
@@ -71,6 +77,33 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
     }
   }
 
+  function downloadCsv() {
+    if (!sweep) return;
+    const context = { title: reportTitle, calibrationContext, referenceState, comparisonState };
+    const csv = serializeTouchstoneComparisonCsv(context, { fileName, sweep }, comparison ? { fileName: comparisonFileName, sweep: comparison } : null);
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = touchstoneReportFilename(reportTitle || fileName.replace(/\.s1p$/i, ''));
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setDownloadMessage(`Downloaded ${sweep.points.length.toLocaleString()} reference ${sweep.points.length === 1 ? 'point' : 'points'}${comparison ? ' with nearest comparison samples' : ''} as CSV.`);
+  }
+
+  function printReport() {
+    const printClass = 'sweep-report-print';
+    const cleanup = () => document.body.classList.remove(printClass);
+    document.body.classList.add(printClass);
+    window.addEventListener('afterprint', cleanup, { once: true });
+    try {
+      window.print();
+    } finally {
+      window.setTimeout(cleanup, 0);
+    }
+  }
+
   return <div className="measured-sweep-workbench">
     <StepByStepHelp title="Measure, import, and interpret a sweep" intro="Use the same reference plane and installation state throughout. The file stays in this browser and is not uploaded." steps={[
       { title: 'Calibrate at the intended reference plane', detail: 'Perform open, short, and load calibration at the cable end or fixture plane where the result must apply.' },
@@ -93,6 +126,18 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
         <div className="sweep-comparison-actions"><label className="sweep-file-button sweep-file-button-secondary"><span>{comparisonFileName || 'Add comparison .s1p'}</span><input aria-label="Choose comparison .s1p file" type="file" accept=".s1p" onChange={loadComparison} /></label>{comparison && <button type="button" onClick={() => { setComparison(null); setComparisonFileName(''); setComparisonError(''); }}>Remove comparison</button>}</div>
       </section>
       {comparisonError && <p className="form-error sweep-error" role="alert">{comparisonError}</p>}
+      <details className="sweep-report-tools">
+        <summary><span><strong>Document and export this measurement</strong><small>Add reference-plane context, download the complete point grid, or print a concise handoff.</small></span></summary>
+        <div className="sweep-report-fields">
+          <label><span>Measurement title</span><input value={reportTitle} maxLength={120} placeholder="Example: 20 m dipole final tuning" onChange={(event) => setReportTitle(event.target.value)} /></label>
+          <label><span>Reference state</span><input value={referenceState} maxLength={80} placeholder="Example: Before trim" onChange={(event) => setReferenceState(event.target.value)} /></label>
+          <label><span>Comparison state</span><input value={comparisonState} maxLength={80} placeholder="Example: After trim" disabled={!comparison} onChange={(event) => setComparisonState(event.target.value)} /></label>
+          <label className="sweep-report-context"><span>Calibration, reference plane, instrument, and conditions</span><textarea value={calibrationContext} maxLength={1200} rows={3} placeholder="Record where calibration was established and the setup details needed to reproduce the sweep." onChange={(event) => setCalibrationContext(event.target.value)} /></label>
+        </div>
+        <div className="sweep-report-actions"><button type="button" onClick={downloadCsv}>Download point CSV</button><button type="button" onClick={printReport}>Print measurement summary</button></div>
+        {downloadMessage && <p className="workflow-message" role="status">{downloadMessage}</p>}
+        <p className="sweep-report-limit">The CSV aligns each reference frequency with the nearest measured comparison point and includes the frequency offset. Neither export identifies why the response changed.</p>
+      </details>
       <div className="sweep-summary-grid" aria-label="Sweep summary">
         <SweepMetric label="Lowest SWR" value={`${formatRatio(analysis.best.swr)} : 1`} detail={`at ${formatMHz(analysis.best.frequencyHz)}`} />
         <SweepMetric label="2:1 span around minimum" value={analysis.twoToOne ? `${formatMHz(analysis.twoToOne.lower.frequencyHz)}–${formatMHz(analysis.twoToOne.upper.frequencyHz)}` : 'No points at or below 2:1'} detail={analysis.twoToOne ? formatBandwidth(analysis.twoToOne.upper.frequencyHz - analysis.twoToOne.lower.frequencyHz) : 'Review the calibration plane and antenna system.'} />
@@ -127,6 +172,7 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
         <article className="caution-card"><p className="eyebrow">Measurement boundary</p><h3>The calibration plane defines the result</h3><p>Adapters, feedline, fixtures, nearby conductors, weather, installation height, and common-mode current can move the trace. Save the calibration and setup details with each file, and remeasure after final installation.</p></article>
         <article className="provenance-card"><p className="eyebrow">File interpretation</p><h3>Touchstone one-port S11</h3><p>The importer converts the complex reflection coefficient to impedance, SWR, and return loss using the file reference impedance. It does not modify the measured data or infer antenna efficiency.</p><ul><li><a href="https://www.ibis.org/touchstone_ver2.0/" target="_blank" rel="noreferrer">IBIS Touchstone specification</a></li></ul><small>Importer 1.0 · Touchstone 1.x subset</small></article>
       </div>
+      <SweepPrintReport title={reportTitle} calibrationContext={calibrationContext} referenceState={referenceState} comparisonState={comparisonState} reference={sweep} referenceName={fileName} referenceAnalysis={analysis} selected={selected} comparison={comparison} comparisonName={comparisonFileName} comparisonAnalysis={comparisonAnalysis} comparisonSelected={selectedComparison} />
     </>}
   </div>;
 }
@@ -138,10 +184,10 @@ function SweepMetric({ label, value, detail }: { label: string; value: string; d
 function SweepComparisonTable({ reference, referenceName, referenceAnalysis, comparison, comparisonName, comparisonAnalysis, selected, comparisonSelected }: {
   reference: TouchstoneSweep;
   referenceName: string;
-  referenceAnalysis: ReturnType<typeof analyseSweep>;
+  referenceAnalysis: TouchstoneSweepSummary;
   comparison: TouchstoneSweep;
   comparisonName: string;
-  comparisonAnalysis: ReturnType<typeof analyseSweep>;
+  comparisonAnalysis: TouchstoneSweepSummary;
   selected: TouchstonePoint;
   comparisonSelected: TouchstonePoint;
 }) {
@@ -163,20 +209,37 @@ function SweepComparisonTable({ reference, referenceName, referenceAnalysis, com
   </section>;
 }
 
-function analyseSweep(sweep: TouchstoneSweep) {
-  const bestIndex = sweep.points.reduce((best, point, index) => point.swr < sweep.points[best].swr ? index : best, 0);
-  const resonant = sweep.points.reduce((best, point) => Math.abs(point.reactanceOhms) < Math.abs(best.reactanceOhms) ? point : best);
-  let lowerIndex = bestIndex;
-  let upperIndex = bestIndex;
-  if (sweep.points[bestIndex].swr <= 2) {
-    while (lowerIndex > 0 && sweep.points[lowerIndex - 1].swr <= 2) lowerIndex -= 1;
-    while (upperIndex < sweep.points.length - 1 && sweep.points[upperIndex + 1].swr <= 2) upperIndex += 1;
-  }
-  return {
-    best: sweep.points[bestIndex],
-    resonant,
-    twoToOne: sweep.points[bestIndex].swr <= 2 ? { lower: sweep.points[lowerIndex], upper: sweep.points[upperIndex] } : null
-  };
+function SweepPrintReport({ title, calibrationContext, referenceState, comparisonState, reference, referenceName, referenceAnalysis, selected, comparison, comparisonName, comparisonAnalysis, comparisonSelected }: {
+  title: string;
+  calibrationContext: string;
+  referenceState: string;
+  comparisonState: string;
+  reference: TouchstoneSweep;
+  referenceName: string;
+  referenceAnalysis: TouchstoneSweepSummary;
+  selected: TouchstonePoint;
+  comparison: TouchstoneSweep | null;
+  comparisonName: string;
+  comparisonAnalysis: TouchstoneSweepSummary | null;
+  comparisonSelected: TouchstonePoint | null;
+}) {
+  return <article className="sweep-print-report" aria-label="Printable antenna sweep measurement summary">
+    <header className="sweep-print-heading"><img src="/antennas/TartanleafLogo.jpg" alt="" width="64" height="64" /><div><p>RadioBook Antenna Workshop · Measured sweep record</p><h1>{title.trim() || 'Antenna sweep measurement'}</h1><span>Touchstone 1.x one-port S11 summary</span></div></header>
+    <div className="sweep-print-warning"><strong>Measurement record — not a diagnosis or compliance document</strong><span>This report reproduces imported analyser data and user-entered context. It does not verify calibration, infer antenna efficiency, identify why a response changed, establish safe power, or determine regulatory compliance.</span></div>
+    <section><h2>Measurement context</h2><dl className="sweep-print-grid"><PrintField label="Calibration and reference plane" value={calibrationContext} wide /><PrintField label="Reference state" value={referenceState} /><PrintField label="Comparison state" value={comparison ? comparisonState : 'No comparison loaded'} /><PrintField label="Generated" value={new Date().toLocaleString()} /></dl></section>
+    <section><h2>{referenceState.trim() || 'Reference'} sweep</h2><dl className="sweep-print-grid"><PrintField label="Source file" value={referenceName} /><PrintField label="Reference impedance" value={`${reference.referenceImpedanceOhms} Ω`} /><PrintField label="Sweep coverage" value={`${formatMHz(reference.points[0].frequencyHz)}–${formatMHz(reference.points.at(-1)!.frequencyHz)} · ${reference.points.length.toLocaleString()} points`} wide /><PrintField label="Lowest SWR" value={`${formatRatio(referenceAnalysis.best.swr)} : 1 at ${formatMHz(referenceAnalysis.best.frequencyHz)}`} /><PrintField label="Closest sampled resonance" value={`${formatMHz(referenceAnalysis.resonant.frequencyHz)} · ${formatImpedance(referenceAnalysis.resonant)}`} /><PrintField label="Contiguous 2:1 span" value={formatTwoToOne(referenceAnalysis)} /></dl></section>
+    {comparison && comparisonAnalysis && <section><h2>{comparisonState.trim() || 'Comparison'} sweep</h2><dl className="sweep-print-grid"><PrintField label="Source file" value={comparisonName} /><PrintField label="Reference impedance" value={`${comparison.referenceImpedanceOhms} Ω`} /><PrintField label="Sweep coverage" value={`${formatMHz(comparison.points[0].frequencyHz)}–${formatMHz(comparison.points.at(-1)!.frequencyHz)} · ${comparison.points.length.toLocaleString()} points`} wide /><PrintField label="Lowest SWR" value={`${formatRatio(comparisonAnalysis.best.swr)} : 1 at ${formatMHz(comparisonAnalysis.best.frequencyHz)} · change ${formatSigned(comparisonAnalysis.best.swr - referenceAnalysis.best.swr, 3)} SWR`} /><PrintField label="Closest sampled resonance" value={`${formatMHz(comparisonAnalysis.resonant.frequencyHz)} · ${formatImpedance(comparisonAnalysis.resonant)} · shift ${formatSignedFrequency(comparisonAnalysis.resonant.frequencyHz - referenceAnalysis.resonant.frequencyHz)}`} /><PrintField label="Contiguous 2:1 span" value={`${formatTwoToOne(comparisonAnalysis)}${comparisonAnalysis.twoToOne && referenceAnalysis.twoToOne ? ` · width change ${formatSignedFrequency((comparisonAnalysis.twoToOne.upper.frequencyHz - comparisonAnalysis.twoToOne.lower.frequencyHz) - (referenceAnalysis.twoToOne.upper.frequencyHz - referenceAnalysis.twoToOne.lower.frequencyHz))}` : ''}`} /></dl></section>}
+    <section><h2>Selected inspection point</h2><dl className="sweep-print-grid"><PrintField label={`${referenceState.trim() || 'Reference'} point`} value={`${formatMHz(selected.frequencyHz)} · ${formatRatio(selected.swr)} : 1 · ${formatDecibels(selected.returnLossDb)} return loss · ${formatImpedance(selected)}`} wide />{comparisonSelected && <PrintField label={`${comparisonState.trim() || 'Comparison'} nearest point`} value={`${formatMHz(comparisonSelected.frequencyHz)} · ${formatRatio(comparisonSelected.swr)} : 1 · ${formatDecibels(comparisonSelected.returnLossDb)} return loss · ${formatImpedance(comparisonSelected)} · change ${formatSigned(comparisonSelected.swr - selected.swr, 3)} SWR`} wide />}</dl></section>
+    <footer><p>The companion CSV contains every reference point and, when loaded, the nearest comparison point with its frequency offset.</p><p>Generated from RadioBook Antenna Workshop · Tartanleaf.com Inc. · Greg Weir, VA1GW</p></footer>
+  </article>;
+}
+
+function PrintField({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
+  return <div className={wide ? 'sweep-print-field sweep-print-wide' : 'sweep-print-field'}><dt>{label}</dt><dd>{value.trim() || 'Not recorded'}</dd></div>;
+}
+
+function formatTwoToOne(summary: TouchstoneSweepSummary) {
+  return summary.twoToOne ? `${formatMHz(summary.twoToOne.lower.frequencyHz)}–${formatMHz(summary.twoToOne.upper.frequencyHz)} · ${formatBandwidth(summary.twoToOne.upper.frequencyHz - summary.twoToOne.lower.frequencyHz)}` : 'No measured points at or below 2:1';
 }
 
 function SweepChart({ sweep, comparison, selectedIndex, bands }: { sweep: TouchstoneSweep; comparison: TouchstoneSweep | null; selectedIndex: number; bands: ReturnType<typeof getBandsForJurisdiction> }) {
@@ -195,7 +258,7 @@ function SweepChart({ sweep, comparison, selectedIndex, bands }: { sweep: Touchs
   const comparisonSampleEvery = comparison ? Math.max(1, Math.ceil(comparison.points.length / 1200)) : 1;
   const comparisonPlotPoints = comparison?.points.filter((_, index) => index % comparisonSampleEvery === 0 || index === comparison.points.length - 1) ?? [];
   const selected = sweep.points[selectedIndex];
-  const comparisonSelected = comparison ? nearestPoint(comparison.points, selected.frequencyHz) : null;
+  const comparisonSelected = comparison ? nearestTouchstonePoint(comparison.points, selected.frequencyHz) : null;
   const visibleBands = bands.flatMap((band) => (band.segments ?? [{ lowerMHz: band.lowerMHz, upperMHz: band.upperMHz }]).map((segment) => ({ ...segment, id: band.id })));
   const tickValues = [1, 2, ...Array.from({ length: Math.max(0, yMaximum - 2) }, (_, index) => index + 3)].filter((value) => value <= yMaximum);
 
