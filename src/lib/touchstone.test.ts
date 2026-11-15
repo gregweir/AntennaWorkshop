@@ -43,6 +43,13 @@ describe('Touchstone one-port parser', () => {
     expect(() => parseTouchstoneS1p('# MHz Z RI R 50\n1 50 0')).toThrow(/scattering/);
     expect(() => parseTouchstoneS1p('# MHz S RI R 50\n2 0 0\n1 0 0')).toThrow(/increasing/);
     expect(() => parseTouchstoneS1p('# MHz S RI R 50\nnot data')).toThrow(/data row/);
+    expect(() => parseTouchstoneS1p('# MHz S RI mystery\n1 0 0')).toThrow(/Unsupported Touchstone option/);
     expect(() => parseTouchstoneS1p('! comments only')).toThrow(/No one-port/);
+  });
+
+  it('represents an ideal open circuit without producing NaN impedance', () => {
+    const point = parseTouchstoneS1p('# MHz S RI R 50\n1 1 0').points[0];
+    expect(point.resistanceOhms).toBe(Number.POSITIVE_INFINITY);
+    expect(point.reactanceOhms).toBe(0);
   });
 });

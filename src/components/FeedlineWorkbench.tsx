@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { calculateCoaxialStub, calculateFeedlineBudget, calculateRadiatedPower, COAXIAL_STUB_MODEL, FEEDLINE_MODEL, RADIATED_POWER_MODEL, type GainReference, type StubFraction, type StubTermination } from '../calculators/feedline';
 import { calculateLNetwork, L_NETWORK_MODEL } from '../calculators/lNetwork';
@@ -33,6 +33,8 @@ import { DiagramControls } from './DiagramControls';
 import { InputImpactPanel } from './InputImpactPanel';
 import { StartingValuesBar } from './StartingValuesBar';
 import type { FeedlineTool } from '../preferences';
+
+const MeasuredSweepPanel = lazy(() => import('./MeasuredSweepPanel'));
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -145,7 +147,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
   const antennaNorthDisplay = unitSystem === 'metric' ? antennaNorthMetres : metresToFeet(antennaNorthMetres);
   const startingFrequencyMHz = antennaHandoff?.frequencyMHz ?? FEEDLINE_STARTING.frequencyMHz;
   const frequencyIsModified = !antennaHandoff && frequencyMHz !== startingFrequencyMHz;
-  const startingValueCount = mode === 'power' ? countModified(
+  const startingValueCount = mode === 'sweep' ? 0 : mode === 'power' ? countModified(
     frequencyIsModified,
     transmitterPowerWatts !== FEEDLINE_STARTING.transmitterPowerWatts,
     cableLengthMetres !== FEEDLINE_STARTING.cableLengthMetres,
@@ -199,7 +201,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
     Boolean(antennaHandoff) && antennaEastMetres !== FEEDLINE_STARTING.antennaEastMetres,
     Boolean(antennaHandoff) && antennaNorthMetres !== FEEDLINE_STARTING.antennaNorthMetres
   );
-  const startingValueScope = mode === 'power' ? 'Power budget inputs' : mode === 'stub' ? 'Coaxial stub inputs' : mode === 'explore' ? 'Impedance explorer inputs' : mode === 'line' ? 'Line transformation inputs' : mode === 'match' ? 'L-network inputs' : mode === 'transformer' ? 'Quarter-wave transformer inputs' : mode === 'ratio' ? 'Balun and unun ratio inputs' : 'ERP and EIRP inputs';
+  const startingValueScope = mode === 'sweep' ? 'Imported measurement' : mode === 'power' ? 'Power budget inputs' : mode === 'stub' ? 'Coaxial stub inputs' : mode === 'explore' ? 'Impedance explorer inputs' : mode === 'line' ? 'Line transformation inputs' : mode === 'match' ? 'L-network inputs' : mode === 'transformer' ? 'Quarter-wave transformer inputs' : mode === 'ratio' ? 'Balun and unun ratio inputs' : 'ERP and EIRP inputs';
   const restoreStartingValues = () => {
     if (!antennaHandoff && mode !== 'ratio') setFrequencyText(startingFrequencyMHz.toString());
     if (mode === 'power') {
@@ -339,7 +341,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
   }, [antennaGainDb, feedSystemLossDb, gainReference, transmitterPowerWatts]);
 
   const result = mode === 'power' ? powerResult : mode === 'stub' ? stubResult : mode === 'explore' ? explorerResult : mode === 'line' ? lineResult : mode === 'match' ? matchResult : mode === 'transformer' ? transformerResult : mode === 'ratio' ? ratioResult : radiatedResult;
-  const model = mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : mode === 'explore' ? IMPEDANCE_EXPLORER_MODEL : mode === 'line' ? TRANSMISSION_LINE_CASCADE_MODEL : mode === 'match' ? L_NETWORK_MODEL : mode === 'transformer' ? QUARTER_WAVE_TRANSFORMER_MODEL : mode === 'ratio' ? IDEAL_TRANSFORMER_MODEL : RADIATED_POWER_MODEL;
+  const model = mode === 'sweep' ? { version: '1.0' } : mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : mode === 'explore' ? IMPEDANCE_EXPLORER_MODEL : mode === 'line' ? TRANSMISSION_LINE_CASCADE_MODEL : mode === 'match' ? L_NETWORK_MODEL : mode === 'transformer' ? QUARTER_WAVE_TRANSFORMER_MODEL : mode === 'ratio' ? IDEAL_TRANSFORMER_MODEL : RADIATED_POWER_MODEL;
   const inputImpact = !result ? {
     current: 'One or more entries are outside the accepted range, so no calculated consequence is shown until the inputs are valid.',
     why: 'Each tool keeps physical inputs and reference planes explicit so a changed number can be traced to the result it affects.',
@@ -384,7 +386,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
 
   return <section className="workspace shell feedline-workspace" id="calculator" aria-labelledby="calculator-title" tabIndex={-1}>
     <div className="workspace-heading">
-      <div><p className="eyebrow">Feedline and matching</p><h2 id="calculator-title">{mode === 'power' ? 'Feedline power budget' : mode === 'stub' ? 'Coaxial stub length' : mode === 'explore' ? 'Impedance and Smith chart' : mode === 'line' ? 'Transmission-line transformation' : mode === 'match' ? 'L-network matching' : mode === 'transformer' ? 'Quarter-wave transformer' : mode === 'ratio' ? 'Balun and unun ratio' : 'ERP and EIRP'}</h2></div>
+      <div><p className="eyebrow">Feedline and matching</p><h2 id="calculator-title">{mode === 'power' ? 'Feedline power budget' : mode === 'stub' ? 'Coaxial stub length' : mode === 'explore' ? 'Impedance and Smith chart' : mode === 'sweep' ? 'Measured sweep' : mode === 'line' ? 'Transmission-line transformation' : mode === 'match' ? 'L-network matching' : mode === 'transformer' ? 'Quarter-wave transformer' : mode === 'ratio' ? 'Balun and unun ratio' : 'ERP and EIRP'}</h2></div>
       <span className="model-badge">Model {model.version}</span>
     </div>
     {antennaHandoff && <section className="linked-workflow" aria-labelledby="linked-antenna-heading"><div><p className="eyebrow">Linked antenna design</p><h3 id="linked-antenna-heading">{antennaHandoff.label}</h3><p>Frequency and largest physical dimension came from the antenna calculator. Complete the system and exposure-specific inputs below.</p></div><dl><div><dt>Frequency</dt><dd>{antennaHandoff.frequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(antennaHandoff.largestDimensionMetres, unitSystem)}</dd></div><div><dt>Design model</dt><dd>{antennaHandoff.antennaModelId} {antennaHandoff.antennaModelVersion}</dd></div></dl></section>}
@@ -392,6 +394,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
       <button type="button" aria-pressed={mode === 'power'} onClick={() => setMode('power')}><strong>Power budget</strong><small>Loss, SWR, and accepted power</small></button>
       <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
       <button type="button" aria-pressed={mode === 'explore'} onClick={() => setMode('explore')}><strong>Impedance explorer</strong><small>R + jX, reflection, and Smith chart</small></button>
+      <button type="button" aria-pressed={mode === 'sweep'} onClick={() => setMode('sweep')}><strong>Measured sweep</strong><small>Local `.s1p` response and bandwidth</small></button>
       <button type="button" aria-pressed={mode === 'line'} onClick={() => setMode('line')}><strong>Line transformation</strong><small>Load impedance at the cable input</small></button>
       <button type="button" aria-pressed={mode === 'match'} onClick={() => setMode('match')}><strong>L-network</strong><small>Measured complex load to system resistance</small></button>
       <button type="button" aria-pressed={mode === 'transformer'} onClick={() => setMode('transformer')}><strong>Quarter-wave transformer</strong><small>Real resistances through a 90° line</small></button>
@@ -399,6 +402,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
       <button type="button" aria-pressed={mode === 'radiated'} onClick={() => setMode('radiated')}><strong>ERP / EIRP</strong><small>Loss, gain, and reference power</small></button>
     </div>
     <ResultEvidenceKey />
+    {mode === 'sweep' ? <Suspense fallback={<div className="diagram-placeholder">Loading the measured-sweep workbench…</div>}><MeasuredSweepPanel jurisdiction={jurisdiction} /></Suspense> : <>
     {mode === 'power' && <StepByStepHelp title="Plan and verify a feedline budget" intro="Use this sequence to turn cable and accessory specifications into a traceable first-order power estimate. Experienced operators can leave the guide closed." steps={[
       { title: 'Fix the operating frequency', detail: 'Choose the actual frequency because cable attenuation changes with frequency and the calculator does not interpolate a data sheet.' },
       { title: 'Trace the complete cable path', detail: 'Measure every indoor, outdoor, mast, jumper, and service-loop section that contributes to the feedline length.' },
@@ -674,6 +678,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
       <article className="caution-card"><p className="eyebrow">Interpretation</p><h3>Not total power radiated in every direction</h3><p>ERP and EIRP describe equivalent power in a specified direction, normally the direction of maximum gain. Confirm whether a gain figure is dBi or dBd and whether it includes antenna losses. Do not mix peak-envelope, average, or duty-cycle-adjusted power unless the governing method explicitly calls for that quantity.</p></article>
       <article className="provenance-card"><p className="eyebrow">Method and sources</p><h3>Model {RADIATED_POWER_MODEL.version}</h3><p>The calculation subtracts transmission losses in decibels, converts the stated antenna gain reference, and reports both equivalent powers. It does not calculate radiation patterns, near-field behaviour, or regulatory compliance.</p><ul>{RADIATED_POWER_MODEL.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul><small>Model ID: {RADIATED_POWER_MODEL.id} · Reviewed {RADIATED_POWER_MODEL.reviewedOn}</small></article>
     </div>}
+    </>}
   </section>;
 }
 

@@ -29,8 +29,8 @@ const unitScale: Record<string, number> = { hz: 1, khz: 1e3, mhz: 1e6, ghz: 1e9 
 function pointFromReflection(frequencyHz: number, real: number, imaginary: number, reference: number): TouchstonePoint {
   const magnitude = Math.hypot(real, imaginary);
   const denominator = (1 - real) ** 2 + imaginary ** 2;
-  const resistanceOhms = reference * (1 - magnitude ** 2) / denominator;
-  const reactanceOhms = reference * (2 * imaginary) / denominator;
+  const resistanceOhms = denominator === 0 ? Number.POSITIVE_INFINITY : reference * (1 - magnitude ** 2) / denominator;
+  const reactanceOhms = denominator === 0 ? 0 : reference * (2 * imaginary) / denominator;
   return {
     frequencyHz,
     reflectionReal: real,
@@ -63,6 +63,9 @@ export function parseTouchstoneS1p(source: string): TouchstoneSweep {
       const parameter = tokens.find((token) => ['s', 'y', 'z', 'g', 'h'].includes(token)) ?? 's';
       const selectedFormat = tokens.find((token) => ['ri', 'ma', 'db'].includes(token)) ?? 'ma';
       const rIndex = tokens.indexOf('r');
+      const knownTokens = new Set([...Object.keys(unitScale), 's', 'y', 'z', 'g', 'h', 'ri', 'ma', 'db', 'r']);
+      const unknownToken = tokens.find((token, index) => token && !knownTokens.has(token) && index !== rIndex + 1);
+      if (unknownToken) throw new Error(`Unsupported Touchstone option: ${unknownToken}.`);
       const parsedReference = rIndex >= 0 ? Number(tokens[rIndex + 1]) : 50;
       if (parameter !== 's') throw new Error('Only one-port scattering-parameter data is supported.');
       if (!Number.isFinite(parsedReference) || parsedReference <= 0) throw new Error('Reference impedance must be a positive number.');

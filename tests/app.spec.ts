@@ -6,6 +6,7 @@
  */
 
 import { expect, test } from '@playwright/test';
+import { Buffer } from 'node:buffer';
 
 test.beforeEach(async ({ page }, testInfo) => {
   await page.goto('./');
@@ -2114,6 +2115,35 @@ test('calculates feedline loss and preserves physical values across unit changes
 
   await page.getByLabel('Gain reference', { exact: true }).selectOption('dBd');
   await expect(page.locator('.result-summary')).toContainText('412.10 W');
+});
+
+test('imports and explores a local one-port Touchstone sweep', async ({ page }) => {
+  await page.getByRole('button', { name: /Feedline & matching/ }).click();
+  await page.getByRole('button', { name: /Measured sweep/ }).click();
+  await expect(page.getByRole('heading', { name: 'Measured sweep' })).toBeVisible();
+  await expect(page.getByText('No sweep loaded')).toBeVisible();
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'twenty-metres.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('! calibrated antenna sweep\n# MHz S RI R 50\n14.000 0.40 -0.15\n14.100 0.24 -0.10\n14.175 0.08 -0.03\n14.250 0.02 0.01\n14.300 0.12 0.05\n14.350 0.25 0.11\n14.450 0.42 0.18')
+  });
+
+  const summary = page.getByLabel('Sweep summary');
+  await expect(summary).toContainText('1.046 : 1');
+  await expect(summary).toContainText('14.1 MHz–14.35 MHz');
+  await expect(summary).toContainText('52.03 + j1.04 Ω');
+  await expect(page.getByRole('img', { name: /SWR sweep from 14 MHz to 14.45 MHz/ })).toBeVisible();
+  await expect(page.getByText(/Allocations in view: 20 m/)).toBeVisible();
+
+  const marker = page.getByLabel('Sweep inspection point');
+  await marker.fill('0');
+  await expect(page.locator('.sweep-marker-values')).toContainText('2.492 : 1');
+  await expect(page.locator('.sweep-marker-values')).toContainText('106.86 − j39.22 Ω');
+
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Measured sweep' })).toBeVisible();
+  await expect(page.getByText('No sweep loaded')).toBeVisible();
 });
 
 test('uses consistent evidence labels for feedline and regulatory result cards', async ({ page }) => {

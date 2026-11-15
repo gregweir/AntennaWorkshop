@@ -62,8 +62,8 @@ describe('application preferences', () => {
   });
 
   it('restores supported feedline and exposure subsections', () => {
-    const storage = memoryStorage(JSON.stringify({ activeFeedlineTool: 'ratio', activeExposureView: 'acma-record' }));
-    expect(loadPreferences(storage)).toMatchObject({ activeFeedlineTool: 'ratio', activeExposureView: 'acma-record' });
+    const storage = memoryStorage(JSON.stringify({ activeFeedlineTool: 'sweep', activeExposureView: 'acma-record' }));
+    expect(loadPreferences(storage)).toMatchObject({ activeFeedlineTool: 'sweep', activeExposureView: 'acma-record' });
   });
 
   it('restores a supported antenna design', () => {

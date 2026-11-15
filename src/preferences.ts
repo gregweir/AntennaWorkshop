@@ -22,7 +22,7 @@ export interface AppPreferences {
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type WorkshopWorkspace = 'antennas' | 'feedline' | 'exposure';
-export type FeedlineTool = 'power' | 'stub' | 'explore' | 'line' | 'match' | 'transformer' | 'ratio' | 'radiated';
+export type FeedlineTool = 'power' | 'stub' | 'explore' | 'sweep' | 'line' | 'match' | 'transformer' | 'ratio' | 'radiated';
 export type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment' | 'acma-distance' | 'acma-record';
 
 interface StorageLike {
@@ -64,7 +64,7 @@ function isAntennaType(value: unknown): value is AntennaType {
 }
 
 function isFeedlineTool(value: unknown): value is FeedlineTool {
-  return value === 'power' || value === 'stub' || value === 'explore' || value === 'line'
+  return value === 'power' || value === 'stub' || value === 'explore' || value === 'sweep' || value === 'line'
     || value === 'match' || value === 'transformer' || value === 'ratio' || value === 'radiated';
 }
 
