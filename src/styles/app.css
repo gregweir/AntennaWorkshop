@@ -904,7 +904,10 @@ select {
 }
 
 .design-picker button {
+  display: flex;
+  min-height: 10.5rem;
   min-width: 0;
+  flex-direction: column;
   padding: 0.85rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -912,6 +915,13 @@ select {
   color: var(--text-primary);
   cursor: pointer;
   text-align: left;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.design-picker button:hover {
+  border-color: var(--accent-technical);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
 }
 
 .design-picker button[aria-pressed='true'] {
@@ -926,8 +936,52 @@ select {
   display: block;
 }
 
+.design-picker .design-card-heading {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.design-card-title {
+  padding-top: 0.2rem;
+}
+
+.design-family-cue {
+  display: block;
+  width: 3.6rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  color: var(--accent-technical);
+  overflow: visible;
+}
+
+.design-family-cue path,
+.design-family-cue ellipse,
+.design-family-cue circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.design-family-cue circle {
+  fill: var(--bg-surface);
+}
+
+.design-picker button[aria-pressed='true'] .design-family-cue {
+  color: var(--tl-coral);
+}
+
+.design-picker button[aria-pressed='true'] .design-family-cue circle {
+  fill: var(--tl-navy);
+}
+
 .design-picker .design-card-meta {
-  margin-top: 0.65rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 800;

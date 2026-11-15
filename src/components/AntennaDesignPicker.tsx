@@ -53,11 +53,22 @@ function DesignUseBadge({ receiveOnly }: { receiveOnly: boolean }) {
   return <span className={receiveOnly ? 'design-use-badge receive-only' : 'design-use-badge transmit-capable'}>{receiveOnly ? 'Receive only' : 'Transmit-capable geometry'}</span>;
 }
 
+function DesignFamilyCue({ category }: { category: AntennaDesignCategory }) {
+  return <svg className={`design-family-cue design-family-cue-${category}`} viewBox="0 0 64 40" aria-hidden="true" focusable="false">
+    {category === 'wire' && <><path d="M6 22h22m8 0h22" /><circle cx="32" cy="22" r="4" /><path d="M32 26v8" /></>}
+    {category === 'vertical' && <><path d="M32 5v27" /><path d="M32 32 12 37m20-5 20 5" /><circle cx="32" cy="32" r="3" /></>}
+    {category === 'directional' && <><path d="M9 21h38" /><path d="M17 8v26m10-21v18m10-15v12" /><path d="m47 15 9 6-9 6" /></>}
+    {category === 'loop' && <><ellipse cx="30" cy="20" rx="20" ry="14" /><path d="M30 34v4" /><circle cx="30" cy="34" r="3" /></>}
+    {category === 'broadband' && <><path d="M31 5v7M15 34l16-22 18 22" /><path d="M20 29h24M24 23h16" /><circle cx="31" cy="12" r="3" /></>}
+    {category === 'receive' && <><path d="M32 5 51 20 32 35 13 20Z" /><circle cx="13" cy="20" r="3" /><path d="M51 15v10m-5-10v10" /></>}
+  </svg>;
+}
+
 function DesignButtons({ types, activeType, onSelect }: { types: AntennaType[]; activeType: AntennaType; onSelect: (type: AntennaType) => void }) {
   return <div className="design-picker" aria-label="Antenna design">{types.map((type) => {
     const design = ANTENNA_DESIGNS[type];
-    return <button key={type} type="button" aria-pressed={activeType === type} onClick={() => onSelect(type)}>
-      <span className="design-card-title">{design.short}</span><small>{design.description}</small><span className="design-card-meta"><span>{categoryLabels[design.category]}</span><DesignUseBadge receiveOnly={design.receiveOnly} /></span>
+    return <button className={`design-card design-card-${design.category}`} key={type} type="button" aria-pressed={activeType === type} onClick={() => onSelect(type)}>
+      <span className="design-card-heading"><span className="design-card-title">{design.short}</span><DesignFamilyCue category={design.category} /></span><small>{design.description}</small><span className="design-card-meta"><span>{categoryLabels[design.category]}</span><DesignUseBadge receiveOnly={design.receiveOnly} /></span>
     </button>;
   })}</div>;
 }
