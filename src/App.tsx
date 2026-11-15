@@ -9,6 +9,7 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState, type Mou
 import { PwaInstallGuide } from './components/PwaInstallGuide';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
+import type { AntennaType } from './lib/antennaTypes';
 import { loadPreferences, savePreferences, type ExposureView, type FeedlineTool, type ThemePreference, type WorkshopWorkspace } from './preferences';
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
@@ -25,14 +26,15 @@ export function App() {
   const [advancedOpen, setAdvancedOpen] = useState(savedPreferences.advancedOpen);
   const [theme, setTheme] = useState<ThemePreference>(savedPreferences.theme);
   const [workshopTool, setWorkshopTool] = useState<WorkshopWorkspace>(savedPreferences.activeWorkspace);
+  const [antennaDesign, setAntennaDesign] = useState<AntennaType>(savedPreferences.activeAntennaDesign);
   const [feedlineTool, setFeedlineTool] = useState<FeedlineTool>(savedPreferences.activeFeedlineTool);
   const [exposureView, setExposureView] = useState<ExposureView>(savedPreferences.activeExposureView);
   const [antennaHandoff, setAntennaHandoff] = useState<AntennaDesignHandoff | null>(null);
   const [stationSourceTransfer, setStationSourceTransfer] = useState<StationSourceTransfer | null>(null);
 
   useEffect(() => {
-    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme, activeWorkspace: workshopTool, activeFeedlineTool: feedlineTool, activeExposureView: exposureView }, window.localStorage);
-  }, [jurisdiction, unitSystem, advancedOpen, theme, workshopTool, feedlineTool, exposureView]);
+    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme, activeWorkspace: workshopTool, activeAntennaDesign: antennaDesign, activeFeedlineTool: feedlineTool, activeExposureView: exposureView }, window.localStorage);
+  }, [jurisdiction, unitSystem, advancedOpen, theme, workshopTool, antennaDesign, feedlineTool, exposureView]);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -127,7 +129,7 @@ export function App() {
 
       <Suspense fallback={<section className="workspace shell tool-loading" role="status" aria-live="polite"><p className="eyebrow">Opening workshop</p><h2>Loading the selected tool…</h2><p>The calculator and its saved on-device data will be ready momentarily.</p></section>}>
         {workshopTool === 'antennas'
-          ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
+          ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} initialAntennaType={antennaDesign} onAntennaTypeChange={setAntennaDesign} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
           : workshopTool === 'feedline'
             ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} initialMode={feedlineTool} onModeChange={setFeedlineTool} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
             : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} initialView={exposureView} onViewChange={setExposureView} />}

@@ -5,7 +5,9 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-export type AntennaType = 'dipole' | 'folded-dipole' | 't2fd' | 'fan-dipole' | 'doublet' | 'g5rv' | 'phased-collinear' | 'turnstile' | 'halo' | 'skywire' | 'hex-beam' | 'v-beam' | 'rhombic' | 'vertical-half-rhombic' | 'loaded-dipole' | 'trap-dipole' | 'small-loop' | 'inverted-v' | 'efhw' | 'ocfd' | 'jpole' | 'slim-jim' | 'moxon' | 'cubical-quad' | 'axial-helix' | 'discone' | 'log-periodic' | 'beverage' | 'compact-receive' | 'k9ay' | 'loop-on-ground' | 'active-receive-loop' | 'yagi' | 'loaded-vertical' | 'ground-mounted-vertical' | 'ground-plane' | 'full-wave-loop';
+import type { AntennaType } from './antennaTypes';
+
+export type { AntennaType } from './antennaTypes';
 export type AntennaDesignCategory = 'wire' | 'vertical' | 'directional' | 'loop' | 'broadband' | 'receive';
 export type GuidedIntent = 'transmit' | 'receive';
 export type GuidedGoal = 'simple-wire' | 'multiband' | 'limited-space' | 'vertical-footprint' | 'directional' | 'broadband' | 'compact-receive' | 'long-route' | 'surface-installation' | 'direction-control' | 'all';

@@ -64,6 +64,17 @@ test('resumes feedline and RF exposure subsections without persisting calculator
   await expect(page.getByRole('spinbutton', { name: 'Measured resistance for chart' })).toHaveValue('100');
 });
 
+test('resumes the selected antenna planner with fresh starting inputs', async ({ page }) => {
+  await page.getByRole('button', { name: /G5RV family/ }).click();
+  await page.getByRole('spinbutton', { name: 'Inspection frequency' }).fill('18.100');
+  await page.reload();
+
+  await expect(page.getByRole('heading', { name: 'G5RV family antenna system' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Current: G5RV family' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Change design' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Inspection frequency' })).toHaveValue('14.150');
+});
+
 test('applies light, dark, and live system theme modes', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.getByLabel('Theme').selectOption('system');

@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { lazy, Suspense, useId, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type DeltaLoopFeedMode, type DeltaLoopOrientation, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
@@ -142,6 +142,8 @@ interface Props {
   setUnitSystem: (unitSystem: UnitSystem) => void;
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
+  initialAntennaType: AntennaType;
+  onAntennaTypeChange: (type: AntennaType) => void;
   onContinueToSystem: (handoff: AntennaDesignHandoff) => void;
 }
 
@@ -160,10 +162,10 @@ interface SpecializedStartingValues {
   onRestore: () => void;
 }
 
-export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, onContinueToSystem }: Props) {
-  const [antennaType, setAntennaType] = useState<AntennaType>('dipole');
+export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, initialAntennaType, onAntennaTypeChange, onContinueToSystem }: Props) {
+  const [antennaType, setAntennaType] = useState<AntennaType>(initialAntennaType);
   const [comparisonRequest, setComparisonRequest] = useState<AntennaType[] | null>(null);
-  const [frequencyText, setFrequencyText] = useState('14.200');
+  const [frequencyText, setFrequencyText] = useState(initialAntennaType === 'g5rv' ? '14.150' : initialAntennaType === 'small-loop' || initialAntennaType === 'log-periodic' || initialAntennaType === 'active-receive-loop' ? '14.000' : '14.200');
   const [foldedDipoleSpacingMetres, setFoldedDipoleSpacingMetres] = useState(0.15);
   const [foldedDipoleReferenceResistanceOhms, setFoldedDipoleReferenceResistanceOhms] = useState(73);
   const [foldedDipoleFeedlineImpedanceOhms, setFoldedDipoleFeedlineImpedanceOhms] = useState(50);
@@ -240,7 +242,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
   const [loadedVerticalHeightMetres, setLoadedVerticalHeightMetres] = useState(3.5);
   const [loadedVerticalCoilPositionMetres, setLoadedVerticalCoilPositionMetres] = useState(0);
   const [loadedVerticalConductorDiameterMillimetres, setLoadedVerticalConductorDiameterMillimetres] = useState(25);
-  const [lengthCorrectionFactor, setLengthCorrectionFactor] = useState(0.95);
+  const [lengthCorrectionFactor, setLengthCorrectionFactor] = useState(initialAntennaType === 'full-wave-loop' || initialAntennaType === 'skywire' ? 1.02 : initialAntennaType === 'jpole' || initialAntennaType === 'slim-jim' ? 0.83 : 0.95);
   const [trimAllowancePercent, setTrimAllowancePercent] = useState(2.5);
   const [beverageWireAllowancePercent, setBeverageWireAllowancePercent] = useState(2.5);
   const [compactReceiveWireAllowancePercent, setCompactReceiveWireAllowancePercent] = useState(2.5);
@@ -250,7 +252,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
   const [loopShape, setLoopShape] = useState<LoopShape>('square');
   const [deltaLoopOrientation, setDeltaLoopOrientation] = useState<DeltaLoopOrientation>('apex-up');
   const [deltaLoopFeedMode, setDeltaLoopFeedMode] = useState<DeltaLoopFeedMode>('horizontal');
-  const [transformerRatio, setTransformerRatio] = useState(49);
+  const [transformerRatio, setTransformerRatio] = useState(initialAntennaType === 'ocfd' ? 4 : 49);
   const [estimatedEndImpedanceOhms, setEstimatedEndImpedanceOhms] = useState(2450);
   const [feedpointPercentFromEnd, setFeedpointPercentFromEnd] = useState(33.333);
   const [estimatedOcfdImpedanceOhms, setEstimatedOcfdImpedanceOhms] = useState(200);
@@ -333,6 +335,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
   const [activeLoopWireAllowancePercent, setActiveLoopWireAllowancePercent] = useState(2.5);
   const [groundRadialCount, setGroundRadialCount] = useState(32);
   const [groundRadialLengthMultiplier, setGroundRadialLengthMultiplier] = useState(1);
+  useEffect(() => onAntennaTypeChange(antennaType), [antennaType, onAntennaTypeChange]);
 
   const frequencyMHz = Number(frequencyText);
   const shownDoubletLineLength = unitSystem === 'metric' ? doubletLineLengthMetres : metresToFeet(doubletLineLengthMetres);
@@ -1024,7 +1027,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
         <AntennaDesignComparison activeType={antennaType} onOpenPlanner={openComparedPlanner} requestedTypes={comparisonRequest} />
       </Suspense>
 
-      <AntennaDesignPicker activeType={antennaType} onSelect={selectDesign} onCompare={(types) => setComparisonRequest([...types])} />
+      <AntennaDesignPicker activeType={antennaType} initiallyExpanded={initialAntennaType === 'dipole'} onSelect={selectDesign} onCompare={(types) => setComparisonRequest([...types])} />
 
       {antennaType === 'dipole' && <StepByStepHelp title="Build and tune a centre-fed dipole" intro="Use this sequence to turn two equal calculated legs into a measured antenna in its final support geometry. Experienced builders can leave the guide closed." steps={[
         { title: 'Choose the design frequency', detail: 'Select the frequency where you want the installed antenna to resonate, rather than relying only on the conventional band name.' },

@@ -31,6 +31,7 @@ describe('application preferences', () => {
       advancedOpen: true,
       theme: 'dark',
       activeWorkspace: 'feedline',
+      activeAntennaDesign: 'g5rv',
       activeFeedlineTool: 'explore',
       activeExposureView: 'project'
     } as const;
@@ -49,6 +50,7 @@ describe('application preferences', () => {
       jurisdiction: 'AU',
       theme: 'system',
       activeWorkspace: 'antennas',
+      activeAntennaDesign: 'dipole',
       activeFeedlineTool: 'power',
       activeExposureView: 'reference'
     });
@@ -64,6 +66,11 @@ describe('application preferences', () => {
     expect(loadPreferences(storage)).toMatchObject({ activeFeedlineTool: 'ratio', activeExposureView: 'acma-record' });
   });
 
+  it('restores a supported antenna design', () => {
+    const storage = memoryStorage(JSON.stringify({ activeAntennaDesign: 'efhw' }));
+    expect(loadPreferences(storage).activeAntennaDesign).toBe('efhw');
+  });
+
   it('fails closed to valid defaults for malformed or unsupported values', () => {
     expect(loadPreferences(memoryStorage('{bad json'))).toEqual(defaultPreferences);
     expect(
@@ -73,6 +80,7 @@ describe('application preferences', () => {
         advancedOpen: 'yes',
         theme: 'neon',
         activeWorkspace: 'settings',
+        activeAntennaDesign: 'magic-wire',
         activeFeedlineTool: 'tuner',
         activeExposureView: 'certificate'
       })))

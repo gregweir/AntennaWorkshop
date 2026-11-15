@@ -6,6 +6,7 @@
  */
 
 import type { UnitSystem } from './lib/units';
+import { ANTENNA_TYPES, type AntennaType } from './lib/antennaTypes';
 import type { JurisdictionCode } from './regulations/catalog';
 
 export interface AppPreferences {
@@ -14,6 +15,7 @@ export interface AppPreferences {
   advancedOpen: boolean;
   theme: ThemePreference;
   activeWorkspace: WorkshopWorkspace;
+  activeAntennaDesign: AntennaType;
   activeFeedlineTool: FeedlineTool;
   activeExposureView: ExposureView;
 }
@@ -36,6 +38,7 @@ export const defaultPreferences: AppPreferences = {
   advancedOpen: false,
   theme: 'system',
   activeWorkspace: 'antennas',
+  activeAntennaDesign: 'dipole',
   activeFeedlineTool: 'power',
   activeExposureView: 'reference'
 };
@@ -54,6 +57,10 @@ function isThemePreference(value: unknown): value is ThemePreference {
 
 function isWorkshopWorkspace(value: unknown): value is WorkshopWorkspace {
   return value === 'antennas' || value === 'feedline' || value === 'exposure';
+}
+
+function isAntennaType(value: unknown): value is AntennaType {
+  return typeof value === 'string' && (ANTENNA_TYPES as readonly string[]).includes(value);
 }
 
 function isFeedlineTool(value: unknown): value is FeedlineTool {
@@ -89,6 +96,9 @@ export function loadPreferences(storage?: StorageLike): AppPreferences {
       activeWorkspace: isWorkshopWorkspace(candidate.activeWorkspace)
         ? candidate.activeWorkspace
         : defaultPreferences.activeWorkspace,
+      activeAntennaDesign: isAntennaType(candidate.activeAntennaDesign)
+        ? candidate.activeAntennaDesign
+        : defaultPreferences.activeAntennaDesign,
       activeFeedlineTool: isFeedlineTool(candidate.activeFeedlineTool)
         ? candidate.activeFeedlineTool
         : defaultPreferences.activeFeedlineTool,

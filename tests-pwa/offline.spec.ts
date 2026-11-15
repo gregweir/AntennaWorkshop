@@ -55,6 +55,9 @@ test('returns offline, preserves a saved antenna plan, and opens every precached
     await expect(page.getByLabel('Saved antenna plan')).toContainText('Offline dipole plan');
     await page.getByRole('button', { name: 'Open plan' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Opened Offline dipole plan' })).toBeVisible();
+    await page.getByRole('tab', { name: /Workbench/ }).click();
+    await page.getByRole('button', { name: /EFHW/ }).click();
+    await expect(page.getByRole('heading', { name: 'End-fed half-wave (EFHW)' })).toBeVisible();
 
     await page.getByRole('button', { name: /Feedline & matching/ }).click();
     await expect(page.getByRole('heading', { name: 'Feedline power budget' })).toBeVisible();
@@ -67,6 +70,11 @@ test('returns offline, preserves a saved antenna plan, and opens every precached
     await expect(page.getByRole('button', { name: /RF exposure/ })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('button', { name: /Station project/ })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('heading', { name: 'Station project' })).toBeVisible();
+    await page.getByRole('button', { name: /Antenna designs/ }).click();
+    await expect(page.getByRole('heading', { name: 'End-fed half-wave (EFHW)' })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('button', { name: /Antenna designs/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('heading', { name: 'End-fed half-wave (EFHW)' })).toBeVisible();
   } finally {
     await context.setOffline(false);
   }

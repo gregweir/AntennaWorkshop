@@ -35,6 +35,7 @@ const guidedIntentLabels: Record<GuidedIntent, string> = {
 
 interface Props {
   activeType: AntennaType;
+  initiallyExpanded?: boolean;
   onSelect: (type: AntennaType) => void;
   onCompare: (types: AntennaType[]) => void;
 }
@@ -61,12 +62,12 @@ function DesignButtons({ types, activeType, onSelect }: { types: AntennaType[]; 
   })}</div>;
 }
 
-export function AntennaDesignPicker({ activeType, onSelect, onCompare }: Props) {
+export function AntennaDesignPicker({ activeType, initiallyExpanded = true, onSelect, onCompare }: Props) {
   const pickerHeadingRef = useRef<HTMLHeadingElement>(null);
   const guidedTabRef = useRef<HTMLButtonElement>(null);
   const workbenchTabRef = useRef<HTMLButtonElement>(null);
   const previousActiveType = useRef(activeType);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const [mode, setMode] = useState<AntennaPickerMode>(() => typeof window === 'undefined' ? 'guided' : loadAntennaPickerMode(window.localStorage));
   const [searchText, setSearchText] = useState('');
   const [category, setCategory] = useState<'all' | AntennaDesignCategory>('all');
