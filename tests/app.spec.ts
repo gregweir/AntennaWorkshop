@@ -275,6 +275,70 @@ test('restores large-wire and directional planners without changing design frequ
   await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('7.200');
 });
 
+test('restores advanced beam planner inputs without changing design frequency', async ({ page }) => {
+  const changeDesign = async (name: RegExp) => {
+    await page.getByRole('button', { name: 'Change design' }).click();
+    await page.getByRole('button', { name }).click();
+  };
+
+  await page.getByRole('button', { name: /Moxon/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency', exact: true }).fill('14.250');
+  await page.getByRole('spinbutton', { name: 'Conductor diameter' }).fill('3');
+  const moxon = page.getByRole('region', { name: 'Moxon construction input starting values' });
+  await expect(moxon).toContainText('1 modified value');
+  await moxon.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Conductor diameter' })).toHaveValue('2.05');
+
+  await changeDesign(/Cubical quad/);
+  await page.getByRole('spinbutton', { name: 'Driven-to-reflector spacing' }).fill('0.15');
+  await page.getByLabel('Cubical quad polarization', { exact: true }).selectOption('vertical');
+  const quad = page.getByRole('region', { name: 'Cubical quad inputs starting values' });
+  await expect(quad).toContainText('2 modified values');
+  await quad.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Driven-to-reflector spacing' })).toHaveValue('0.2');
+  await expect(page.getByLabel('Cubical quad polarization', { exact: true })).toHaveValue('horizontal');
+
+  await changeDesign(/Axial helix/);
+  await page.getByRole('spinbutton', { name: 'Number of turns' }).fill('8');
+  await page.getByLabel('Helix winding and polarization', { exact: true }).selectOption('left');
+  const helix = page.getByRole('region', { name: 'Axial-mode helix inputs starting values' });
+  await expect(helix).toContainText('2 modified values');
+  await helix.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Number of turns' })).toHaveValue('6');
+  await expect(page.getByLabel('Helix winding and polarization', { exact: true })).toHaveValue('right');
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('14.250');
+});
+
+test('restores broadband planner inputs without changing the operating range', async ({ page }) => {
+  const changeDesign = async (name: RegExp) => {
+    await page.getByRole('button', { name: 'Change design' }).click();
+    await page.getByRole('button', { name }).click();
+  };
+
+  await page.getByRole('button', { name: /Discone/ }).click();
+  await page.getByRole('spinbutton', { name: 'Lowest design frequency', exact: true }).fill('14.250');
+  await page.getByRole('spinbutton', { name: 'Cone half-angle' }).fill('35');
+  await page.getByRole('spinbutton', { name: 'Planned feed gap' }).fill('8');
+  const discone = page.getByRole('region', { name: 'Discone inputs starting values' });
+  await expect(discone).toContainText('2 modified values');
+  await discone.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Cone half-angle' })).toHaveValue('30');
+  await expect(page.getByRole('spinbutton', { name: 'Planned feed gap' })).toHaveValue('5');
+
+  await changeDesign(/Log-periodic/);
+  await page.getByRole('spinbutton', { name: 'Lower operating frequency', exact: true }).fill('14.250');
+  await page.getByRole('spinbutton', { name: 'Upper operating frequency' }).fill('30');
+  await page.getByRole('spinbutton', { name: 'Tau length scale' }).fill('0.9');
+  await page.getByRole('spinbutton', { name: 'Boom-conductor centre spacing' }).fill('30');
+  const logPeriodic = page.getByRole('region', { name: 'Log-periodic inputs starting values' });
+  await expect(logPeriodic).toContainText('2 modified values');
+  await logPeriodic.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Tau length scale' })).toHaveValue('0.92');
+  await expect(page.getByRole('spinbutton', { name: 'Boom-conductor centre spacing' })).toHaveValue('25');
+  await expect(page.getByRole('spinbutton', { name: 'Upper operating frequency' })).toHaveValue('30');
+  await expect(page.getByRole('spinbutton', { name: 'Lower operating frequency', exact: true })).toHaveValue('14.250');
+});
+
 test('restores everyday wire and vertical planners without changing design frequency', async ({ page }) => {
   const changeDesign = async (name: RegExp) => {
     await page.getByRole('button', { name: 'Change design' }).click();

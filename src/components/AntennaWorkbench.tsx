@@ -676,6 +676,36 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
   const specializedStartingValues: SpecializedStartingValues | null = (() => {
     const note = 'Restores only this planner’s geometry, component assumptions, and construction allowances. Design frequency or range, saved plans, and other designs are unchanged.';
     const wirePlannerNote = 'Restores only this planner’s construction and feed-system inputs. Design and inspection frequencies, shared length settings, saved plans, and other designs are unchanged.';
+    if (antennaType === 'moxon') return {
+      scope: 'Moxon construction input',
+      modifiedCount: countModified(moxonConductorDiameterMillimetres !== 2.05),
+      note,
+      onRestore: () => setMoxonConductorDiameterMillimetres(2.05),
+    };
+    if (antennaType === 'cubical-quad') return {
+      scope: 'Cubical quad inputs',
+      modifiedCount: countModified(quadElementSpacingWavelengths !== 0.2, quadPolarization !== 'horizontal', quadForwardBearingDegrees !== 0, quadBoomCentreHeightMetres !== 10, quadMastReference !== 'boom-midpoint'),
+      note,
+      onRestore: () => { setQuadElementSpacingWavelengths(0.2); setQuadPolarization('horizontal'); setQuadForwardBearingDegrees(0); setQuadBoomCentreHeightMetres(10); setQuadMastReference('boom-midpoint'); },
+    };
+    if (antennaType === 'axial-helix') return {
+      scope: 'Axial-mode helix inputs',
+      modifiedCount: countModified(helixCircumferenceWavelengths !== 1, helixPitchAngleDegrees !== 12.5, helixTurnCount !== 6, helixGroundPlaneWavelengths !== 0.8, helixHandedness !== 'right', helixConductorWidthMillimetres !== 6.35, helixDiameterToleranceMillimetres !== 2, helixTurnSpacingToleranceMillimetres !== 2, helixFeedlineImpedanceOhms !== 50),
+      note,
+      onRestore: () => { setHelixCircumferenceWavelengths(1); setHelixPitchAngleDegrees(12.5); setHelixTurnCount(6); setHelixGroundPlaneWavelengths(0.8); setHelixHandedness('right'); setHelixConductorWidthMillimetres(6.35); setHelixDiameterToleranceMillimetres(2); setHelixTurnSpacingToleranceMillimetres(2); setHelixFeedlineImpedanceOhms(50); },
+    };
+    if (antennaType === 'discone') return {
+      scope: 'Discone inputs',
+      modifiedCount: countModified(disconeHalfAngleDegrees !== 30, disconeConeRadialCount !== 8, disconeDiscRadialCount !== 8, disconeRadialConductorDiameterMillimetres !== 6.35, disconeFeedGapMillimetres !== 5, disconeRadialLengthToleranceMillimetres !== 2),
+      note,
+      onRestore: () => { setDisconeHalfAngleDegrees(30); setDisconeConeRadialCount(8); setDisconeDiscRadialCount(8); setDisconeRadialConductorDiameterMillimetres(6.35); setDisconeFeedGapMillimetres(5); setDisconeRadialLengthToleranceMillimetres(2); },
+    };
+    if (antennaType === 'log-periodic') return {
+      scope: 'Log-periodic inputs',
+      modifiedCount: countModified(logPeriodicTau !== 0.92, logPeriodicSigma !== 0.12, logPeriodicActiveRegionFactor !== 1.46, logPeriodicElementConductorDiameterMillimetres !== 6.35, logPeriodicElementLengthToleranceMillimetres !== 2, logPeriodicBoomPositionToleranceMillimetres !== 1, logPeriodicBoomConductorSpacingMillimetres !== 25),
+      note,
+      onRestore: () => { setLogPeriodicTau(0.92); setLogPeriodicSigma(0.12); setLogPeriodicActiveRegionFactor(1.46); setLogPeriodicElementConductorDiameterMillimetres(6.35); setLogPeriodicElementLengthToleranceMillimetres(2); setLogPeriodicBoomPositionToleranceMillimetres(1); setLogPeriodicBoomConductorSpacingMillimetres(25); },
+    };
     if (antennaType === 'folded-dipole') return {
       scope: 'Folded dipole construction inputs',
       modifiedCount: countModified(foldedDipoleSpacingMetres !== 0.15, foldedDipoleReferenceResistanceOhms !== 73, foldedDipoleFeedlineImpedanceOhms !== 50),
