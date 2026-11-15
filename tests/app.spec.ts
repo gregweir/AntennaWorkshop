@@ -297,6 +297,35 @@ test('shows why a lower source-end SWR can result from loss or matching', async 
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
+test('exports only a validated bounded NEC-2 centre-fed dipole model', async ({ page }) => {
+  await page.getByText('Export a bounded NEC-2 dipole model', { exact: true }).click();
+  const exporter = page.locator('.dipole-nec-export');
+  await expect(exporter).toContainText('Model boundary satisfied');
+  await expect(exporter).toContainText('Source: wire tag 1, segment 11');
+  await expect(exporter.getByLabel('Generated NEC-2 deck')).toContainText('GW  1   21');
+  await expect(exporter.getByLabel('Generated NEC-2 deck')).toContainText('EX  0    1   11');
+  await expect(exporter).toContainText('Free space; installation height and ground are absent');
+
+  await exporter.getByRole('group', { name: 'Ground model' }).getByRole('button', { name: 'Perfect ground' }).click();
+  await expect(exporter.getByLabel('NEC wire-axis height')).toBeVisible();
+  await expect(exporter.getByLabel('Generated NEC-2 deck')).toContainText('Perfect ground; wire axis');
+
+  await exporter.getByLabel('NEC segment count').fill('20');
+  await expect(exporter).toContainText('Export blocked');
+  await expect(exporter).toContainText('odd integer');
+  await expect(exporter.getByLabel('Generated NEC-2 deck')).toHaveCount(0);
+  await exporter.getByLabel('NEC segment count').fill('21');
+  await expect(exporter).toContainText('Model boundary satisfied');
+
+  const downloadPromise = page.waitForEvent('download');
+  await exporter.getByRole('button', { name: 'Download .nec file' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('dipole-14-200-mhz.nec');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });

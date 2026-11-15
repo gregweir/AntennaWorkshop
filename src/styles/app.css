@@ -7242,6 +7242,10 @@ select {
     display: grid;
   }
 
+  .dipole-nec-export > summary span {
+    display: grid;
+  }
+
   .balance-lesson-controls fieldset,
   .balance-builder-notes,
   .matching-tuning-controls fieldset,
@@ -7251,8 +7255,14 @@ select {
   .ground-effects-notes,
   .swr-evidence-controls fieldset,
   .swr-evidence-planes,
-  .swr-evidence-notes {
+  .swr-evidence-notes,
+  .dipole-nec-fields fieldset {
     grid-template-columns: 1fr;
+  }
+
+  .dipole-nec-preview > div {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .line-cascade-figure > svg {
@@ -8404,6 +8414,152 @@ select {
   padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+}
+
+.dipole-nec-export {
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-technical) 55%, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.dipole-nec-export > summary {
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+}
+
+.dipole-nec-export > summary span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dipole-nec-export > summary small,
+.dipole-nec-fields small,
+.dipole-nec-assumptions {
+  color: var(--text-secondary);
+}
+
+.dipole-nec-body {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.dipole-nec-fields {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dipole-nec-fields label,
+.dipole-nec-fields fieldset {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.dipole-nec-fields label > span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.dipole-nec-fields input {
+  min-width: 0;
+  width: 100%;
+}
+
+.dipole-nec-fields legend {
+  padding-inline: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dipole-nec-fields fieldset {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dipole-nec-fields button {
+  min-width: 0;
+  padding: 0.55rem;
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.dipole-nec-fields button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 12%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px var(--accent-technical);
+}
+
+.dipole-nec-status {
+  align-self: start;
+  padding: 0.8rem;
+  border-left: 4px solid var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
+}
+
+.dipole-nec-status h4,
+.dipole-nec-status p {
+  margin-block: 0 0.4rem;
+}
+
+.dipole-nec-status.nec-invalid {
+  border-left-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 7%, var(--bg-surface));
+}
+
+.dipole-nec-preview,
+.dipole-nec-assumptions {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.dipole-nec-preview > div {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dipole-nec-preview h4,
+.dipole-nec-assumptions h4 {
+  margin-block: 0 0.5rem;
+}
+
+.dipole-nec-preview pre {
+  max-height: 23rem;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  tab-size: 2;
+}
+
+.dipole-nec-assumptions ul {
+  margin-block: 0.5rem;
+  padding-left: 1.3rem;
+}
+
+.dipole-nec-assumptions li + li {
+  margin-top: 0.3rem;
 }
 
 .starting-values-bar {
@@ -11884,6 +12040,10 @@ path.loading-coil {
     grid-template-columns: 1fr;
   }
 
+  .dipole-nec-body {
+    grid-template-columns: 1fr;
+  }
+
   .balance-lesson-outcome,
   .balance-path-graphic {
     grid-column: 1;
@@ -14267,6 +14427,7 @@ body.diagram-view-open {
   .matching-tuning-lesson,
   .ground-effects-lesson,
   .swr-evidence-lesson,
+  .dipole-nec-export,
   .context-help,
   .evidence-overview {
     display: none !important;

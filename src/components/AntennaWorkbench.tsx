@@ -58,6 +58,7 @@ import { BalanceCommonModeLesson } from './BalanceCommonModeLesson';
 import { MatchingTuningLesson } from './MatchingTuningLesson';
 import { GroundEffectsLesson } from './GroundEffectsLesson';
 import { SwrEvidenceLesson } from './SwrEvidenceLesson';
+import { DipoleNecExport } from './DipoleNecExport';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 const AntennaResultSummary = lazy(() => import('./AntennaResultSummary').then((module) => ({ default: module.AntennaResultSummary })));
@@ -1776,6 +1777,8 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
           antennaModelVersion: model.version
         }))}>Continue to feedline and exposure</button>
       </section>}
+
+      {calculation?.type === 'dipole' && <DipoleNecExport key={`${frequencyMHz}-${calculation.value.resonantTotalMetres}`} frequencyMHz={frequencyMHz} finishedSpanMetres={calculation.value.resonantTotalMetres} wavelengthMetres={calculation.value.wavelengthMetres} />}
 
       {calculation?.type !== 'hex-beam' && <BandIndicator band={activeBand} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
       {calculation?.type !== 'hex-beam' && <ElectricalLengthLesson frequencyMHz={frequencyMHz} unitSystem={unitSystem} depth={explanationDepth} />}
