@@ -13,6 +13,7 @@ import type { AntennaType } from './lib/antennaTypes';
 import { loadPreferences, savePreferences, type ExposureView, type FeedlineTool, type ThemePreference, type WorkshopWorkspace } from './preferences';
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
+import type { MeasurementSweepHandoff } from './workflows/measurementWorkflow';
 
 const initialJurisdictions = jurisdictionProfiles.filter((profile) => profile.releaseStatus === 'initial');
 const AntennaWorkbench = lazy(() => import('./components/AntennaWorkbench').then((module) => ({ default: module.AntennaWorkbench })));
@@ -31,6 +32,7 @@ export function App() {
   const [exposureView, setExposureView] = useState<ExposureView>(savedPreferences.activeExposureView);
   const [antennaHandoff, setAntennaHandoff] = useState<AntennaDesignHandoff | null>(null);
   const [stationSourceTransfer, setStationSourceTransfer] = useState<StationSourceTransfer | null>(null);
+  const [measurementSweepHandoff, setMeasurementSweepHandoff] = useState<MeasurementSweepHandoff | null>(null);
 
   useEffect(() => {
     savePreferences({ jurisdiction, unitSystem, advancedOpen, theme, activeWorkspace: workshopTool, activeAntennaDesign: antennaDesign, activeFeedlineTool: feedlineTool, activeExposureView: exposureView }, window.localStorage);
@@ -122,9 +124,9 @@ export function App() {
 
       <Suspense fallback={<section className="workspace shell tool-loading" role="status" aria-live="polite"><div className="tool-loading-skeleton" aria-hidden="true"><span /><span /><span /></div><p className="eyebrow">Opening workshop</p><h2>Loading the selected tool…</h2><p>The calculator and its saved on-device data will be ready momentarily.</p></section>}>
         {workshopTool === 'antennas'
-          ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} initialAntennaType={antennaDesign} onAntennaTypeChange={setAntennaDesign} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
+          ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} initialAntennaType={antennaDesign} onAntennaTypeChange={setAntennaDesign} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} onAnalyzeSweep={(handoff) => { setAntennaHandoff(null); setMeasurementSweepHandoff(handoff); setFeedlineTool('sweep'); setWorkshopTool('feedline'); }} />
           : workshopTool === 'feedline'
-            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} initialMode={feedlineTool} onModeChange={setFeedlineTool} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
+            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} measurementSweepHandoff={measurementSweepHandoff} onMeasurementSweepConsumed={() => setMeasurementSweepHandoff(null)} initialMode={feedlineTool} onModeChange={setFeedlineTool} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
             : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} initialView={exposureView} onViewChange={setExposureView} />}
       </Suspense>
 

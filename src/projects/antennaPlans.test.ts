@@ -37,6 +37,14 @@ const plan: AntennaPlan = {
   unitSystem: 'metric',
   modelId: 'half-wave-dipole',
   modelVersion: '1.0.0',
+  progress: { completedStages: ['choose', 'plan', 'build'] },
+  buildRecord: { asBuiltDimensions: 'Two 5.08 m legs', constructionDeviations: 'Centre raised 0.3 m', commissioningNotes: 'Calibrated at the feedpoint' },
+  measurements: [{
+    id: 'measurement-1', recordedAt: '2026-11-14T13:30:00.000Z', label: 'Initial installed sweep',
+    sweep: { name: 'initial.s1p', sizeBytes: 128, lastModifiedAt: '2026-11-14T13:00:00.000Z', sha256: 'a'.repeat(64) },
+    calibrationContext: 'One-port calibration at the feedline end', referencePlane: 'Station end of feedline',
+    installedGeometry: 'Final support height', adjustment: '', observations: 'Minimum sampled SWR near 14.1 MHz'
+  }],
   workspace: { antennaType: 'dipole', frequencyText: '14.200', trimAllowancePercent: 2.5, fanAdditionalFrequencyTexts: ['21.200', '28.400'] }
 };
 
@@ -53,11 +61,36 @@ describe('antenna plan files', () => {
     const imported = parseAntennaPlan(serializeAntennaPlan(plan), 'plan-2', '2026-11-14T14:00:00.000Z');
     expect(imported).toMatchObject({ id: 'plan-2', name: '20 metre dipole (imported)', createdAt: '2026-11-14T14:00:00.000Z' });
     expect(imported.workspace.frequencyText).toBe('14.200');
+    expect(imported.progress.completedStages).toEqual(['choose', 'plan', 'build']);
+    expect(imported.buildRecord.commissioningNotes).toBe('Calibrated at the feedpoint');
+    expect(imported.measurements[0]).toMatchObject({ label: 'Initial installed sweep', sweep: { name: 'initial.s1p', sizeBytes: 128 } });
+  });
+
+  it('migrates version 1 plans into the connected project journey', () => {
+    const legacy = { ...plan, schemaVersion: 1, progress: undefined, buildRecord: undefined, measurements: undefined };
+    const imported = parseAntennaPlan(JSON.stringify(legacy), 'plan-legacy', '2026-11-14T15:00:00.000Z');
+    expect(imported.schemaVersion).toBe(ANTENNA_PLAN_VERSION);
+    expect(imported.progress.completedStages).toEqual(['choose', 'plan']);
+    expect(imported.buildRecord).toEqual({ asBuiltDimensions: '', constructionDeviations: '', commissioningNotes: '' });
+    expect(imported.measurements).toEqual([]);
+  });
+
+  it('keeps the automatically established selection and planning stages in version 2 files', () => {
+    const imported = parseAntennaPlan(JSON.stringify({ ...plan, progress: { completedStages: ['measure'] } }), 'plan-progress', '2026-11-14T16:00:00.000Z');
+    expect(imported.progress.completedStages).toEqual(['choose', 'plan', 'measure']);
+  });
+
+  it('adds a blank build record when an earlier version 2 file does not contain one', () => {
+    const imported = parseAntennaPlan(JSON.stringify({ ...plan, buildRecord: undefined, measurements: undefined }), 'plan-v2-early', '2026-11-14T16:30:00.000Z');
+    expect(imported.buildRecord).toEqual({ asBuiltDimensions: '', constructionDeviations: '', commissioningNotes: '' });
+    expect(imported.measurements).toEqual([]);
   });
 
   it('rejects malformed and unsupported imports', () => {
     expect(() => parseAntennaPlan('{', 'new', '2026-11-14T14:00:00.000Z')).toThrow(/valid JSON/);
     expect(() => parseAntennaPlan(JSON.stringify({ ...plan, schemaVersion: 99 }), 'new', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
+    expect(() => parseAntennaPlan(JSON.stringify({ ...plan, measurements: [{ ...plan.measurements[0], sweep: { ...plan.measurements[0].sweep, sha256: 'not-a-digest' } }] }), 'new', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
+    expect(() => parseAntennaPlan(JSON.stringify({ ...plan, measurements: [plan.measurements[0], plan.measurements[0]] }), 'new', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
   });
 
   it('restores only values compatible with the current workspace shape', () => {

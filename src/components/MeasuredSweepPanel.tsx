@@ -5,21 +5,24 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { formatFrequencyRange, getBandsForJurisdiction, type AmateurBand } from '../bands/catalog';
 import { estimateTouchstoneThresholdWindows, nearestTouchstonePoint, nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary, type TouchstoneThresholdWindow } from '../lib/touchstone';
 import { serializeTouchstoneComparisonCsv, touchstoneReportFilename } from '../lib/touchstoneReport';
 import type { JurisdictionCode } from '../regulations/catalog';
 import { StepByStepHelp } from './ContextHelp';
 import { SweepSmithChart } from './SweepSmithChart';
+import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
 
 interface Props {
   jurisdiction: JurisdictionCode;
+  incomingSweep: MeasurementSweepHandoff | null;
+  onIncomingSweepConsumed: () => void;
 }
 
 const CHART = { width: 920, height: 360, left: 72, right: 24, top: 28, bottom: 58 };
 
-export default function MeasuredSweepPanel({ jurisdiction }: Props) {
+export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onIncomingSweepConsumed }: Props) {
   const [sweep, setSweep] = useState<TouchstoneSweep | null>(null);
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
@@ -35,6 +38,40 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
   const [referenceState, setReferenceState] = useState('Reference');
   const [comparisonState, setComparisonState] = useState('Comparison');
   const [downloadMessage, setDownloadMessage] = useState('');
+  const [linkedContext, setLinkedContext] = useState<MeasurementSweepHandoff | null>(incomingSweep);
+
+  useEffect(() => {
+    if (!incomingSweep) return;
+    setLinkedContext(incomingSweep);
+    let cancelled = false;
+    const openIncomingSweep = async () => {
+      setError('');
+      try {
+        const parsed = await readSweepFile(incomingSweep.file);
+        if (cancelled) return;
+        const bestIndex = parsed.points.reduce((best, point, index) => point.swr < parsed.points[best].swr ? index : best, 0);
+        setSweep(parsed);
+        setFileName(incomingSweep.file.name);
+        setSelectedIndex(bestIndex);
+        setInspectionFrequencyText(formatFrequencyInput(parsed.points[bestIndex].frequencyHz));
+        setReportTitle(`${incomingSweep.planName} — ${incomingSweep.measurementLabel}`);
+        setReferenceState(incomingSweep.measurementLabel);
+        setCalibrationContext([
+          incomingSweep.calibrationContext && `Calibration: ${incomingSweep.calibrationContext}`,
+          incomingSweep.referencePlane && `Reference plane: ${incomingSweep.referencePlane}`,
+          incomingSweep.installedGeometry && `Installed geometry: ${incomingSweep.installedGeometry}`,
+          incomingSweep.adjustment && `Adjustment: ${incomingSweep.adjustment}`,
+          incomingSweep.observations && `Recorded observations: ${incomingSweep.observations}`
+        ].filter(Boolean).join('\n'));
+      } catch (reason) {
+        if (!cancelled) setError(reason instanceof Error ? reason.message : 'The linked sweep could not be read.');
+      } finally {
+        if (!cancelled) onIncomingSweepConsumed();
+      }
+    };
+    void openIncomingSweep();
+    return () => { cancelled = true; };
+  }, [incomingSweep, onIncomingSweepConsumed]);
 
   const analysis = useMemo(() => sweep ? summarizeTouchstoneSweep(sweep) : null, [sweep]);
   const comparisonAnalysis = useMemo(() => comparison ? summarizeTouchstoneSweep(comparison) : null, [comparison]);
@@ -129,6 +166,7 @@ export default function MeasuredSweepPanel({ jurisdiction }: Props) {
   const inspectionOffsetHz = Number.isFinite(requestedInspectionHz) && requestedInspectionHz > 0 ? selected?.frequencyHz ? selected.frequencyHz - requestedInspectionHz : 0 : null;
 
   return <div className="measured-sweep-workbench">
+    {linkedContext && <section className="linked-workflow linked-measurement" aria-labelledby="linked-measurement-heading"><div><p className="eyebrow">Linked antenna plan</p><h3 id="linked-measurement-heading">{linkedContext.planName}</h3><p>{linkedContext.measurementLabel} · the selected file is open only for this in-memory analysis session.</p></div><dl><div><dt>File</dt><dd>{linkedContext.file.name}</dd></div><div><dt>History</dt><dd>Entry saved; sweep contents not stored</dd></div></dl></section>}
     <StepByStepHelp title="Measure, import, and interpret a sweep" intro="Use the same reference plane and installation state throughout. The file stays in this browser and is not uploaded." steps={[
       { title: 'Calibrate at the intended reference plane', detail: 'Perform open, short, and load calibration at the cable end or fixture plane where the result must apply.' },
       { title: 'Sweep beyond the intended band', detail: 'Include enough frequency on both sides to show the full response rather than only the most favourable point.' },

@@ -503,6 +503,34 @@ test('saves, reopens, duplicates, exports, and imports complete antenna plans', 
   await page.getByRole('button', { name: 'Save new plan' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'New plan saved' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).toContain('40 metre folded dipole');
+  await expect(page.getByRole('heading', { name: 'From selected design to retained record' })).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: /^Choose/ })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /^Choose/ })).toBeDisabled();
+  await expect(page.getByRole('checkbox', { name: /^Build/ })).not.toBeChecked();
+  await page.getByRole('checkbox', { name: /^Build/ }).check();
+  await expect(page.getByRole('status').filter({ hasText: 'Build progress updated' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).toContain('"build"');
+  await page.getByText('As-built and commissioning record', { exact: true }).click();
+  await page.getByLabel('Final measured dimensions').fill('Two 10.12 m conductors measured from the centre terminals');
+  await page.getByLabel('Construction departures').fill('Feedpoint raised 0.4 m above the planned height');
+  await page.getByLabel('Commissioning notes').fill('Calibrated at the feedpoint; final installed sweep retained separately');
+  await page.getByRole('button', { name: 'Save build record' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Build and commissioning record saved' })).toBeVisible();
+  await page.getByText('Measurement history', { exact: true }).click();
+  await page.getByLabel('Entry label').fill('Initial installed sweep');
+  await page.getByLabel('Choose measurement .s1p reference').setInputFiles({ name: 'initial-installed.s1p', mimeType: 'text/plain', buffer: Buffer.from('# MHz S RI R 50\n14.1 0.2 0.1\n14.2 0.1 0\n') });
+  await expect(page.locator('.measurement-file-summary')).toContainText('SHA-256');
+  await page.getByLabel('Calibration context').fill('One-port calibration at the feedline end');
+  await page.getByLabel('Measurement reference plane').fill('Station end of the installed feedline');
+  await page.getByLabel('Installed geometry and conditions').fill('Final support height and feedline route');
+  await page.getByLabel('Adjustment since previous entry').fill('Initial measurement; no earlier adjustment');
+  await page.getByLabel('Observed results and follow-up').fill('Minimum sampled SWR near 14.2 MHz; retain the original sweep');
+  await page.getByRole('button', { name: 'Add measurement entry' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'sweep file itself was not stored' })).toBeVisible();
+  await expect(page.locator('.measurement-record-list')).toContainText('initial-installed.s1p');
+  await expect(page.locator('.measurement-record-list')).toContainText('One-port calibration at the feedline end');
+  await expect(page.getByRole('checkbox', { name: /^Measure/ })).not.toBeChecked();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).not.toContain('# MHz S RI');
 
   await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('CA');
   await page.getByRole('button', { name: 'Change design' }).click();
@@ -529,6 +557,45 @@ test('saves, reopens, duplicates, exports, and imports complete antenna plans', 
   await page.reload();
   await page.getByText('Saved antenna plans', { exact: true }).click();
   await expect(page.getByLabel('Saved antenna plan').locator('option')).toHaveCount(3);
+  await expect(page.getByRole('checkbox', { name: /^Build/ })).toBeChecked();
+  await page.getByText('As-built and commissioning record', { exact: true }).click();
+  await expect(page.getByLabel('Final measured dimensions')).toHaveValue('Two 10.12 m conductors measured from the centre terminals');
+  await expect(page.getByLabel('Construction departures')).toHaveValue('Feedpoint raised 0.4 m above the planned height');
+  await expect(page.getByLabel('Commissioning notes')).toHaveValue('Calibrated at the feedpoint; final installed sweep retained separately');
+  await page.getByText('Measurement history', { exact: true }).click();
+  await expect(page.locator('.measurement-record-list')).toContainText('Initial installed sweep');
+  await expect(page.locator('.measurement-record-list')).toContainText('SHA-256');
+});
+
+test('saves a plan measurement and opens its in-memory sweep for analysis', async ({ page }) => {
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByLabel('New plan name').fill('20 metre commissioning');
+  await page.getByRole('button', { name: 'Save new plan' }).click();
+  await page.getByText('Measurement history', { exact: true }).click();
+  await page.getByLabel('Entry label').fill('Final installed sweep');
+  await page.getByLabel('Choose measurement .s1p reference').setInputFiles({
+    name: 'final-installed.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# MHz S RI R 50\n14.0 0.5 0\n14.2 0.1 0\n14.4 0.4 0\n')
+  });
+  await page.getByLabel('Calibration context').fill('SOL calibration at the antenna feedpoint');
+  await page.getByLabel('Measurement reference plane').fill('Feedpoint terminals');
+  await page.getByLabel('Installed geometry and conditions').fill('Antenna at final height in dry weather');
+  await page.getByLabel('Adjustment since previous entry').fill('Both legs shortened equally');
+  await page.getByLabel('Observed results and follow-up').fill('Lowest sampled SWR moved upward in frequency');
+  await page.getByRole('button', { name: 'Save and analyze sweep' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Measured sweep', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '20 metre commissioning' })).toBeVisible();
+  await expect(page.locator('.linked-measurement')).toContainText('final-installed.s1p');
+  await expect(page.getByLabel('Sweep summary').getByText('Lowest SWR', { exact: true })).toBeVisible();
+  await page.getByText('Document and export this measurement', { exact: true }).click();
+  await expect(page.getByLabel('Measurement title')).toHaveValue('20 metre commissioning — Final installed sweep');
+  await expect(page.getByLabel('Reference state')).toHaveValue('Final installed sweep');
+  await expect(page.getByLabel('Calibration, reference plane, instrument, and conditions')).toContainText('SOL calibration at the antenna feedpoint');
+  await expect(page.getByLabel('Calibration, reference plane, instrument, and conditions')).toContainText('Feedpoint terminals');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).toContain('Final installed sweep');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('radiobook:antenna-workshop:antenna-plans:v1'))).not.toContain('# MHz S RI');
 });
 
 test('maps a selected band to frequency and wavelength', async ({ page }) => {

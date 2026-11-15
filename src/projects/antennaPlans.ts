@@ -10,9 +10,42 @@ import type { UnitSystem } from '../lib/units';
 import type { JurisdictionCode } from '../regulations/catalog';
 
 export const ANTENNA_PLAN_KIND = 'radiobook-antenna-workshop/antenna-plan';
-export const ANTENNA_PLAN_VERSION = 1 as const;
+export const ANTENNA_PLAN_VERSION = 2 as const;
 export const ANTENNA_PLAN_LIBRARY_KEY = 'radiobook:antenna-workshop:antenna-plans:v1';
 export const ANTENNA_PLAN_LIBRARY_LIMIT = 50;
+export const ANTENNA_PLAN_MEASUREMENT_LIMIT = 24;
+
+export const ANTENNA_PROJECT_STAGES = ['choose', 'plan', 'build', 'measure', 'tune', 'verify', 'document'] as const;
+export type AntennaProjectStage = typeof ANTENNA_PROJECT_STAGES[number];
+
+export interface AntennaPlanProgress {
+  completedStages: AntennaProjectStage[];
+}
+
+export interface AntennaPlanBuildRecord {
+  asBuiltDimensions: string;
+  constructionDeviations: string;
+  commissioningNotes: string;
+}
+
+export interface AntennaPlanSweepReference {
+  name: string;
+  sizeBytes: number;
+  lastModifiedAt: string | null;
+  sha256: string | null;
+}
+
+export interface AntennaPlanMeasurementRecord {
+  id: string;
+  recordedAt: string;
+  label: string;
+  sweep: AntennaPlanSweepReference | null;
+  calibrationContext: string;
+  referencePlane: string;
+  installedGeometry: string;
+  adjustment: string;
+  observations: string;
+}
 
 export type AntennaPlanValue = string | number | boolean | null | AntennaPlanValue[];
 export type AntennaPlanWorkspace = Record<string, AntennaPlanValue>;
@@ -29,6 +62,9 @@ export interface AntennaPlan {
   unitSystem: UnitSystem;
   modelId: string;
   modelVersion: string;
+  progress: AntennaPlanProgress;
+  buildRecord: AntennaPlanBuildRecord;
+  measurements: AntennaPlanMeasurementRecord[];
   workspace: AntennaPlanWorkspace;
 }
 
@@ -57,10 +93,68 @@ function dateTime(value: unknown): value is string {
   return typeof value === 'string' && Number.isFinite(Date.parse(value));
 }
 
+function normaliseProgress(value: unknown): AntennaPlanProgress | null {
+  if (!isRecord(value) || !Array.isArray(value.completedStages)) return null;
+  const stages = value.completedStages.filter((stage): stage is AntennaProjectStage => typeof stage === 'string' && ANTENNA_PROJECT_STAGES.includes(stage as AntennaProjectStage));
+  if (stages.length !== value.completedStages.length) return null;
+  return { completedStages: ANTENNA_PROJECT_STAGES.filter((stage) => stage === 'choose' || stage === 'plan' || stages.includes(stage)) };
+}
+
+function normaliseBuildRecord(value: unknown): AntennaPlanBuildRecord | null {
+  if (value === undefined) return { asBuiltDimensions: '', constructionDeviations: '', commissioningNotes: '' };
+  if (!isRecord(value)) return null;
+  const fields = ['asBuiltDimensions', 'constructionDeviations', 'commissioningNotes'] as const;
+  if (fields.some((field) => value[field] !== undefined && (typeof value[field] !== 'string' || value[field].length > 6_000))) return null;
+  return {
+    asBuiltDimensions: typeof value.asBuiltDimensions === 'string' ? value.asBuiltDimensions : '',
+    constructionDeviations: typeof value.constructionDeviations === 'string' ? value.constructionDeviations : '',
+    commissioningNotes: typeof value.commissioningNotes === 'string' ? value.commissioningNotes : ''
+  };
+}
+
+function normaliseSweepReference(value: unknown): AntennaPlanSweepReference | null | false {
+  if (value === null) return null;
+  if (!isRecord(value)) return false;
+  const name = requiredText(value.name, 255);
+  const sizeBytes = value.sizeBytes;
+  const lastModifiedAt = value.lastModifiedAt;
+  const sha256 = value.sha256;
+  if (!name || !Number.isInteger(sizeBytes) || (sizeBytes as number) < 0 || (sizeBytes as number) > 2_000_000
+    || (lastModifiedAt !== null && !dateTime(lastModifiedAt))
+    || (sha256 !== null && (typeof sha256 !== 'string' || !/^[a-f0-9]{64}$/i.test(sha256)))) return false;
+  return { name, sizeBytes: sizeBytes as number, lastModifiedAt: lastModifiedAt as string | null, sha256: sha256 as string | null };
+}
+
+function normaliseMeasurements(value: unknown): AntennaPlanMeasurementRecord[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > ANTENNA_PLAN_MEASUREMENT_LIMIT) return null;
+  const records: AntennaPlanMeasurementRecord[] = [];
+  for (const candidate of value) {
+    if (!isRecord(candidate) || !dateTime(candidate.recordedAt)) return null;
+    const id = requiredText(candidate.id, 100);
+    const label = requiredText(candidate.label, 120);
+    const sweep = normaliseSweepReference(candidate.sweep);
+    const textFields = ['calibrationContext', 'referencePlane', 'installedGeometry', 'adjustment', 'observations'] as const;
+    if (!id || records.some((record) => record.id === id) || !label || sweep === false || textFields.some((field) => typeof candidate[field] !== 'string' || candidate[field].length > 4_000)) return null;
+    records.push({
+      id,
+      recordedAt: candidate.recordedAt as string,
+      label,
+      sweep,
+      calibrationContext: candidate.calibrationContext as string,
+      referencePlane: candidate.referencePlane as string,
+      installedGeometry: candidate.installedGeometry as string,
+      adjustment: candidate.adjustment as string,
+      observations: candidate.observations as string
+    });
+  }
+  return records.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+}
+
 function normalisePlan(value: unknown): AntennaPlan | null {
   if (!isRecord(value)
     || value.kind !== ANTENNA_PLAN_KIND
-    || value.schemaVersion !== ANTENNA_PLAN_VERSION
+    || (value.schemaVersion !== 1 && value.schemaVersion !== ANTENNA_PLAN_VERSION)
     || !dateTime(value.createdAt)
     || !dateTime(value.updatedAt)
     || !isRecord(value.workspace)) return null;
@@ -73,11 +167,17 @@ function normalisePlan(value: unknown): AntennaPlan | null {
   const jurisdiction = value.jurisdiction as JurisdictionCode;
   const unitSystem = value.unitSystem as UnitSystem;
   const workspaceEntries = Object.entries(value.workspace);
+  const progress = value.schemaVersion === 1
+    ? { completedStages: ['choose', 'plan'] as AntennaProjectStage[] }
+    : normaliseProgress(value.progress);
+  const buildRecord = normaliseBuildRecord(value.buildRecord);
+  const measurements = normaliseMeasurements(value.measurements);
 
   if (!id || !name || !modelId || !modelVersion
     || !(antennaType in ANTENNA_DESIGNS)
     || !['CA', 'US', 'GB', 'AU'].includes(jurisdiction)
     || (unitSystem !== 'metric' && unitSystem !== 'imperial')
+    || !progress || !buildRecord || !measurements
     || workspaceEntries.length < 2 || workspaceEntries.length > 180
     || workspaceEntries.some(([key, entry]) => !/^[a-z][A-Za-z0-9]*$/.test(key) || !isPlanValue(entry))) return null;
 
@@ -93,6 +193,9 @@ function normalisePlan(value: unknown): AntennaPlan | null {
     unitSystem,
     modelId,
     modelVersion,
+    progress,
+    buildRecord,
+    measurements,
     workspace: value.workspace as AntennaPlanWorkspace
   };
 }

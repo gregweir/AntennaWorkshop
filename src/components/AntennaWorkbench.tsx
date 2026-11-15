@@ -40,6 +40,7 @@ import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../li
 import { restoreAntennaPlanWorkspace, type AntennaPlan, type AntennaPlanValue, type AntennaPlanWorkspace } from '../projects/antennaPlans';
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
+import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
 import { BandIndicator } from './BandIndicator';
 import { DipoleDiagram } from './DipoleDiagram';
 import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
@@ -145,6 +146,7 @@ interface Props {
   initialAntennaType: AntennaType;
   onAntennaTypeChange: (type: AntennaType) => void;
   onContinueToSystem: (handoff: AntennaDesignHandoff) => void;
+  onAnalyzeSweep: (handoff: MeasurementSweepHandoff) => void;
 }
 
 function planBinding<T extends AntennaPlanValue>(value: T, setter: (value: T) => void): readonly [AntennaPlanValue, (next: AntennaPlanValue) => void] {
@@ -162,7 +164,7 @@ interface SpecializedStartingValues {
   onRestore: () => void;
 }
 
-export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, initialAntennaType, onAntennaTypeChange, onContinueToSystem }: Props) {
+export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, initialAntennaType, onAntennaTypeChange, onContinueToSystem, onAnalyzeSweep }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>(initialAntennaType);
   const [comparisonRequest, setComparisonRequest] = useState<AntennaType[] | null>(null);
   const [frequencyText, setFrequencyText] = useState(initialAntennaType === 'g5rv' ? '14.150' : initialAntennaType === 'small-loop' || initialAntennaType === 'log-periodic' || initialAntennaType === 'active-receive-loop' ? '14.000' : '14.200');
@@ -1018,7 +1020,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       </div>
 
       <Suspense fallback={<div className="antenna-plan-loading" role="status">Loading saved plans…</div>}>
-        <AntennaPlanLibrary antennaType={antennaType} jurisdiction={jurisdiction} unitSystem={unitSystem} modelId={model.id} modelVersion={model.version} workspace={currentWorkspace} onOpen={openAntennaPlan} />
+        <AntennaPlanLibrary antennaType={antennaType} jurisdiction={jurisdiction} unitSystem={unitSystem} modelId={model.id} modelVersion={model.version} workspace={currentWorkspace} onOpen={openAntennaPlan} onAnalyzeSweep={onAnalyzeSweep} />
       </Suspense>
 
       <ReceiveAntennaSelector referenceFrequencyMHz={frequencyMHz} unitSystem={unitSystem} onOpenPlanner={openReceivePlanner} />

@@ -67,6 +67,7 @@ See [Browser Test Matrix](docs/BROWSER_TEST_MATRIX.md) for automated coverage an
 ## Documentation
 
 - [Current Capabilities](docs/CAPABILITIES.md)
+- [Next Revision Plan](docs/NEXT_REVISION.md)
 - [Product Specification](docs/PRODUCT_SPEC.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Browser Test Matrix](docs/BROWSER_TEST_MATRIX.md)

@@ -1,0 +1,43 @@
+# Next Revision Plan
+
+## Product Goal
+
+Make Antenna Workshop the clearest connected path from antenna choice to a measured, documented build. General electromagnetic simulation remains complementary: the application must not present construction equations as installed pattern or performance predictions.
+
+## Milestone 1 — Connected Build Journey
+
+- Preserve project progress through **Choose → Plan → Build → Measure → Tune → Verify → Document**.
+- Add as-built dimensions, deviations, construction notes, and commissioning evidence to saved plans.
+- Link each stage to the relevant planner, measurement, feed-system, exposure, print, or export action.
+- Keep checked workflow steps distinct from technical acceptance or compliance.
+
+## Milestone 2 — Measurement and Tuning
+
+- Attach multiple dated `.s1p` references to a plan without embedding unbounded files in browser storage. Bounded context, file fingerprints, and direct in-memory analysis handoff are implemented; attaching analysis summaries back to history remains to be added.
+- Guide calibration, sweep range, reference plane, and final installed geometry.
+- Compare calculated targets, sampled resonance observations, threshold spans, and dimensional changes.
+- Retain adjustment history without claiming that an observed change proves its cause.
+
+## Milestone 3 — Layered Learning
+
+- Offer quick, builder, and technical explanation levels.
+- Add interactive lessons for electrical length, impedance, balance, common mode, matching, ground effects, and the limits of SWR.
+- Place explanations beside the decision or measurement where they are needed.
+
+## Milestone 4 — Modelling Interoperability
+
+- Export bounded, validated NEC2 models for suitable antenna families.
+- State conductor, segmentation, source, height, and ground assumptions in both the interface and file.
+- Validate reference cases across independent NEC tools before release.
+- Evaluate an embedded solver only after export interoperability and reference validation are established.
+
+## Milestone 5 — Evidence-Based Expansion
+
+Use documented user needs and task-based usability testing to prioritize catalogue additions. Candidate gaps include end-fed random-wire systems, sleeve and coaxial verticals, coaxial collinears, expanded Yagi configurations, and further portable designs. Every addition requires construction guidance, measurement steps, sources, limitations, tests, and accessible graphics.
+
+## Release Gates
+
+- Representative novice, intermediate, and experienced operators can complete the core tasks.
+- Chromium, Firefox, WebKit, desktop, mobile, keyboard, print, install, update, and offline checks pass.
+- Existing RF-exposure tests and source-review requirements remain green.
+- Bundle budgets, schema migration, import/export validation, and preservation of saved user data pass.
