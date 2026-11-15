@@ -25,6 +25,7 @@ The public repository currently includes:
 - Graphical antenna starting designs covering single- and multiband wire, vertical, loop, folded, directional, broadband, and receive-only families.
 - Canada-, United States-, United Kingdom-, and Australia-aware amateur-band selection with metric and imperial presentation.
 - Feedline loss, mismatch, coaxial stub, ERP, and EIRP tools.
+- A bounded local Touchstone 1.x one-port parser for measured `.s1p` sweeps, with RI, magnitude-angle, and dB-angle decoding and derived impedance, SWR, and return loss. Touchstone 2.x keywords, multiport files, fixture removal, calibration, and uncertainty interpretation remain outside the initial import boundary.
 - Official Canadian and United States RF power-density reference levels.
 - A United States single-source FCC routine-evaluation exemption workflow covering all three criteria in 47 CFR § 1.1307(b)(3)(i), with ERP/EIRP distinctions and explicit non-compliance vocabulary.
 - A United States multiple-source FCC exemption workflow covering the special 1 mW conditions and mixed close-proximity, distance-ERP, and existing-evaluation fractions in § 1.1307(b)(3)(ii).
