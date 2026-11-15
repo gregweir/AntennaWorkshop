@@ -41,26 +41,28 @@ interface Props {
   onViewChange: (view: ExposureView) => void;
 }
 
-const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
-  { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
-  { id: 'single', title: 'Single source', description: 'One transmitter and one accessible point' },
-  { id: 'project', title: 'Station project', description: 'Several transmitters and locations' },
-  { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields' },
-  { id: 'fcc-exemption', title: 'FCC single', description: 'One-source evaluation exemption' },
-  { id: 'fcc-multiple', title: 'FCC multiple', description: 'Collective-source exemption sum' }
+type ExposureViewOption = { id: ExposureView; title: string; description: string; kind: string };
+
+const viewOptions: ExposureViewOption[] = [
+  { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods', kind: 'Look up' },
+  { id: 'single', title: 'Single source', description: 'One transmitter and one accessible point', kind: 'Estimate' },
+  { id: 'project', title: 'Station project', description: 'Several transmitters and locations', kind: 'Assess' },
+  { id: 'aggregate', title: 'Measured sources', description: 'Normalize predicted or measured fields', kind: 'Combine' },
+  { id: 'fcc-exemption', title: 'FCC single', description: 'One-source evaluation exemption', kind: 'Screen' },
+  { id: 'fcc-multiple', title: 'FCC multiple', description: 'Collective-source exemption sum', kind: 'Screen' }
 ];
 
-const ukViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
-  { id: 'ofcom-assessment', title: 'Ofcom gateway', description: 'Assessment and record requirement' },
-  { id: 'ofcom-distance', title: 'Compliance distance', description: 'Conservative public exclusion radius' },
-  { id: 'ofcom-multiple', title: 'Multiple transmitters', description: 'Conservative collective distance' }
+const ukViewOptions: ExposureViewOption[] = [
+  { id: 'ofcom-assessment', title: 'Ofcom gateway', description: 'Assessment and record requirement', kind: 'Start here' },
+  { id: 'ofcom-distance', title: 'Compliance distance', description: 'Conservative public exclusion radius', kind: 'Estimate' },
+  { id: 'ofcom-multiple', title: 'Multiple transmitters', description: 'Conservative collective distance', kind: 'Combine' }
 ];
 
-const australianViewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
-  { id: 'acma-assessment', title: 'ACMA gateway', description: 'Low-risk and higher-risk station path' },
-  { id: 'acma-distance', title: 'Exclusion distance', description: 'Official simple far-field method' },
-  { id: 'arpansa-reference', title: 'ARPANSA limits', description: 'Whole-body, local, peak, and limb-current levels' },
-  { id: 'acma-record', title: 'Assessment record', description: 'Clause 6 declaration and evidence worksheet' }
+const australianViewOptions: ExposureViewOption[] = [
+  { id: 'acma-assessment', title: 'ACMA gateway', description: 'Low-risk and higher-risk station path', kind: 'Start here' },
+  { id: 'acma-distance', title: 'Exclusion distance', description: 'Official simple far-field method', kind: 'Estimate' },
+  { id: 'arpansa-reference', title: 'ARPANSA limits', description: 'Whole-body, local, peak, and limb-current levels', kind: 'Look up' },
+  { id: 'acma-record', title: 'Assessment record', description: 'Clause 6 declaration and evidence worksheet', kind: 'Record' }
 ];
 
 export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed, initialView, onViewChange }: Props) {
@@ -124,7 +126,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     </details>
     {showsEvidenceLabels && <ResultEvidenceKey />}
     <div className={`exposure-mode-picker ${isUk ? 'exposure-mode-picker-uk' : ''} ${isAustralia ? 'exposure-mode-picker-au' : ''}`} aria-label="RF exposure workflow">
-      {availableViews.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><strong>{option.title}</strong><small>{option.description}</small></button>)}
+      {availableViews.map((option, index) => <button key={option.id} type="button" aria-pressed={view === option.id} onClick={() => setView(option.id)}><span>0{index + 1}</span><em>{option.kind}</em><strong>{option.title}</strong><small>{option.description}</small></button>)}
     </div>
 
     <form className={`exposure-context-panel ${contextClass}`} onSubmit={(event) => event.preventDefault()}>

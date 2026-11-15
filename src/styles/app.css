@@ -1334,6 +1334,7 @@ select {
 }
 
 .exposure-mode-picker button {
+  position: relative;
   min-height: 78px;
   padding: 0.75rem;
   border: 1px solid var(--border);
@@ -1352,6 +1353,7 @@ select {
 }
 
 .exposure-mode-picker span,
+.exposure-mode-picker em,
 .exposure-mode-picker strong,
 .exposure-mode-picker small {
   display: block;
@@ -1361,6 +1363,19 @@ select {
   color: var(--tl-coral);
   font-family: var(--font-mono);
   font-size: 0.68rem;
+}
+
+.exposure-mode-picker em {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.7rem;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .exposure-mode-picker strong {
@@ -1374,6 +1389,10 @@ select {
 
 .exposure-mode-picker button[aria-pressed='true'] small {
   color: var(--tl-light-sage);
+}
+
+.exposure-mode-picker button[aria-pressed='true'] em {
+  color: var(--tl-coral);
 }
 
 .exposure-context-panel {
@@ -5703,14 +5722,36 @@ select {
 
 .feedline-mode-picker {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
   margin-bottom: 1.5rem;
 }
 
+.feedline-mode-group {
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 58%, var(--bg-surface));
+}
+
+.feedline-mode-group > h3 {
+  margin: 0 0 0.55rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.feedline-mode-options {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .feedline-mode-picker button {
-  min-height: 64px;
-  padding: 0.75rem 1rem;
+  min-height: 58px;
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
@@ -11691,6 +11732,14 @@ body.diagram-view-open {
     flex-direction: column;
   }
 
+  .feedline-mode-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .feedline-mode-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .explanation-grid .caution-card,
   .explanation-grid .provenance-card {
     display: block;
@@ -12598,6 +12647,10 @@ body.diagram-view-open {
   .panel-kicker small {
     display: block;
     margin-top: 0.15rem;
+  }
+
+  .feedline-mode-options {
+    grid-template-columns: 1fr;
   }
 }
 

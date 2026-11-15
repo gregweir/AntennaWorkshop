@@ -406,15 +406,21 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
     </div>
     {antennaHandoff && <section className="linked-workflow" aria-labelledby="linked-antenna-heading"><div><p className="eyebrow">Linked antenna design</p><h3 id="linked-antenna-heading">{antennaHandoff.label}</h3><p>Frequency and largest physical dimension came from the antenna calculator. Complete the system and exposure-specific inputs below.</p></div><dl><div><dt>Frequency</dt><dd>{antennaHandoff.frequencyMHz.toFixed(3)} MHz</dd></div><div><dt>Largest dimension</dt><dd>{formatLength(antennaHandoff.largestDimensionMetres, unitSystem)}</dd></div><div><dt>Design model</dt><dd>{antennaHandoff.antennaModelId} {antennaHandoff.antennaModelVersion}</dd></div></dl></section>}
     <div className="feedline-mode-picker" aria-label="Feedline calculator">
-      <button type="button" aria-pressed={mode === 'power'} onClick={() => setMode('power')}><strong>Power budget</strong><small>Loss, SWR, and accepted power</small></button>
-      <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
-      <button type="button" aria-pressed={mode === 'explore'} onClick={() => setMode('explore')}><strong>Impedance explorer</strong><small>R + jX, reflection, and Smith chart</small></button>
-      <button type="button" aria-pressed={mode === 'sweep'} onClick={() => setMode('sweep')}><strong>Measured sweep</strong><small>Local `.s1p` response and bandwidth</small></button>
-      <button type="button" aria-pressed={mode === 'line'} onClick={() => setMode('line')}><strong>Line transformation</strong><small>Load impedance at the cable input</small></button>
-      <button type="button" aria-pressed={mode === 'match'} onClick={() => setMode('match')}><strong>L-network</strong><small>Measured complex load to system resistance</small></button>
-      <button type="button" aria-pressed={mode === 'transformer'} onClick={() => setMode('transformer')}><strong>Quarter-wave transformer</strong><small>Real resistances through a 90° line</small></button>
-      <button type="button" aria-pressed={mode === 'ratio'} onClick={() => setMode('ratio')}><strong>Balun / unun ratio</strong><small>Ideal impedance and integer turns</small></button>
-      <button type="button" aria-pressed={mode === 'radiated'} onClick={() => setMode('radiated')}><strong>ERP / EIRP</strong><small>Loss, gain, and reference power</small></button>
+      <section className="feedline-mode-group" aria-labelledby="feedline-inspect-heading"><h3 id="feedline-inspect-heading">Inspect and understand</h3><div className="feedline-mode-options">
+        <button type="button" aria-pressed={mode === 'explore'} onClick={() => setMode('explore')}><strong>Impedance explorer</strong><small>R + jX, reflection, and Smith chart</small></button>
+        <button type="button" aria-pressed={mode === 'sweep'} onClick={() => setMode('sweep')}><strong>Measured sweep</strong><small>Local `.s1p` response and bandwidth</small></button>
+        <button type="button" aria-pressed={mode === 'line'} onClick={() => setMode('line')}><strong>Line transformation</strong><small>Load impedance at the cable input</small></button>
+      </div></section>
+      <section className="feedline-mode-group" aria-labelledby="feedline-build-heading"><h3 id="feedline-build-heading">Build and match</h3><div className="feedline-mode-options">
+        <button type="button" aria-pressed={mode === 'stub'} onClick={() => setMode('stub')}><strong>Coaxial stub</strong><small>Velocity factor and electrical length</small></button>
+        <button type="button" aria-pressed={mode === 'match'} onClick={() => setMode('match')}><strong>L-network</strong><small>Measured complex load to system resistance</small></button>
+        <button type="button" aria-pressed={mode === 'transformer'} onClick={() => setMode('transformer')}><strong>Quarter-wave transformer</strong><small>Real resistances through a 90° line</small></button>
+        <button type="button" aria-pressed={mode === 'ratio'} onClick={() => setMode('ratio')}><strong>Balun / unun ratio</strong><small>Ideal impedance and integer turns</small></button>
+      </div></section>
+      <section className="feedline-mode-group" aria-labelledby="feedline-power-heading"><h3 id="feedline-power-heading">Plan station power</h3><div className="feedline-mode-options">
+        <button type="button" aria-pressed={mode === 'power'} onClick={() => setMode('power')}><strong>Power budget</strong><small>Loss, SWR, and accepted power</small></button>
+        <button type="button" aria-pressed={mode === 'radiated'} onClick={() => setMode('radiated')}><strong>ERP / EIRP</strong><small>Loss, gain, and reference power</small></button>
+      </div></section>
     </div>
     {mode === 'sweep' && <ResultEvidenceKey />}
     {mode === 'sweep' ? <Suspense fallback={<div className="diagram-placeholder">Loading the measured-sweep workbench…</div>}><MeasuredSweepPanel jurisdiction={jurisdiction} /></Suspense> : <>
