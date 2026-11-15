@@ -342,6 +342,21 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
 
   const result = mode === 'power' ? powerResult : mode === 'stub' ? stubResult : mode === 'explore' ? explorerResult : mode === 'line' ? lineResult : mode === 'match' ? matchResult : mode === 'transformer' ? transformerResult : mode === 'ratio' ? ratioResult : radiatedResult;
   const model = mode === 'sweep' ? { version: '1.0' } : mode === 'power' ? FEEDLINE_MODEL : mode === 'stub' ? COAXIAL_STUB_MODEL : mode === 'explore' ? IMPEDANCE_EXPLORER_MODEL : mode === 'line' ? TRANSMISSION_LINE_CASCADE_MODEL : mode === 'match' ? L_NETWORK_MODEL : mode === 'transformer' ? QUARTER_WAVE_TRANSFORMER_MODEL : mode === 'ratio' ? IDEAL_TRANSFORMER_MODEL : RADIATED_POWER_MODEL;
+  const inputGroup = mode === 'power'
+    ? { title: 'Power path inputs', description: 'Frequency, source power, cable, accessories, and antenna mismatch.' }
+    : mode === 'stub'
+      ? { title: 'Stub construction inputs', description: 'Frequency, propagation, electrical length, termination, and trim allowance.' }
+      : mode === 'explore'
+        ? { title: 'Measured impedance', description: 'One calibrated R + jX reading and its reference resistance.' }
+        : mode === 'line'
+          ? { title: 'Transmission-line sections', description: 'Load reference plane followed by each uniform line section.' }
+          : mode === 'match'
+            ? { title: 'Matching targets', description: 'Measured complex load and required real system resistance.' }
+            : mode === 'transformer'
+              ? { title: 'Transformer terminals', description: 'Two real resistances, one design frequency, and the intended line.' }
+              : mode === 'ratio'
+                ? { title: 'Transformer ratio targets', description: 'Source, load, connection forms, and an integer winding starting point.' }
+                : { title: 'Radiated-power inputs', description: 'Transmitter power, feed-system loss, antenna gain, and gain reference.' };
   const inputImpact = !result ? {
     current: 'One or more entries are outside the accepted range, so no calculated consequence is shown until the inputs are valid.',
     why: 'Each tool keeps physical inputs and reference planes explicit so a changed number can be traced to the result it affects.',
@@ -470,6 +485,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, in
     ]} limit="ERP and EIRP are directional equivalent-power quantities. This calculator does not determine total radiated power, antenna pattern, near-field behaviour, time averaging, measurement uncertainty, or regulatory compliance." />}
     <div className="calculator-layout">
       <form key={mode} className="input-panel" onSubmit={(event) => event.preventDefault()}>
+        <div className="panel-kicker input-panel-kicker"><span>{inputGroup.title}</span><small>{inputGroup.description}</small></div>
         {mode !== 'ratio' && <><label className="field">
           <span>Amateur band</span>
           <select className="band-select" value={activeBand?.id ?? 'custom'} disabled={Boolean(antennaHandoff)} onChange={(event) => {

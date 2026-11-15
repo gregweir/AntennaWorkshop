@@ -1407,6 +1407,36 @@ select {
   color: var(--text-secondary);
 }
 
+.input-panel-kicker {
+  margin-bottom: 0.2rem;
+}
+
+.input-section-heading {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 -0.25rem;
+  padding: 0.7rem 0 0.45rem;
+  border-top: 1px solid var(--border);
+}
+
+.input-section-heading span,
+.input-section-heading small {
+  display: block;
+}
+
+.input-section-heading span {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.input-section-heading small {
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
 .exposure-context-panel .field {
   min-width: 0;
   margin: 0;
@@ -7248,6 +7278,16 @@ select {
 .input-panel {
   padding: 1.2rem;
   background: var(--bg-elevated);
+}
+
+.input-panel > .field {
+  padding: 0.1rem;
+}
+
+.input-panel > .field small {
+  max-width: 42rem;
+  color: color-mix(in srgb, var(--text-secondary) 86%, var(--bg-elevated));
+  font-size: 0.74rem;
 }
 
 .input-impact-panel {
