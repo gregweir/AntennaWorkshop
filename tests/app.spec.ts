@@ -61,6 +61,90 @@ test('marks and restores common antenna starting values without changing the des
   await expect(startingValues).toContainText('Using starting values');
 });
 
+test('restores specialized antenna planners without changing their design frequency or range', async ({ page }) => {
+  const changeDesign = async (name: RegExp) => {
+    await page.getByRole('button', { name: 'Change design' }).click();
+    await page.getByRole('button', { name }).click();
+  };
+
+  await page.getByRole('button', { name: /Loaded dipole/ }).click();
+  await page.getByRole('spinbutton', { name: 'Design frequency', exact: true }).fill('14.250');
+  await page.getByRole('spinbutton', { name: 'Available total span' }).fill('8');
+  const loaded = page.getByRole('region', { name: 'Loaded dipole inputs starting values' });
+  await expect(loaded).toContainText('1 modified value');
+  await loaded.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Available total span' })).toHaveValue('7.5');
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toHaveValue('14.250');
+
+  await changeDesign(/Loaded vertical/);
+  await page.getByRole('spinbutton', { name: 'Physical radiator height' }).fill('4');
+  const loadedVertical = page.getByRole('region', { name: 'Loaded vertical inputs starting values' });
+  await expect(loadedVertical).toContainText('1 modified value');
+  await loadedVertical.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Physical radiator height' })).toHaveValue('3.5');
+
+  await changeDesign(/Trap dipole/);
+  await page.getByRole('spinbutton', { name: 'Upper design frequency' }).fill('21.300');
+  await page.getByRole('spinbutton', { name: 'Available total span' }).fill('8');
+  const trap = page.getByRole('region', { name: 'Trap dipole inputs starting values' });
+  await expect(trap).toContainText('1 modified value');
+  await trap.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Available total span' })).toHaveValue('7.5');
+  await expect(page.getByRole('spinbutton', { name: 'Upper design frequency' })).toHaveValue('21.300');
+
+  await changeDesign(/Small loop/);
+  await page.locator('select.band-select').selectOption('40m');
+  await page.getByRole('spinbutton', { name: 'Main-loop circumference' }).fill('4');
+  const smallLoop = page.getByRole('region', { name: 'Small transmitting loop inputs starting values' });
+  await expect(smallLoop).toContainText('1 modified value');
+  await smallLoop.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Main-loop circumference' })).toHaveValue('3');
+  await expect(page.getByRole('spinbutton', { name: 'Lower tuning frequency' })).toHaveValue('7.000');
+  await expect(page.getByRole('spinbutton', { name: 'Upper tuning frequency' })).toHaveValue('7.300');
+
+  await changeDesign(/Beverage/);
+  await page.locator('select.band-select').selectOption('160m');
+  await page.getByLabel('Beverage far-end configuration', { exact: true }).selectOption('unterminated');
+  const beverage = page.getByRole('region', { name: 'Beverage inputs starting values' });
+  await expect(beverage).toContainText('1 modified value');
+  await beverage.getByRole('button').click();
+  await expect(page.getByLabel('Beverage far-end configuration', { exact: true })).toHaveValue('terminated');
+  await expect(page.getByRole('spinbutton', { name: 'Receive reference frequency' })).toHaveValue('1.900');
+  await page.getByRole('button', { name: 'Show advanced' }).click();
+  await page.getByRole('spinbutton', { name: 'Extra horizontal wire for routing' }).fill('5');
+
+  await changeDesign(/Flag · Pennant · EWE/);
+  await expect(page.getByRole('spinbutton', { name: 'Extra wire for connections and trimming' })).toHaveValue('2.5');
+  await page.getByLabel('Compact receive antenna geometry', { exact: true }).selectOption('ewe');
+  const compact = page.getByRole('region', { name: 'Compact receive inputs starting values' });
+  await expect(compact).toContainText(/modified values/);
+  await compact.getByRole('button').click();
+  await expect(page.getByLabel('Compact receive antenna geometry', { exact: true })).toHaveValue('flag');
+
+  await changeDesign(/K9AY loops/);
+  await page.getByLabel('Selected K9AY receive direction', { exact: true }).selectOption('3');
+  const k9ay = page.getByRole('region', { name: 'K9AY inputs starting values' });
+  await expect(k9ay).toContainText('1 modified value');
+  await k9ay.getByRole('button').click();
+  await expect(page.getByLabel('Selected K9AY receive direction', { exact: true })).toHaveValue('0');
+
+  await changeDesign(/Loop on Ground/);
+  await page.getByRole('spinbutton', { name: 'Loop-on-Ground side length' }).fill('5');
+  const loopOnGround = page.getByRole('region', { name: 'Loop-on-Ground inputs starting values' });
+  await expect(loopOnGround).toContainText('1 modified value');
+  await loopOnGround.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Loop-on-Ground side length' })).toHaveValue('4.572');
+
+  await changeDesign(/Active receive loop/);
+  await page.locator('select.band-select').selectOption('40m');
+  await page.getByRole('spinbutton', { name: 'Active-loop diameter' }).fill('1');
+  const activeLoop = page.getByRole('region', { name: 'Active receive loop inputs starting values' });
+  await expect(activeLoop).toContainText('1 modified value');
+  await activeLoop.getByRole('button').click();
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop diameter' })).toHaveValue('0.762');
+  await expect(page.getByRole('spinbutton', { name: 'Active-loop upper operating frequency' })).toHaveValue('7.300');
+});
+
 test('explains how to install and update the offline application', async ({ page }) => {
   await page.getByText('Install this app', { exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Chrome or Edge' })).toBeVisible();
