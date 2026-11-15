@@ -9828,6 +9828,31 @@ path.loading-coil {
   color: var(--text-secondary);
 }
 
+.project-next-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-technical) 55%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
+}
+
+.project-next-action div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.project-next-action span {
+  color: var(--text-secondary);
+}
+
+.project-next-action button {
+  flex: 0 0 auto;
+}
+
 .antenna-build-record {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -10788,7 +10813,8 @@ path.loading-coil {
   }
 
   .build-record-actions,
-  .measurement-record-actions {
+  .measurement-record-actions,
+  .project-next-action {
     grid-column: auto;
     align-items: stretch;
     flex-direction: column;

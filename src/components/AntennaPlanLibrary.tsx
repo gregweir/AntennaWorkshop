@@ -94,6 +94,7 @@ const projectStageDetails: Record<AntennaProjectStage, { label: string; detail: 
   verify: { label: 'Verify', detail: 'Final bands, feed system, installation, and applicable safety work checked.' },
   document: { label: 'Document', detail: 'Portable records retained with the finished antenna.' }
 };
+const actionableProjectStages = ['build', 'measure', 'tune', 'verify', 'document'] as const;
 
 function PrintAnalysisSummary({ record }: { record: AntennaPlanMeasurementRecord }) {
   if (!record.analysis) return null;
@@ -188,6 +189,9 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
   const [measurementSweep, setMeasurementSweep] = useState<AntennaPlanSweepReference | null>(null);
   const [measurementFile, setMeasurementFile] = useState<File | null>(null);
   const measurementFileInput = useRef<HTMLInputElement>(null);
+  const measurementHistory = useRef<HTMLDetailsElement>(null);
+  const measurementLabelInput = useRef<HTMLInputElement>(null);
+  const measurementAdjustmentInput = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setBuildRecordDraft(selected?.buildRecord ?? { asBuiltDimensions: '', constructionDeviations: '', commissioningNotes: '' });
@@ -407,6 +411,45 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
 
   const jurisdictionName = selected ? jurisdictionProfiles.find((profile) => profile.code === selected.jurisdiction)?.name ?? selected.jurisdiction : '';
   const measurementComparison = selected ? buildMeasurementHistoryComparison(selected.measurements) : [];
+  const nextStage = selected
+    ? actionableProjectStages.find((stage) => !selected.progress.completedStages.includes(stage)) ?? 'document'
+    : 'document';
+  const allStagesRecorded = selected?.progress.completedStages.length === ANTENNA_PROJECT_STAGES.length;
+  const stageActionLabels: Record<Exclude<AntennaProjectStage, 'choose' | 'plan'>, string> = {
+    build: 'Review build sheet',
+    measure: 'Add measurement',
+    tune: 'Record tuning change',
+    verify: 'Review evidence requirements',
+    document: 'Print complete record'
+  };
+  const runStageAction = (stage: Exclude<AntennaProjectStage, 'choose' | 'plan'>) => {
+    if (!selected) return;
+    if (stage === 'measure' || stage === 'tune') {
+      if (measurementHistory.current) measurementHistory.current.open = true;
+      globalThis.requestAnimationFrame?.(() => {
+        const target = stage === 'measure' ? measurementLabelInput.current : measurementAdjustmentInput.current;
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target?.focus();
+      });
+      return;
+    }
+    if (stage === 'document') {
+      onPrint(selected);
+      return;
+    }
+    onOpen(selected);
+    globalThis.requestAnimationFrame?.(() => globalThis.requestAnimationFrame?.(() => {
+      if (stage === 'verify') {
+        const evidence = document.querySelector<HTMLDetailsElement>('.result-evidence-key');
+        if (evidence) evidence.open = true;
+        const target = evidence?.querySelector<HTMLElement>('summary') ?? evidence;
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target?.focus();
+        return;
+      }
+      document.querySelector<HTMLElement>('.result-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  };
 
   return <details className="antenna-plan-library">
     <summary><span><strong>Saved antenna plans</strong><small>Keep named designs on this device or move them as versioned JSON files.</small></span><span className="plan-count">{plans.length}</span></summary>
@@ -440,6 +483,10 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
               </label>
             </li>;
           })}</ol>
+          <div className="project-next-action">
+            <div><strong>{allStagesRecorded ? 'All journey stages are recorded' : `Next recorded stage: ${projectStageDetails[nextStage].label}`}</strong><span>{allStagesRecorded ? 'Retain or print the complete project record, and update it when the antenna or installation changes.' : projectStageDetails[nextStage].detail}</span></div>
+            <button type="button" onClick={() => runStageAction(nextStage)}>{stageActionLabels[nextStage]}</button>
+          </div>
           <p className="project-journey-limit"><strong>Progress record only.</strong> A checked step records your workflow; it does not establish measurement quality, antenna performance, structural safety, or regulatory compliance.</p>
         </section>}
         {selected && <details className="antenna-build-record">
@@ -451,18 +498,18 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
             <div className="build-record-actions"><button type="button" onClick={saveBuildRecord}>Save build record</button><small>Notes remain on this device unless the plan is downloaded. Do not store information here that should not be included in a transferred plan.</small></div>
           </div>
         </details>}
-        {selected && <details className="antenna-measurement-history">
+        {selected && <details ref={measurementHistory} className="antenna-measurement-history">
           <summary><span><strong>Measurement history</strong><small>Reference dated observations and optional `.s1p` files without storing the sweep contents.</small></span><span className="measurement-count">{selected.measurements.length}</span></summary>
           <div className="antenna-measurement-body">
             <div className="measurement-record-form">
-              <label><span>Entry label</span><input maxLength={120} value={measurementDraft.label} onChange={(event) => updateMeasurementDraft('label', event.target.value)} placeholder="Initial installed sweep" /></label>
+              <label><span>Entry label</span><input ref={measurementLabelInput} maxLength={120} value={measurementDraft.label} onChange={(event) => updateMeasurementDraft('label', event.target.value)} placeholder="Initial installed sweep" /></label>
               <label><span>Measurement date and time</span><input type="datetime-local" value={measurementDraft.recordedAt} onChange={(event) => updateMeasurementDraft('recordedAt', event.target.value)} /></label>
               <label className="measurement-sweep-file"><span>Optional `.s1p` reference</span><input ref={measurementFileInput} type="file" accept=".s1p" aria-label="Choose measurement .s1p reference" onChange={(event) => void selectMeasurementSweep(event.target.files?.[0])} /></label>
               {measurementSweep && <div className="measurement-file-summary" role="note"><strong>{measurementSweep.name}</strong><span>{measurementSweep.sizeBytes.toLocaleString()} bytes</span><code>{measurementSweep.sha256 ? `SHA-256 ${measurementSweep.sha256}` : 'SHA-256 unavailable here · filename and size only'}</code></div>}
               <label><span>Calibration context</span><textarea maxLength={4000} value={measurementDraft.calibrationContext} onChange={(event) => updateMeasurementDraft('calibrationContext', event.target.value)} placeholder="Instrument, calibration type, fixture, cable, adapters, and calibration status." /></label>
               <label><span>Measurement reference plane</span><textarea maxLength={4000} value={measurementDraft.referencePlane} onChange={(event) => updateMeasurementDraft('referencePlane', event.target.value)} placeholder="State where the reported impedance or S11 applies." /></label>
               <label><span>Installed geometry and conditions</span><textarea maxLength={4000} value={measurementDraft.installedGeometry} onChange={(event) => updateMeasurementDraft('installedGeometry', event.target.value)} placeholder="Height, supports, orientation, feedline route, nearby objects, weather, and other relevant conditions." /></label>
-              <label><span>Adjustment since previous entry</span><textarea maxLength={4000} value={measurementDraft.adjustment} onChange={(event) => updateMeasurementDraft('adjustment', event.target.value)} placeholder="Describe dimensional, matching, feedline, support, or installation changes without claiming they caused the result." /></label>
+              <label><span>Adjustment since previous entry</span><textarea ref={measurementAdjustmentInput} maxLength={4000} value={measurementDraft.adjustment} onChange={(event) => updateMeasurementDraft('adjustment', event.target.value)} placeholder="Describe dimensional, matching, feedline, support, or installation changes without claiming they caused the result." /></label>
               <label className="measurement-observations"><span>Observed results and follow-up</span><textarea maxLength={4000} value={measurementDraft.observations} onChange={(event) => updateMeasurementDraft('observations', event.target.value)} placeholder="Record sampled resonance, SWR spans, impedance observations, comparison limits, and the next measurement or adjustment." /></label>
               <div className="measurement-record-actions"><button type="button" onClick={() => saveMeasurementRecord(false)}>Add measurement entry</button>{measurementFile && <button type="button" className="secondary-button" onClick={() => saveMeasurementRecord(true)}>Save and analyze sweep</button>}<small>Adding an entry does not mark the Measure stage complete. Review the context and check the stage when your intended work is finished.</small></div>
             </div>

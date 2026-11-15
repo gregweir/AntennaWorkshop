@@ -567,6 +567,35 @@ test('saves, reopens, duplicates, exports, and imports complete antenna plans', 
   await expect(page.locator('.measurement-record-list')).toContainText('SHA-256');
 });
 
+test('guides a saved plan into its next recorded project action', async ({ page }) => {
+  await page.getByText('Saved antenna plans', { exact: true }).click();
+  await page.getByLabel('New plan name').fill('Guided build journey');
+  await page.getByRole('button', { name: 'Save new plan' }).click();
+  const nextAction = page.locator('.project-next-action');
+  await expect(nextAction).toContainText('Next recorded stage: Build');
+  await expect(nextAction.getByRole('button')).toHaveText('Review build sheet');
+
+  await page.getByRole('checkbox', { name: /^Build/ }).check();
+  await expect(nextAction).toContainText('Next recorded stage: Measure');
+  await nextAction.getByRole('button', { name: 'Add measurement' }).click();
+  await expect(page.locator('.antenna-measurement-history')).toHaveAttribute('open', '');
+  await expect(page.getByLabel('Entry label')).toBeFocused();
+
+  await page.getByRole('checkbox', { name: /^Measure/ }).check();
+  await expect(nextAction).toContainText('Next recorded stage: Tune');
+  await nextAction.getByRole('button', { name: 'Record tuning change' }).click();
+  await expect(page.getByLabel('Adjustment since previous entry')).toBeFocused();
+
+  await page.getByRole('checkbox', { name: /^Tune/ }).check();
+  await expect(nextAction).toContainText('Next recorded stage: Verify');
+  await nextAction.getByRole('button', { name: 'Review evidence requirements' }).click();
+  await expect(page.locator('.result-evidence-key')).toHaveAttribute('open', '');
+
+  await page.getByRole('checkbox', { name: /^Verify/ }).check();
+  await expect(nextAction).toContainText('Next recorded stage: Document');
+  await expect(nextAction.getByRole('button')).toHaveText('Print complete record');
+});
+
 test('prints a saved plan as a complete project record with its restored build sheet', async ({ page }) => {
   await page.getByRole('button', { name: /Folded dipole/ }).click();
   await page.getByRole('spinbutton', { name: 'Design frequency' }).fill('7.100');
