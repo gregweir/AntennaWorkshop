@@ -1011,13 +1011,13 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 37 designs')).toBeVisible();
+  await expect(page.getByText('2 of 38 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only', exact: true }).click();
-  await expect(page.getByText('5 of 37 designs')).toBeVisible();
+  await expect(page.getByText('5 of 38 designs')).toBeVisible();
   const beverageCard = page.locator('.design-picker').getByRole('button', { name: /Beverage/ });
   await expect(beverageCard).toBeVisible();
   await expect(beverageCard).toContainText('Receive family');
@@ -1027,7 +1027,7 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('37 of 37 designs')).toBeVisible();
+  await expect(page.getByText('38 of 38 designs')).toBeVisible();
 });
 
 test('keeps the antenna search control compact on a narrow screen', async ({ page }) => {
@@ -2321,6 +2321,40 @@ test('switches among graphical antenna designs and updates construction results'
   await expect(page.getByText('Choose the installed plane')).toBeVisible();
   await page.getByLabel('Help: Loop shape').click();
   await expect(page.getByRole('note').filter({ hasText: 'Loop shape' })).toContainText('one perimeter');
+});
+
+test('plans a W3EDP or custom tuner-fed end-fed wire as a complete system', async ({ page }) => {
+  await page.getByRole('button', { name: /W3EDP · end-fed wire/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Tuner-fed end-fed wire' })).toBeVisible();
+  const geometry = page.getByRole('group', { name: 'Tuner-fed wire starting geometry' });
+  await expect(geometry.getByRole('button', { name: 'W3EDP · 85 / 17 ft' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('spinbutton', { name: 'Radiator wire' })).toHaveValue('25.908');
+  await expect(page.getByRole('spinbutton', { name: 'Counterpoise or RF-return wire' })).toHaveValue('5.182');
+  await expect(page.getByRole('img', { name: 'Tuner-fed end-fed wire system' })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('documented W3EDP wire pair');
+  await expect(page.locator('.result-summary')).toContainText('Not inferred · measure every installed band');
+
+  const arrangement = page.getByRole('group', { name: 'Matching-point arrangement' });
+  await arrangement.getByRole('button', { name: 'Remote matching point' }).click();
+  await expect(arrangement.getByRole('button', { name: 'Remote matching point' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('spinbutton', { name: 'Coax from station to remote match' })).toHaveValue('15');
+
+  await page.getByRole('spinbutton', { name: 'Radiator wire' }).fill('24');
+  await expect(geometry.getByRole('button', { name: 'Custom wire' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.result-summary')).toContainText('entered end-fed wire system');
+  const startingValues = page.getByRole('region', { name: 'Tuner-fed wire system inputs starting values' });
+  await expect(startingValues).toContainText(/modified values/);
+  await startingValues.getByRole('button').click();
+  await expect(geometry.getByRole('button', { name: 'W3EDP · 85 / 17 ft' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(arrangement.getByRole('button', { name: 'Tuner at wire' })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByText('Build and commission a tuner-fed end-fed wire').click();
+  await expect(page.locator('.step-by-step-help')).toContainText('mains protective earth is not a substitute');
+  await expect(page.getByText('Physical wire with electrical-length context')).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
 test('calculates feedline loss and preserves physical values across unit changes', async ({ page }) => {
