@@ -7226,6 +7226,15 @@ select {
     flex-direction: column;
   }
 
+  .balance-common-mode-lesson > summary span {
+    display: grid;
+  }
+
+  .balance-lesson-controls fieldset,
+  .balance-builder-notes {
+    grid-template-columns: 1fr;
+  }
+
   .line-cascade-figure > svg {
     display: none;
   }
@@ -7655,6 +7664,229 @@ select {
 
 .swr-lesson-actions button {
   flex: 0 0 auto;
+}
+
+.balance-common-mode-lesson {
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.balance-common-mode-lesson > summary {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.balance-common-mode-lesson > summary span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.balance-common-mode-lesson > summary small {
+  color: var(--text-secondary);
+}
+
+.balance-common-mode-body {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.8fr) minmax(20rem, 1.2fr);
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.balance-lesson-controls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.balance-lesson-controls fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.balance-lesson-controls legend {
+  padding-inline: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.balance-lesson-controls button {
+  min-width: 0;
+  padding: 0.55rem;
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.balance-lesson-controls button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 12%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px var(--accent-technical);
+}
+
+.balance-lesson-outcome {
+  grid-column: 2;
+  padding: 0.8rem;
+  border-left: 4px solid var(--tl-coral);
+  background: color-mix(in srgb, var(--tl-coral) 7%, var(--bg-surface));
+}
+
+.balance-lesson-outcome span {
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.balance-lesson-outcome h4,
+.balance-lesson-outcome p,
+.balance-builder-notes p,
+.balance-verification p {
+  margin-block: 0 0.4rem;
+}
+
+.balance-status-verify-installed {
+  border-left-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
+}
+
+.balance-status-verify-installed span {
+  color: var(--accent-technical);
+}
+
+.balance-path-graphic {
+  grid-column: 2;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.balance-path-graphic svg {
+  display: block;
+  width: 100%;
+  max-height: 15rem;
+}
+
+.balance-path-graphic .intended-current,
+.balance-path-graphic .feed-conductor,
+.balance-path-graphic .return-path,
+.balance-path-graphic .coax-shield {
+  fill: none;
+  stroke: var(--accent-technical);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.balance-path-graphic .feed-conductor {
+  stroke-width: 3;
+}
+
+.balance-path-graphic .coax-shield {
+  stroke: color-mix(in srgb, var(--text-secondary) 65%, transparent);
+  stroke-width: 1.5;
+}
+
+.balance-path-graphic .return-path {
+  stroke-width: 3;
+}
+
+.balance-path-graphic .feedpoint-node {
+  fill: var(--tl-coral);
+  stroke: var(--bg-surface);
+  stroke-width: 2;
+}
+
+.balance-path-graphic .outside-current {
+  fill: none;
+  stroke: var(--tl-coral);
+  stroke-width: 4;
+  stroke-dasharray: 8 7;
+  stroke-linecap: round;
+}
+
+.balance-path-graphic .common-mode-boundary {
+  fill: color-mix(in srgb, var(--tl-gold) 24%, var(--bg-surface));
+  stroke: var(--tl-gold);
+  stroke-width: 2;
+}
+
+.balance-path-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.balance-path-legend span {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.balance-path-legend i {
+  display: inline-block;
+  width: 1.5rem;
+  border-top: 3px solid var(--accent-technical);
+}
+
+.balance-path-legend .legend-outside {
+  border-color: var(--tl-coral);
+  border-top-style: dashed;
+}
+
+.balance-path-legend .legend-boundary {
+  height: 0.65rem;
+  border: 2px solid var(--tl-gold);
+  border-radius: 3px;
+}
+
+.balance-builder-notes,
+.balance-common-mode-body > .formula,
+.balance-verification {
+  grid-column: 1 / -1;
+}
+
+.balance-builder-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.balance-builder-notes p,
+.balance-verification {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.balance-verification h4 {
+  margin-block: 0 0.4rem;
+}
+
+.balance-verification ol {
+  margin-block: 0.5rem;
+  padding-left: 1.3rem;
+}
+
+.balance-verification li + li {
+  margin-top: 0.35rem;
 }
 
 .starting-values-bar {
@@ -11119,6 +11351,15 @@ path.loading-coil {
     grid-template-columns: 1fr;
   }
 
+  .balance-common-mode-body {
+    grid-template-columns: 1fr;
+  }
+
+  .balance-lesson-outcome,
+  .balance-path-graphic {
+    grid-column: 1;
+  }
+
   .antenna-project-journey ol,
   .antenna-build-record-body,
   .measurement-record-form {
@@ -13493,6 +13734,7 @@ body.diagram-view-open {
   .step-by-step-help,
   .electrical-length-lesson,
   .swr-impedance-lesson,
+  .balance-common-mode-lesson,
   .context-help,
   .evidence-overview {
     display: none !important;

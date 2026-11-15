@@ -183,6 +183,36 @@ test('shows why one SWR value does not identify a complex impedance', async ({ p
   await expect(page.getByRole('button', { name: /Impedance explorer/ })).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('teaches intended and common-mode current paths without predicting installed current', async ({ page }) => {
+  await page.getByText('Interactive lesson: balance and common-mode paths', { exact: true }).click();
+  const lesson = page.locator('.balance-common-mode-lesson');
+  await expect(lesson).toContainText('Plan incomplete');
+  await expect(lesson).toContainText('The coax outside can become an unintended current path');
+  await expect(lesson.locator('.outside-current')).toBeVisible();
+  await expect(lesson).toContainText('does not calculate choke impedance, line current, radiation, loss, heating, exposure, or safe power');
+
+  const boundary = lesson.getByRole('group', { name: 'Common-mode boundary' });
+  await boundary.getByRole('button', { name: 'Documented control' }).click();
+  await expect(lesson).toContainText('Installed verification required');
+  await expect(lesson).toContainText('The intended current boundary still requires installed verification');
+  await expect(lesson.locator('.common-mode-boundary')).toBeVisible();
+
+  await lesson.getByRole('group', { name: 'Feedpoint geometry' }).getByRole('button', { name: 'End fed' }).click();
+  await expect(lesson).toContainText('The RF return path is missing from this plan');
+  const returnPath = lesson.getByRole('group', { name: 'Separate RF return path' });
+  await returnPath.getByRole('button', { name: 'Documented' }).click();
+  await expect(lesson).toContainText('Installed verification required');
+
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Quick/ }).click();
+  await expect(lesson.getByText(/Coax supports differential current/)).toHaveCount(0);
+  await expect(lesson).toContainText('Interpretation limit');
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ }).click();
+  await expect(lesson.getByText(/I₁ = I differential/)).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });
