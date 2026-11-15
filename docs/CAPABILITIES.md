@@ -70,7 +70,7 @@ Pattern-based exposure reduction, near-field calculation, off-site source discov
 
 Canada, United States, United Kingdom, and Australia band selectors connect conventional metre-band names to the applicable allocation and the wavelength at the chosen frequency. Metric is the default, and the persistent unit switch converts displayed physical values without changing the underlying design.
 
-Contextual help works with touch, keyboard, and pointer input. Complex workflows may also provide an optional step-by-step guide while leaving advanced controls available. Result cards identify calculated values, published starting points, entered assumptions, and measurements still required.
+Contextual help works with touch, keyboard, and pointer input. The antenna workspace offers persistent Quick, Builder, and Technical explanation depths without changing results or hiding controls and required checks. Complex workflows may also provide an optional step-by-step guide while leaving advanced controls available. Result cards identify calculated values, published starting points, entered assumptions, and measurements still required.
 
 Construction drawings are responsive SVG graphics intended to support fabrication. Conceptual graphics, sourced values, calculated estimates, and measurement requirements are labelled separately; colour is not the only carrier of meaning.
 

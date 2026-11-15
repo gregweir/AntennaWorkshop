@@ -41,6 +41,7 @@ import { restoreAntennaPlanWorkspace, type AntennaPlan, type AntennaPlanValue, t
 import { jurisdictionProfiles, type JurisdictionCode } from '../regulations/catalog';
 import { createAntennaDesignHandoff, type AntennaDesignHandoff } from '../workflows/stationSourceWorkflow';
 import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
+import type { ExplanationDepth } from '../preferences';
 import { BandIndicator } from './BandIndicator';
 import { DipoleDiagram } from './DipoleDiagram';
 import { ReceiveAntennaSelector } from './ReceiveAntennaSelector';
@@ -50,6 +51,7 @@ import { ResultEvidenceKey } from './ResultEvidenceGuide';
 import { DiagramControls } from './DiagramControls';
 import { InputImpactPanel } from './InputImpactPanel';
 import { StartingValuesBar } from './StartingValuesBar';
+import { ExplanationDepthControl } from './ExplanationDepthControl';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 const AntennaResultSummary = lazy(() => import('./AntennaResultSummary').then((module) => ({ default: module.AntennaResultSummary })));
@@ -143,6 +145,8 @@ interface Props {
   setUnitSystem: (unitSystem: UnitSystem) => void;
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
+  explanationDepth: ExplanationDepth;
+  setExplanationDepth: (depth: ExplanationDepth) => void;
   initialAntennaType: AntennaType;
   onAntennaTypeChange: (type: AntennaType) => void;
   onContinueToSystem: (handoff: AntennaDesignHandoff) => void;
@@ -164,7 +168,7 @@ interface SpecializedStartingValues {
   onRestore: () => void;
 }
 
-export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, initialAntennaType, onAntennaTypeChange, onContinueToSystem, onAnalyzeSweep }: Props) {
+export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, explanationDepth, setExplanationDepth, initialAntennaType, onAntennaTypeChange, onContinueToSystem, onAnalyzeSweep }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>(initialAntennaType);
   const [comparisonRequest, setComparisonRequest] = useState<AntennaType[] | null>(null);
   const [frequencyText, setFrequencyText] = useState(initialAntennaType === 'g5rv' ? '14.150' : initialAntennaType === 'small-loop' || initialAntennaType === 'log-periodic' || initialAntennaType === 'active-receive-loop' ? '14.000' : '14.200');
@@ -1039,6 +1043,8 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
         </button>}
       </div>
 
+      <ExplanationDepthControl value={explanationDepth} onChange={setExplanationDepth} />
+
       <Suspense fallback={<div className="antenna-plan-loading" role="status">Loading saved plans…</div>}>
         <AntennaPlanLibrary antennaType={antennaType} jurisdiction={jurisdiction} unitSystem={unitSystem} modelId={model.id} modelVersion={model.version} workspace={currentWorkspace} onOpen={openAntennaPlan} onPrint={printCompleteProjectRecord} onAnalyzeSweep={onAnalyzeSweep} />
       </Suspense>
@@ -1656,7 +1662,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
 
           {specializedStartingValues && <div className="specialized-starting-values"><StartingValuesBar {...specializedStartingValues} /></div>}
 
-          <InputImpactPanel current={currentAntennaImpact} why={antennaImpactWhy} boundary={antennaImpactBoundary} />
+          <InputImpactPanel current={currentAntennaImpact} why={antennaImpactWhy} boundary={antennaImpactBoundary} depth={explanationDepth} technical={`Calculation model ${model.id}, version ${model.version}. Result cards label calculated values, published starting points, entered assumptions, and measurements still required; formula and source details remain available below the drawing.`} />
 
           {!calculation && <p className="validation-message" role="alert">Enter values within the displayed limits to calculate dimensions.</p>}
           {calculation && <><div className="antenna-print-heading">

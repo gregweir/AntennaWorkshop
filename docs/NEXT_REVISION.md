@@ -22,7 +22,7 @@ Make Antenna Workshop the clearest connected path from antenna choice to a measu
 
 ## Milestone 3 — Layered Learning
 
-- Offer quick, builder, and technical explanation levels.
+- Offer persistent Quick, Builder, and Technical explanation levels without hiding controls or required checks. The first antenna-workspace layer is implemented.
 - Add interactive lessons for electrical length, impedance, balance, common mode, matching, ground effects, and the limits of SWR.
 - Place explanations beside the decision or measurement where they are needed.
 

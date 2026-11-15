@@ -53,6 +53,8 @@ Users can begin either by choosing an antenna family or by describing a goal suc
 
 Contextual help must work with touch, keyboard, and pointer input. Complex sections may also provide an optional, collapsible step-by-step guide. Guidance should explain the existing workflow rather than create a separate simplified mode or conceal advanced controls.
 
+The antenna workspace must provide persistent Quick, Builder, and Technical explanation depths. Quick must retain the current consequence and required next check; Builder adds construction reasoning; Technical adds calculation-model identity and evidence boundaries. Changing depth must not alter calculations, hide inputs or advanced controls, suppress safety limitations, or imply that technical detail replaces measurement.
+
 The RF-exposure workspace must provide an accessible scope disclosure that distinguishes implemented sourced workflows from unsupported near-field, pattern, environmental, measurement, and source-discovery work. It must state that interface output and completed records are neither reviewer sign-off nor compliance determinations, without displaying a release-stage label.
 
 The antenna workspace must provide an optional comparison of three user-selected construction planners. It must cover site footprint, band intent, feed and tuning system, directional context, build complexity, and required installed verification without assigning a performance ranking or inferring gain, efficiency, signal strength, or suitability at the user’s site.

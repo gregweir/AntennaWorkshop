@@ -33,7 +33,8 @@ describe('application preferences', () => {
       activeWorkspace: 'feedline',
       activeAntennaDesign: 'g5rv',
       activeFeedlineTool: 'explore',
-      activeExposureView: 'project'
+      activeExposureView: 'project',
+      explanationDepth: 'technical'
     } as const;
     savePreferences(preferences, storage);
     expect(loadPreferences(storage)).toEqual(preferences);
@@ -52,7 +53,8 @@ describe('application preferences', () => {
       activeWorkspace: 'antennas',
       activeAntennaDesign: 'dipole',
       activeFeedlineTool: 'power',
-      activeExposureView: 'reference'
+      activeExposureView: 'reference',
+      explanationDepth: 'builder'
     });
   });
 
@@ -82,7 +84,8 @@ describe('application preferences', () => {
         activeWorkspace: 'settings',
         activeAntennaDesign: 'magic-wire',
         activeFeedlineTool: 'tuner',
-        activeExposureView: 'certificate'
+        activeExposureView: 'certificate',
+        explanationDepth: 'expert'
       })))
     ).toEqual(defaultPreferences);
   });

@@ -7199,6 +7199,10 @@ select {
 }
 
 @media (max-width: 560px) {
+  .explanation-depth-options {
+    grid-template-columns: 1fr;
+  }
+
   .line-cascade-figure > svg {
     display: none;
   }
@@ -7329,6 +7333,71 @@ select {
   max-width: 42rem;
   color: color-mix(in srgb, var(--text-secondary) 86%, var(--bg-elevated));
   font-size: 0.74rem;
+}
+
+.explanation-depth {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.explanation-depth p,
+.explanation-depth h3 {
+  margin: 0;
+}
+
+.explanation-depth h3 {
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+
+.explanation-depth > div:first-child > p:last-child {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.explanation-depth-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.explanation-depth-options button {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.65rem;
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.explanation-depth-options button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 12%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px var(--accent-technical);
+}
+
+.explanation-depth-options strong,
+.explanation-depth-options small {
+  overflow-wrap: anywhere;
+}
+
+.explanation-depth-options small {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .input-impact-panel {
@@ -10806,6 +10875,10 @@ path.loading-coil {
 }
 
 @media (max-width: 980px) {
+  .explanation-depth {
+    grid-template-columns: 1fr;
+  }
+
   .antenna-project-journey ol,
   .antenna-build-record-body,
   .measurement-record-form {

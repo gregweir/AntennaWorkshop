@@ -104,6 +104,34 @@ test('applies light, dark, and live system theme modes', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
+test('layers antenna explanations without hiding controls or required checks', async ({ page }) => {
+  const depth = page.getByRole('group', { name: 'Explanation depth' });
+  const impact = page.getByRole('region', { name: 'What these inputs affect' });
+  await expect(depth.getByRole('button', { name: /^Builder/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(impact.getByText('Current consequence', { exact: true })).toBeVisible();
+  await expect(impact.getByText('Why it matters', { exact: true })).toBeVisible();
+  await expect(impact.getByText('Boundary and next check', { exact: true })).toBeVisible();
+  await expect(impact.getByText('Model and evidence', { exact: true })).toHaveCount(0);
+
+  await depth.getByRole('button', { name: /^Quick/ }).click();
+  await expect(impact.getByText('Why it matters', { exact: true })).toHaveCount(0);
+  await expect(impact.getByText('Boundary and next check', { exact: true })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Show advanced' })).toBeVisible();
+
+  await depth.getByRole('button', { name: /^Technical/ }).click();
+  await expect(impact.getByText('Why it matters', { exact: true })).toBeVisible();
+  await expect(impact.getByText('Model and evidence', { exact: true })).toBeVisible();
+  await expect(impact).toContainText('Calculation model');
+  await expect(impact).toContainText('formula and source details remain available');
+  await page.reload();
+  await expect(page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('region', { name: 'What these inputs affect' }).getByText('Model and evidence', { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+  await expect(page.getByRole('group', { name: 'Explanation depth' }).getByRole('button')).toHaveCount(3);
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });

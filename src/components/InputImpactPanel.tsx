@@ -6,21 +6,25 @@
  */
 
 import { useId } from 'react';
+import type { ExplanationDepth } from '../preferences';
 
 interface Props {
   current: string;
   why: string;
   boundary: string;
+  depth?: ExplanationDepth;
+  technical?: string;
 }
 
-export function InputImpactPanel({ current, why, boundary }: Props) {
+export function InputImpactPanel({ current, why, boundary, depth = 'builder', technical }: Props) {
   const headingId = useId();
   return <section className="input-impact-panel" aria-labelledby={headingId}>
     <div className="input-impact-heading"><p className="eyebrow">Live input impact</p><h3 id={headingId}>What these inputs affect</h3></div>
     <div className="input-impact-grid">
       <article><strong>Current consequence</strong><p>{current}</p></article>
-      <article><strong>Why it matters</strong><p>{why}</p></article>
+      {depth !== 'quick' && <article><strong>Why it matters</strong><p>{why}</p></article>}
       <article><strong>Boundary and next check</strong><p>{boundary}</p></article>
+      {depth === 'technical' && technical && <article><strong>Model and evidence</strong><p>{technical}</p></article>}
     </div>
   </section>;
 }

@@ -18,9 +18,11 @@ export interface AppPreferences {
   activeAntennaDesign: AntennaType;
   activeFeedlineTool: FeedlineTool;
   activeExposureView: ExposureView;
+  explanationDepth: ExplanationDepth;
 }
 
 export type ThemePreference = 'system' | 'light' | 'dark';
+export type ExplanationDepth = 'quick' | 'builder' | 'technical';
 export type WorkshopWorkspace = 'antennas' | 'feedline' | 'exposure';
 export type FeedlineTool = 'power' | 'stub' | 'explore' | 'sweep' | 'line' | 'match' | 'transformer' | 'ratio' | 'radiated';
 export type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment' | 'acma-distance' | 'acma-record';
@@ -40,7 +42,8 @@ export const defaultPreferences: AppPreferences = {
   activeWorkspace: 'antennas',
   activeAntennaDesign: 'dipole',
   activeFeedlineTool: 'power',
-  activeExposureView: 'reference'
+  activeExposureView: 'reference',
+  explanationDepth: 'builder'
 };
 
 function isJurisdiction(value: unknown): value is JurisdictionCode {
@@ -53,6 +56,10 @@ function isUnitSystem(value: unknown): value is UnitSystem {
 
 function isThemePreference(value: unknown): value is ThemePreference {
   return value === 'system' || value === 'light' || value === 'dark';
+}
+
+function isExplanationDepth(value: unknown): value is ExplanationDepth {
+  return value === 'quick' || value === 'builder' || value === 'technical';
 }
 
 function isWorkshopWorkspace(value: unknown): value is WorkshopWorkspace {
@@ -104,7 +111,10 @@ export function loadPreferences(storage?: StorageLike): AppPreferences {
         : defaultPreferences.activeFeedlineTool,
       activeExposureView: isExposureView(candidate.activeExposureView)
         ? candidate.activeExposureView
-        : defaultPreferences.activeExposureView
+        : defaultPreferences.activeExposureView,
+      explanationDepth: isExplanationDepth(candidate.explanationDepth)
+        ? candidate.explanationDepth
+        : defaultPreferences.explanationDepth
     };
   } catch {
     return defaultPreferences;
