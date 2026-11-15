@@ -213,6 +213,34 @@ test('teaches intended and common-mode current paths without predicting installe
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
+test('distinguishes antenna resonance from a source-plane match', async ({ page }) => {
+  await page.getByText('Interactive lesson: resonance, matching, and tuning', { exact: true }).click();
+  const lesson = page.locator('.matching-tuning-lesson');
+  await expect(lesson).toContainText('100.0 + j0.0 Ω');
+  await expect(lesson).toContainText('Resonant load · SWR 2.00 : 1');
+  await expect(lesson).toContainText('Resonance and source match are separate questions');
+
+  await lesson.getByRole('group', { name: 'Network state' }).getByRole('button', { name: 'Ideal L-match' }).click();
+  await expect(lesson).toContainText('The source sees a match; the antenna-terminal load did not change');
+  await expect(lesson).toContainText('50.0 + j0.0 Ω');
+  await expect(lesson).toContainText('SWR 1.00 : 1');
+  await expect(lesson).toContainText('The load itself remains unchanged');
+
+  await lesson.getByRole('group', { name: 'Antenna-terminal load' }).getByRole('button', { name: '25 + j50 Ω' }).click();
+  await expect(lesson).toContainText('25.0 + j50.0 Ω');
+  await expect(lesson).toContainText('The antenna-terminal reactance is not zero');
+  await expect(lesson).toContainText('50.0 + j0.0 Ω');
+
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Quick/ }).click();
+  await expect(lesson.getByText(/zero reactance at the stated reference plane/)).toHaveCount(0);
+  await expect(lesson).toContainText('Interpretation limit');
+  await page.getByRole('group', { name: 'Explanation depth' }).getByRole('button', { name: /^Technical/ }).click();
+  await expect(lesson.getByText(/At resonance: X = 0/)).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
 test('marks and restores common antenna starting values without changing the design frequency', async ({ page }) => {
   await page.getByRole('button', { name: 'Show advanced' }).click();
   const startingValues = page.getByRole('region', { name: 'Common length settings starting values' });

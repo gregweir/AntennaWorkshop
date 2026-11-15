@@ -7230,8 +7230,15 @@ select {
     display: grid;
   }
 
+  .matching-tuning-lesson > summary span {
+    display: grid;
+  }
+
   .balance-lesson-controls fieldset,
-  .balance-builder-notes {
+  .balance-builder-notes,
+  .matching-tuning-controls fieldset,
+  .matching-plane-labels,
+  .matching-builder-notes {
     grid-template-columns: 1fr;
   }
 
@@ -7887,6 +7894,154 @@ select {
 
 .balance-verification li + li {
   margin-top: 0.35rem;
+}
+
+.matching-tuning-lesson {
+  margin-top: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.matching-tuning-lesson > summary {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.matching-tuning-lesson > summary span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.matching-tuning-lesson > summary small {
+  color: var(--text-secondary);
+}
+
+.matching-tuning-body {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.matching-tuning-controls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.matching-tuning-controls fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.matching-tuning-controls legend {
+  padding-inline: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.matching-tuning-controls button {
+  min-width: 0;
+  padding: 0.55rem;
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.matching-tuning-controls button[aria-pressed='true'] {
+  border-color: var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 12%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px var(--accent-technical);
+}
+
+.matching-tuning-outcome {
+  padding: 0.8rem;
+  border-left: 4px solid var(--accent-technical);
+  background: color-mix(in srgb, var(--accent-technical) 7%, var(--bg-surface));
+}
+
+.matching-tuning-outcome p,
+.matching-tuning-outcome h4 {
+  margin-block: 0 0.4rem;
+}
+
+.matching-plane-graphic,
+.matching-builder-notes,
+.matching-tuning-body > .formula,
+.matching-interpretation-limit {
+  grid-column: 1 / -1;
+}
+
+.matching-plane-graphic {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.matching-plane-graphic svg {
+  display: block;
+  width: 100%;
+  max-height: 11rem;
+  fill: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+  stroke: var(--text-secondary);
+  stroke-width: 3;
+}
+
+.matching-plane-graphic .network-active {
+  fill: color-mix(in srgb, var(--accent-technical) 15%, var(--bg-surface));
+  stroke: var(--accent-technical);
+}
+
+.matching-plane-labels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.matching-plane-labels div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  text-align: center;
+}
+
+.matching-plane-labels span {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.matching-plane-labels small,
+.matching-builder-notes,
+.matching-interpretation-limit {
+  color: var(--text-secondary);
+}
+
+.matching-builder-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.matching-builder-notes p,
+.matching-interpretation-limit {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .starting-values-bar {
@@ -11355,6 +11510,10 @@ path.loading-coil {
     grid-template-columns: 1fr;
   }
 
+  .matching-tuning-body {
+    grid-template-columns: 1fr;
+  }
+
   .balance-lesson-outcome,
   .balance-path-graphic {
     grid-column: 1;
@@ -13735,6 +13894,7 @@ body.diagram-view-open {
   .electrical-length-lesson,
   .swr-impedance-lesson,
   .balance-common-mode-lesson,
+  .matching-tuning-lesson,
   .context-help,
   .evidence-overview {
     display: none !important;

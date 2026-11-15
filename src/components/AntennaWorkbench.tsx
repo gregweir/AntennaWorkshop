@@ -55,6 +55,7 @@ import { ExplanationDepthControl } from './ExplanationDepthControl';
 import { ElectricalLengthLesson } from './ElectricalLengthLesson';
 import { SwrImpedanceLesson } from './SwrImpedanceLesson';
 import { BalanceCommonModeLesson } from './BalanceCommonModeLesson';
+import { MatchingTuningLesson } from './MatchingTuningLesson';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 const AntennaResultSummary = lazy(() => import('./AntennaResultSummary').then((module) => ({ default: module.AntennaResultSummary })));
@@ -1778,6 +1779,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
       {calculation?.type !== 'hex-beam' && <ElectricalLengthLesson frequencyMHz={frequencyMHz} unitSystem={unitSystem} depth={explanationDepth} />}
       {calculation?.type !== 'hex-beam' && <SwrImpedanceLesson depth={explanationDepth} onOpenExplorer={onOpenImpedanceExplorer} />}
       {calculation?.type !== 'hex-beam' && <BalanceCommonModeLesson depth={explanationDepth} />}
+      {calculation?.type !== 'hex-beam' && <MatchingTuningLesson depth={explanationDepth} frequencyMHz={frequencyMHz} />}
       {(calculation?.type === 'efhw' || calculation?.type === 'ocfd') && <HarmonicBands frequencies={calculation.value.harmonicFrequenciesMHz} jurisdiction={jurisdiction} />}
       <p className="allocation-note">{calculation?.type === 'hex-beam' ? `The selected wire sets name amateur bands; they do not establish permission at every frequency in ${jurisdictionName}.` : `Allocation summary for ${jurisdictionName}.`} Licence qualifications, sub-bands, modes, bandwidth, power, and sharing conditions may further restrict operation; confirm current rules before transmitting.{bandSource && <> Source: <a href={bandSource.url} target="_blank" rel="noreferrer">{bandSource.title}</a> (reviewed {bandSource.reviewedOn}).</>}</p>
 
