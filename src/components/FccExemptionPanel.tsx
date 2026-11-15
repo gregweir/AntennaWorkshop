@@ -13,8 +13,9 @@ import {
 } from '../calculators/fccExemption';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
 import type { ExposureJurisdiction } from '../regulations/exposureLimits';
-import { HelpTip, StepByStepHelp } from './ContextHelp';
+import { StepByStepHelp } from './ContextHelp';
 import { FccExemptionDiagram } from './FccExemptionDiagram';
+import { ValidatedNumberField } from './ValidatedNumberField';
 
 interface Props {
   jurisdiction: ExposureJurisdiction;
@@ -67,9 +68,9 @@ export function FccExemptionPanel({ jurisdiction, frequencyMHz, unitSystem }: Pr
 
     {jurisdiction !== 'US' ? <div className="screen-outcome screen-outcome-screening-inconclusive" role="status"><p className="eyebrow">Jurisdiction required</p><h4>FCC exemption is not evaluated</h4><p>Change the station jurisdiction to United States using the persistent selector at the top of the application. Canadian stations require the applicable ISED and Safety Code 6 process.</p></div> : <>
       <div className="screen-input-grid fcc-exemption-inputs">
-        <div className="field"><span className="field-label-with-help"><label htmlFor="fcc-available-power">Available maximum time-averaged power</label><HelpTip label="Available maximum time-averaged power">Enter maximum available RF power into a matched load, averaged over the applicable time-averaging period. This is not automatically the transmitter nameplate or peak-envelope power.</HelpTip></span><span className="input-with-unit"><input id="fcc-available-power" type="number" min="0" step="0.001" value={availablePowerWatts} onChange={(event) => setAvailablePowerWatts(Number(event.target.value))} /><span>W</span></span><small>Defined by 47 CFR § 1.1307(b)(2).</small></div>
-        <div className="field"><span className="field-label-with-help"><label htmlFor="fcc-erp">Maximum time-averaged ERP</label><HelpTip label="Maximum time-averaged ERP">Enter maximum delivered time-averaged power multiplied by the largest antenna power gain relative to a dipole, summed over two polarizations when present. Do not enter EIRP without converting it to ERP.</HelpTip></span><span className="input-with-unit"><input id="fcc-erp" type="number" min="0" step="0.001" value={erpWatts} onChange={(event) => setErpWatts(Number(event.target.value))} /><span>W ERP</span></span><small>Maximum gain is relative to a dipole, not isotropic.</small></div>
-        <div className="field"><span className="field-label-with-help"><label htmlFor="fcc-separation">Minimum body separation</label><HelpTip label="Minimum body separation">Measure from the closest part of the radiating structure to the closest part of a nearby person's body. This differs from distance to an antenna centre or mast.</HelpTip></span><span className="input-with-unit"><input id="fcc-separation" type="number" min="0.001" step="0.01" value={Number(displayedSeparation.toFixed(3))} onChange={(event) => setSeparationMetres(readSeparation(Number(event.target.value)))} /><span>{lengthUnit}</span></span><small>Minimum distance in any direction.</small></div>
+        <ValidatedNumberField id="fcc-available-power" label="Available maximum time-averaged power" value={availablePowerWatts} min={0} max={1_000_000} step={0.001} unit="W" help="Defined by 47 CFR § 1.1307(b)(2)." tooltip="Enter maximum available RF power into a matched load, averaged over the applicable time-averaging period. This is not automatically the transmitter nameplate or peak-envelope power." onChange={setAvailablePowerWatts} />
+        <ValidatedNumberField id="fcc-erp" label="Maximum time-averaged ERP" value={erpWatts} min={0} max={1_000_000} step={0.001} unit="W ERP" help="Maximum gain is relative to a dipole, not isotropic." tooltip="Enter maximum delivered time-averaged power multiplied by the largest antenna power gain relative to a dipole, summed over two polarizations when present. Do not enter EIRP without converting it to ERP." onChange={setErpWatts} />
+        <ValidatedNumberField id="fcc-separation" label="Minimum body separation" value={Number(displayedSeparation.toFixed(3))} min={unitSystem === 'metric' ? 0.001 : 0.003} max={unitSystem === 'metric' ? 1_000_000 : 3_280_840} step={0.01} unit={lengthUnit} help="Minimum distance in any direction." tooltip="Measure from the closest part of the radiating structure to the closest part of a nearby person's body. This differs from distance to an antenna centre or mast." onChange={(value) => setSeparationMetres(readSeparation(value))} />
       </div>
       {!result && <p className="validation-message" role="alert">These inputs are outside the supported numeric range. No exemption result is produced.</p>}
       {result && <>

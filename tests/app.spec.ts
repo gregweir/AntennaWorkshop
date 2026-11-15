@@ -2385,6 +2385,33 @@ test('classifies modified-free-space screening limitations', async ({ page }) =>
   await expect(stationScreen.locator('.screen-limitations')).toContainText('does not mean safe, compliant, certified, or exempt');
 });
 
+test('places RF exposure input errors beside the field across jurisdictions', async ({ page }) => {
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Single source/ }).click();
+  const screenPower = page.getByRole('spinbutton', { name: 'Transmitter output' });
+  await screenPower.fill('0');
+  await expect(screenPower).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Enter a value from 0.001 to 1000000 W.')).toBeVisible();
+
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('US');
+  await page.getByRole('button', { name: /FCC single/ }).click();
+  const fccPower = page.getByRole('spinbutton', { name: 'Available maximum time-averaged power' });
+  await fccPower.fill('-1');
+  await expect(fccPower).toHaveAttribute('aria-invalid', 'true');
+
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('GB');
+  await page.getByRole('button', { name: /Compliance distance/ }).click();
+  const ofcomPower = page.getByRole('spinbutton', { name: 'Maximum radiated power' });
+  await ofcomPower.fill('0');
+  await expect(ofcomPower).toHaveAttribute('aria-invalid', 'true');
+
+  await page.getByLabel('Station jurisdiction', { exact: true }).selectOption('AU');
+  await page.getByRole('button', { name: /Exclusion distance/ }).click();
+  const acmaPower = page.getByRole('spinbutton', { name: 'ACMA transmitter output power' });
+  await acmaPower.fill('0');
+  await expect(acmaPower).toHaveAttribute('aria-invalid', 'true');
+});
+
 test('evaluates the three FCC single-source exemption paths without implying compliance', async ({ page }) => {
   await page.getByRole('button', { name: /RF exposure/ }).click();
   await page.getByRole('button', { name: /FCC single/ }).click();

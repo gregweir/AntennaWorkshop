@@ -12,6 +12,7 @@ import { feetToMetres, metresToFeet, type UnitSystem } from '../lib/units';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { OfcomDistanceDiagram } from './OfcomDistanceDiagram';
 import { EvidenceResultSummary } from './ResultEvidenceGuide';
+import { ValidatedNumberField } from './ValidatedNumberField';
 
 interface Props { frequencyMHz: number; unitSystem: UnitSystem }
 
@@ -51,9 +52,9 @@ export function OfcomComplianceDistancePanel({ frequencyMHz, unitSystem }: Props
 
     <div className="ofcom-distance-inputs">
       <div className="field"><span className="field-label-with-help"><label htmlFor="ofcom-distance-basis">Radiated-power basis</label><HelpTip label="Compliance-distance power basis">EIRP is referenced to isotropic gain. ERP is referenced to a half-wave dipole and is multiplied by 1.64 to match Ofcom’s EIRP calculation.</HelpTip></span><select id="ofcom-distance-basis" value={powerBasis} onChange={(event) => setPowerBasis(event.target.value as OfcomPowerBasis)}><option value="EIRP">EIRP · isotropic reference</option><option value="ERP">ERP · half-wave dipole reference</option></select></div>
-      <label className="field"><span>Maximum radiated power</span><span className="input-with-unit"><input type="number" min="0.000001" step="0.1" value={maximumPower} onChange={(event) => setMaximumPower(Number(event.target.value))} /><span>W {powerBasis}</span></span></label>
-      <label className="field"><span>Maximum transmission time in any six minutes</span><span className="input-with-unit"><input type="number" min="0" max="360" step="1" value={transmitSeconds} onChange={(event) => setTransmitSeconds(Number(event.target.value))} /><span>s</span></span></label>
-      <label className="field"><span>Largest antenna dimension</span><span className="input-with-unit"><input type="number" min="0.001" step="0.01" value={Number(shownDimension.toFixed(3))} onChange={(event) => setAntennaDimensionMetres(readDimension(Number(event.target.value)))} /><span>{distanceUnit}</span></span><small>Largest overall dimension or antenna diameter.</small></label>
+      <ValidatedNumberField label="Maximum radiated power" value={maximumPower} min={0.000001} max={1_000_000} step={0.1} unit={`W ${powerBasis}`} onChange={setMaximumPower} />
+      <ValidatedNumberField label="Maximum transmission time in any six minutes" value={transmitSeconds} min={0} max={360} step={1} unit="s" onChange={setTransmitSeconds} />
+      <ValidatedNumberField label="Largest antenna dimension" value={Number(shownDimension.toFixed(3))} min={unitSystem === 'metric' ? 0.001 : 0.003} max={unitSystem === 'metric' ? 1_000_000 : 3_280_840} step={0.01} unit={distanceUnit} help="Largest overall dimension or antenna diameter." onChange={(value) => setAntennaDimensionMetres(readDimension(value))} />
       <label className="ofcom-reflection-check"><input type="checkbox" checked={highReflectionSurface} onChange={(event) => setHighReflectionSurface(event.target.checked)} /> Seawater, metal, or another highly reflective surface is close enough to affect the field</label>
     </div>
 

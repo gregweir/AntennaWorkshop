@@ -11,6 +11,7 @@ import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../li
 import { AcmaExclusionDiagram } from './AcmaExclusionDiagram';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 import { EvidenceResultSummary } from './ResultEvidenceGuide';
+import { ValidatedNumberField } from './ValidatedNumberField';
 
 interface Props { frequencyMHz: number; unitSystem: UnitSystem; }
 
@@ -39,10 +40,10 @@ export function AcmaExclusionDistancePanel({ frequencyMHz, unitSystem }: Props) 
     ]} limit="The official workbook does not factor environmental effects or losses, assumes 100% transmitter power, and has no antenna-pattern input. This reproduction does not verify standard applicability or demonstrate compliance." />
 
     <div className="acma-exclusion-inputs">
-      <label className="field"><span>Transmitter output power</span><span className="input-with-unit"><input aria-label="ACMA transmitter output power" type="number" min="0.001" step="0.1" value={transmitterPower} onChange={(event) => setTransmitterPower(Number(event.target.value))} /><span>W</span></span><small>Official workbook input P; no duty-cycle or feed-loss reduction.</small></label>
+      <ValidatedNumberField label="Transmitter output power" ariaLabel="ACMA transmitter output power" value={transmitterPower} min={0.001} max={1_000_000} step={0.1} unit="W" help="Official workbook input P; no duty-cycle or feed-loss reduction." onChange={setTransmitterPower} />
       <div className="field"><span className="field-label-with-help"><label htmlFor="acma-gain-basis">Antenna gain basis</label><HelpTip label="ACMA antenna gain basis">Choose dBi for isotropic-reference gain or dBd for half-wave-dipole-reference gain. The official workbook adds 2.15 dB to dBd.</HelpTip></span><select id="acma-gain-basis" value={gainBasis} onChange={(event) => setGainBasis(event.target.value as AcmaGainBasis)}><option value="dBi">dBi · isotropic</option><option value="dBd">dBd · half-wave dipole</option></select></div>
-      <label className="field"><span>Maximum antenna gain</span><span className="input-with-unit"><input aria-label="ACMA maximum antenna gain" type="number" min="-100" max="100" step="0.1" value={antennaGain} onChange={(event) => setAntennaGain(Number(event.target.value))} /><span>{gainBasis}</span></span></label>
-      <label className="field"><span>Largest antenna dimension</span><span className="input-with-unit"><input aria-label="ACMA largest antenna dimension" type="number" min="0.001" step="0.01" value={Number(shownDimension.toFixed(3))} onChange={(event) => setAntennaDimensionMetres(unitSystem === 'metric' ? Number(event.target.value) : feetToMetres(Number(event.target.value)))} /><span>{unitSystem === 'metric' ? 'm' : 'ft'}</span></span><small>Used only for the separate far-field applicability check.</small></label>
+      <ValidatedNumberField label="Maximum antenna gain" ariaLabel="ACMA maximum antenna gain" value={antennaGain} min={-100} max={100} step={0.1} unit={gainBasis} onChange={setAntennaGain} />
+      <ValidatedNumberField label="Largest antenna dimension" ariaLabel="ACMA largest antenna dimension" value={Number(shownDimension.toFixed(3))} min={unitSystem === 'metric' ? 0.001 : 0.003} max={unitSystem === 'metric' ? 100_000 : 328_084} step={0.01} unit={unitSystem === 'metric' ? 'm' : 'ft'} help="Used only for the separate far-field applicability check." onChange={(value) => setAntennaDimensionMetres(unitSystem === 'metric' ? value : feetToMetres(value))} />
     </div>
 
     {!result && <p className="validation-message" role="alert">Use a frequency above 30 MHz through 300,000 MHz, positive power and antenna size, and gain from −100 to 100 dB.</p>}
