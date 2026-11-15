@@ -47,6 +47,23 @@ test('resumes the last top-level workspace', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Official reference limits' })).toBeVisible();
 });
 
+test('resumes feedline and RF exposure subsections without persisting calculator inputs', async ({ page }) => {
+  await page.getByRole('button', { name: /Feedline & matching/ }).click();
+  await page.getByRole('button', { name: /Impedance explorer/ }).click();
+  await page.getByRole('spinbutton', { name: 'Measured resistance for chart' }).fill('75');
+  await page.getByRole('button', { name: /RF exposure/ }).click();
+  await page.getByRole('button', { name: /Station project/ }).click();
+  await page.reload();
+
+  await expect(page.getByRole('button', { name: /Station project/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', { name: 'Station project' })).toBeVisible();
+
+  await page.getByRole('button', { name: /Feedline & matching/ }).click();
+  await expect(page.getByRole('button', { name: /Impedance explorer/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', { name: 'Impedance and Smith chart' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Measured resistance for chart' })).toHaveValue('100');
+});
+
 test('applies light, dark, and live system theme modes', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.getByLabel('Theme').selectOption('system');

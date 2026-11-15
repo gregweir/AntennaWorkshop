@@ -14,10 +14,14 @@ export interface AppPreferences {
   advancedOpen: boolean;
   theme: ThemePreference;
   activeWorkspace: WorkshopWorkspace;
+  activeFeedlineTool: FeedlineTool;
+  activeExposureView: ExposureView;
 }
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type WorkshopWorkspace = 'antennas' | 'feedline' | 'exposure';
+export type FeedlineTool = 'power' | 'stub' | 'explore' | 'line' | 'match' | 'transformer' | 'ratio' | 'radiated';
+export type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment' | 'acma-distance' | 'acma-record';
 
 interface StorageLike {
   getItem(key: string): string | null;
@@ -31,7 +35,9 @@ export const defaultPreferences: AppPreferences = {
   unitSystem: 'metric',
   advancedOpen: false,
   theme: 'system',
-  activeWorkspace: 'antennas'
+  activeWorkspace: 'antennas',
+  activeFeedlineTool: 'power',
+  activeExposureView: 'reference'
 };
 
 function isJurisdiction(value: unknown): value is JurisdictionCode {
@@ -48,6 +54,18 @@ function isThemePreference(value: unknown): value is ThemePreference {
 
 function isWorkshopWorkspace(value: unknown): value is WorkshopWorkspace {
   return value === 'antennas' || value === 'feedline' || value === 'exposure';
+}
+
+function isFeedlineTool(value: unknown): value is FeedlineTool {
+  return value === 'power' || value === 'stub' || value === 'explore' || value === 'line'
+    || value === 'match' || value === 'transformer' || value === 'ratio' || value === 'radiated';
+}
+
+function isExposureView(value: unknown): value is ExposureView {
+  return value === 'reference' || value === 'single' || value === 'project' || value === 'aggregate'
+    || value === 'fcc-exemption' || value === 'fcc-multiple' || value === 'ofcom-assessment'
+    || value === 'ofcom-distance' || value === 'ofcom-multiple' || value === 'arpansa-reference'
+    || value === 'acma-assessment' || value === 'acma-distance' || value === 'acma-record';
 }
 
 export function loadPreferences(storage?: StorageLike): AppPreferences {
@@ -70,7 +88,13 @@ export function loadPreferences(storage?: StorageLike): AppPreferences {
       theme: isThemePreference(candidate.theme) ? candidate.theme : defaultPreferences.theme,
       activeWorkspace: isWorkshopWorkspace(candidate.activeWorkspace)
         ? candidate.activeWorkspace
-        : defaultPreferences.activeWorkspace
+        : defaultPreferences.activeWorkspace,
+      activeFeedlineTool: isFeedlineTool(candidate.activeFeedlineTool)
+        ? candidate.activeFeedlineTool
+        : defaultPreferences.activeFeedlineTool,
+      activeExposureView: isExposureView(candidate.activeExposureView)
+        ? candidate.activeExposureView
+        : defaultPreferences.activeExposureView
     };
   } catch {
     return defaultPreferences;

@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { calculateCoaxialStub, calculateFeedlineBudget, calculateRadiatedPower, COAXIAL_STUB_MODEL, FEEDLINE_MODEL, RADIATED_POWER_MODEL, type GainReference, type StubFraction, type StubTermination } from '../calculators/feedline';
 import { calculateLNetwork, L_NETWORK_MODEL } from '../calculators/lNetwork';
@@ -32,11 +32,14 @@ import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide'
 import { DiagramControls } from './DiagramControls';
 import { InputImpactPanel } from './InputImpactPanel';
 import { StartingValuesBar } from './StartingValuesBar';
+import type { FeedlineTool } from '../preferences';
 
 interface Props {
   jurisdiction: JurisdictionCode;
   unitSystem: UnitSystem;
   antennaHandoff: AntennaDesignHandoff | null;
+  initialMode: FeedlineTool;
+  onModeChange: (mode: FeedlineTool) => void;
   onAddToExposure: (transfer: StationSourceTransfer) => void;
 }
 
@@ -85,8 +88,8 @@ function countModified(...conditions: boolean[]) {
   return conditions.filter(Boolean).length;
 }
 
-export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, onAddToExposure }: Props) {
-  const [mode, setMode] = useState<'power' | 'stub' | 'explore' | 'line' | 'match' | 'transformer' | 'ratio' | 'radiated'>(antennaHandoff ? 'radiated' : 'power');
+export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, initialMode, onModeChange, onAddToExposure }: Props) {
+  const [mode, setMode] = useState<FeedlineTool>(antennaHandoff ? 'radiated' : initialMode);
   const [frequencyText, setFrequencyText] = useState(antennaHandoff ? antennaHandoff.frequencyMHz.toString() : '146.520');
   const [transmitterPowerWatts, setTransmitterPowerWatts] = useState(100);
   const [cableLengthMetres, setCableLengthMetres] = useState(30);
@@ -125,6 +128,7 @@ export function FeedlineWorkbench({ jurisdiction, unitSystem, antennaHandoff, on
   const [antennaCentreHeightMetres, setAntennaCentreHeightMetres] = useState(10);
   const [antennaEastMetres, setAntennaEastMetres] = useState(0);
   const [antennaNorthMetres, setAntennaNorthMetres] = useState(0);
+  useEffect(() => onModeChange(mode), [mode, onModeChange]);
   const frequencyMHz = Number(frequencyText);
   const availableBands = getBandsForJurisdiction(jurisdiction);
   const activeBand = findBandForFrequency(frequencyMHz, jurisdiction);

@@ -30,7 +30,9 @@ describe('application preferences', () => {
       unitSystem: 'imperial',
       advancedOpen: true,
       theme: 'dark',
-      activeWorkspace: 'feedline'
+      activeWorkspace: 'feedline',
+      activeFeedlineTool: 'explore',
+      activeExposureView: 'project'
     } as const;
     savePreferences(preferences, storage);
     expect(loadPreferences(storage)).toEqual(preferences);
@@ -43,12 +45,23 @@ describe('application preferences', () => {
 
   it('migrates older preferences to system theme and preserves Australia', () => {
     const storage = memoryStorage(JSON.stringify({ jurisdiction: 'AU', unitSystem: 'metric', advancedOpen: false }));
-    expect(loadPreferences(storage)).toMatchObject({ jurisdiction: 'AU', theme: 'system', activeWorkspace: 'antennas' });
+    expect(loadPreferences(storage)).toMatchObject({
+      jurisdiction: 'AU',
+      theme: 'system',
+      activeWorkspace: 'antennas',
+      activeFeedlineTool: 'power',
+      activeExposureView: 'reference'
+    });
   });
 
   it('restores a supported top-level workspace', () => {
     const storage = memoryStorage(JSON.stringify({ activeWorkspace: 'exposure' }));
     expect(loadPreferences(storage).activeWorkspace).toBe('exposure');
+  });
+
+  it('restores supported feedline and exposure subsections', () => {
+    const storage = memoryStorage(JSON.stringify({ activeFeedlineTool: 'ratio', activeExposureView: 'acma-record' }));
+    expect(loadPreferences(storage)).toMatchObject({ activeFeedlineTool: 'ratio', activeExposureView: 'acma-record' });
   });
 
   it('fails closed to valid defaults for malformed or unsupported values', () => {
@@ -59,7 +72,9 @@ describe('application preferences', () => {
         unitSystem: 'yards',
         advancedOpen: 'yes',
         theme: 'neon',
-        activeWorkspace: 'settings'
+        activeWorkspace: 'settings',
+        activeFeedlineTool: 'tuner',
+        activeExposureView: 'certificate'
       })))
     ).toEqual(defaultPreferences);
   });

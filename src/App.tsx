@@ -9,7 +9,7 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState, type Mou
 import { PwaInstallGuide } from './components/PwaInstallGuide';
 import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import type { UnitSystem } from './lib/units';
-import { loadPreferences, savePreferences, type ThemePreference, type WorkshopWorkspace } from './preferences';
+import { loadPreferences, savePreferences, type ExposureView, type FeedlineTool, type ThemePreference, type WorkshopWorkspace } from './preferences';
 import { jurisdictionProfiles, type JurisdictionCode } from './regulations/catalog';
 import type { AntennaDesignHandoff, StationSourceTransfer } from './workflows/stationSourceWorkflow';
 
@@ -25,12 +25,14 @@ export function App() {
   const [advancedOpen, setAdvancedOpen] = useState(savedPreferences.advancedOpen);
   const [theme, setTheme] = useState<ThemePreference>(savedPreferences.theme);
   const [workshopTool, setWorkshopTool] = useState<WorkshopWorkspace>(savedPreferences.activeWorkspace);
+  const [feedlineTool, setFeedlineTool] = useState<FeedlineTool>(savedPreferences.activeFeedlineTool);
+  const [exposureView, setExposureView] = useState<ExposureView>(savedPreferences.activeExposureView);
   const [antennaHandoff, setAntennaHandoff] = useState<AntennaDesignHandoff | null>(null);
   const [stationSourceTransfer, setStationSourceTransfer] = useState<StationSourceTransfer | null>(null);
 
   useEffect(() => {
-    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme, activeWorkspace: workshopTool }, window.localStorage);
-  }, [jurisdiction, unitSystem, advancedOpen, theme, workshopTool]);
+    savePreferences({ jurisdiction, unitSystem, advancedOpen, theme, activeWorkspace: workshopTool, activeFeedlineTool: feedlineTool, activeExposureView: exposureView }, window.localStorage);
+  }, [jurisdiction, unitSystem, advancedOpen, theme, workshopTool, feedlineTool, exposureView]);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -127,8 +129,8 @@ export function App() {
         {workshopTool === 'antennas'
           ? <AntennaWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} setUnitSystem={setUnitSystem} advancedOpen={advancedOpen} setAdvancedOpen={setAdvancedOpen} onContinueToSystem={(handoff) => { setAntennaHandoff(handoff); setWorkshopTool('feedline'); }} />
           : workshopTool === 'feedline'
-            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
-            : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} />}
+            ? <FeedlineWorkbench jurisdiction={jurisdiction} unitSystem={unitSystem} antennaHandoff={antennaHandoff} initialMode={feedlineTool} onModeChange={setFeedlineTool} onAddToExposure={(transfer) => { setStationSourceTransfer(transfer); setWorkshopTool('exposure'); }} />
+            : <ExposureReferenceWorkbench jurisdiction={jurisdiction} setJurisdiction={setJurisdiction} unitSystem={unitSystem} incomingSource={stationSourceTransfer} onSourceConsumed={() => setStationSourceTransfer(null)} initialView={exposureView} onViewChange={setExposureView} />}
       </Suspense>
 
       <section className="roadmap shell" aria-labelledby="roadmap-title">

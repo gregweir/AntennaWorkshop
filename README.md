@@ -69,7 +69,7 @@ Reference-limit, single-source, and normalized multi-source guides now cover env
 
 For the Australian workflow, gateway facts and model provenance can be carried into a new unsaved worksheet without filling assessment judgments, evidence, or the declaration. A separate ACMA simple RF exclusion-distance workflow reproduces the official public-exposure workbook above 30 MHz and adds the Amateur Class Licence far-field applicability check. Its maximum-gain, continuous-power result does not account for losses, environment, antenna pattern, multiple sources, or near fields.
 
-The persistent header preferences include System, Light, and Dark display modes. System follows live operating-system colour-scheme changes. The application also resumes the last selected top-level workspace after a reload or offline return.
+The persistent header preferences include System, Light, and Dark display modes. System follows live operating-system colour-scheme changes. The application also resumes the last selected top-level workspace and the selected Feedline or RF Exposure calculator after a reload or offline return, without treating unsaved calculator inputs as a saved project.
 
 The [RF exposure independent review package](docs/RF_EXPOSURE_REVIEW.md) identifies the exact implementation, governing sources, reproducible vectors, open technical decisions, and sign-off record required before public release. The application exposes its implemented scope, unsupported cases, and pending independent-review status directly in the interface.
 

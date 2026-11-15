@@ -29,6 +29,7 @@ import { HelpTip, StepByStepHelp } from './ContextHelp';
 import type { AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
 import { EvidenceResultSummary, ResultEvidenceKey } from './ResultEvidenceGuide';
 import { DiagramControls } from './DiagramControls';
+import type { ExposureView } from '../preferences';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -36,9 +37,9 @@ interface Props {
   unitSystem: UnitSystem;
   incomingSource: StationSourceTransfer | null;
   onSourceConsumed: () => void;
+  initialView: ExposureView;
+  onViewChange: (view: ExposureView) => void;
 }
-
-type ExposureView = 'reference' | 'single' | 'project' | 'aggregate' | 'fcc-exemption' | 'fcc-multiple' | 'ofcom-assessment' | 'ofcom-distance' | 'ofcom-multiple' | 'arpansa-reference' | 'acma-assessment' | 'acma-distance' | 'acma-record';
 
 const viewOptions: Array<{ id: ExposureView; title: string; description: string }> = [
   { id: 'reference', title: 'Reference limits', description: 'Official numbers and averaging periods' },
@@ -62,10 +63,10 @@ const australianViewOptions: Array<{ id: ExposureView; title: string; descriptio
   { id: 'acma-record', title: 'Assessment record', description: 'Clause 6 declaration and evidence worksheet' }
 ];
 
-export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed }: Props) {
+export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unitSystem, incomingSource, onSourceConsumed, initialView, onViewChange }: Props) {
   const [frequencyText, setFrequencyText] = useState('14.200');
   const [environment, setEnvironment] = useState<ExposureEnvironment>('uncontrolled');
-  const [view, setView] = useState<ExposureView>(incomingSource ? 'project' : 'reference');
+  const [view, setView] = useState<ExposureView>(incomingSource ? 'project' : initialView);
   const [acmaHandoff, setAcmaHandoff] = useState<AcmaAssessmentHandoff | null>(null);
   const frequencyMHz = Number(frequencyText);
   const exposureJurisdiction = jurisdiction as ExposureJurisdiction;
@@ -81,6 +82,7 @@ export function ExposureReferenceWorkbench({ jurisdiction, setJurisdiction, unit
     if (isAustralia && view !== 'arpansa-reference' && view !== 'acma-assessment' && view !== 'acma-distance' && view !== 'acma-record') setView('acma-assessment');
     if (!isUk && !isAustralia && (view === 'ofcom-assessment' || view === 'ofcom-distance' || view === 'ofcom-multiple' || view === 'arpansa-reference' || view === 'acma-assessment' || view === 'acma-distance' || view === 'acma-record')) setView('reference');
   }, [isAustralia, isUk, view]);
+  useEffect(() => onViewChange(view), [onViewChange, view]);
   const needsFrequency = (!isUk && !isAustralia && (view === 'reference' || view === 'single' || view === 'fcc-exemption')) || (isUk && view === 'ofcom-distance') || (isAustralia && (view === 'arpansa-reference' || view === 'acma-distance'));
   const needsEnvironment = (!isUk && !isAustralia && view !== 'fcc-exemption' && view !== 'fcc-multiple') || (isAustralia && view === 'arpansa-reference');
   const contextClass = view === 'fcc-multiple' || view === 'ofcom-assessment' || view === 'acma-assessment' || view === 'acma-record' ? 'exposure-context-panel-one' : needsEnvironment ? '' : 'exposure-context-panel-three';
