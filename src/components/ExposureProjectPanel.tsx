@@ -314,7 +314,18 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
   const documentEvidenceTarget = (target: AssessmentEvidenceTarget) => {
     setEvidenceCaptureRequest({ requestId: ++evidenceCaptureSequence.current, target });
   };
-  const status = result ? statusCopy[result.status] : null;
+  const projectIssueCounts = result ? {
+    inapplicablePoints: result.pointResults.filter((point) => point.status === 'method-inapplicable').length,
+    triggerPoints: result.pointResults.filter((point) => point.aggregate.totalFractionOfReferenceLevel >= point.aggregate.screeningTriggerFraction).length
+  } : null;
+  const status = result
+    ? result.status === 'method-inapplicable' && projectIssueCounts && projectIssueCounts.triggerPoints > 0
+      ? [
+          'Near-field methods and further analysis are required',
+          `${projectIssueCounts.inapplicablePoints} ${projectIssueCounts.inapplicablePoints === 1 ? 'location has' : 'locations have'} an inapplicable far-field path; ${projectIssueCounts.triggerPoints} ${projectIssueCounts.triggerPoints === 1 ? 'location reaches' : 'locations reach'} the screening trigger. Resolve both conditions before interpreting the project.`
+        ] as const
+      : statusCopy[result.status]
+    : null;
   const worst = result?.pointResults.find((point) => point.point.id === result.worstPointId);
 
   return <section className="project-section" aria-labelledby="project-heading">

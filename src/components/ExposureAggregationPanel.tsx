@@ -56,6 +56,9 @@ export function ExposureAggregationPanel({ jurisdiction, environment }: Props) {
     setSourceInventoryComplete(false);
   };
   const outcome = result ? outcomeContent[result.status] : null;
+  const enteredSubtotalReachesTrigger = result
+    ? !result.sourceInventoryComplete && result.totalFractionOfReferenceLevel >= result.screeningTriggerFraction
+    : false;
 
   return <section className="aggregation-section" aria-labelledby="aggregation-heading">
     <div className="section-heading"><div><p className="eyebrow">Multiple sources · normalized sum</p><h3 id="aggregation-heading">Local RF environment</h3></div><span className="model-badge">Model {EXPOSURE_AGGREGATION_MODEL.version}</span></div>
@@ -81,7 +84,7 @@ export function ExposureAggregationPanel({ jurisdiction, environment }: Props) {
     </div>
     {!result && <p className="validation-message" role="alert">One or more source entries are outside the selected jurisdiction’s power-density model. No aggregate result is produced.</p>}
     {result && outcome && <>
-      <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Aggregate outcome</p><h4>{outcome[0]}</h4><p>{outcome[1]}</p></div>
+      <div className={`screen-outcome screen-outcome-${result.status}`} role="status"><p className="eyebrow">Aggregate outcome</p><h4>{outcome[0]}</h4><p>{outcome[1]}{enteredSubtotalReachesTrigger ? ' The entered subtotal already reaches the screening trigger and requires further analysis regardless of any missing sources.' : ''}</p></div>
       <ExposureAggregationDiagram result={result} />
       <div className="aggregation-contributions" aria-label="Individual normalized contributions">{result.contributions.map((source, index) => <article key={source.id}>
         <span className={`source-swatch source-swatch-${index % 6}`} aria-hidden="true" />

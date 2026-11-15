@@ -2511,6 +2511,8 @@ test('applies the Ofcom assessment and distance workflows for United Kingdom sta
   await page.getByRole('spinbutton', { name: 'Evaluation frequency' }).fill('450');
   const distance = page.locator('.ofcom-distance-section');
   await expect(distance.getByRole('heading', { name: 'Ofcom compliance distance' })).toBeVisible();
+  await distance.getByText('Calculate and apply an Ofcom compliance distance').click();
+  await expect(distance).toContainText('official calculator defines its radius from the antenna centre');
   await expect(distance.locator('.result-summary')).toContainText('2.46 m');
   await expect(distance.getByRole('img', { name: /Ofcom compliance-distance geometry/ })).toBeVisible();
   await expect(distance.locator('.screen-outcome')).toContainText('Maintain the calculated distance');
@@ -2725,6 +2727,7 @@ test('normalizes and sums multiple RF sources without inferring compliance', asy
   await aggregation.getByRole('button', { name: /Add RF source/ }).click();
   await expect(aggregation.locator('fieldset.aggregation-source')).toHaveCount(3);
   await expect(aggregation.locator('.screen-outcome')).toContainText('Source inventory is incomplete');
+  await expect(aggregation.locator('.screen-outcome')).toContainText('subtotal already reaches the screening trigger');
 });
 
 test('calculates a multi-source station project across accessible locations', async ({ page }) => {
@@ -2755,7 +2758,9 @@ test('calculates a multi-source station project across accessible locations', as
 
   await project.getByRole('spinbutton', { name: 'Project point 1 east position' }).fill('0.05');
   await project.getByRole('spinbutton', { name: 'Project point 1 height' }).fill('10');
-  await expect(project.locator('.screen-outcome')).toContainText('Far-field screening is inapplicable');
+  await expect(project.locator('.screen-outcome')).toContainText('Near-field methods and further analysis are required');
+  await expect(project.locator('.screen-outcome')).toContainText('inapplicable far-field path');
+  await expect(project.locator('.screen-outcome')).toContainText('screening trigger');
 
   await project.getByRole('button', { name: /Add evaluation point/ }).click();
   await expect(project.locator('.project-point-editor')).toHaveCount(3);

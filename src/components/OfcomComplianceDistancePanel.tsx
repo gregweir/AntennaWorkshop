@@ -46,7 +46,7 @@ export function OfcomComplianceDistancePanel({ frequencyMHz, unitSystem }: Props
       { title: 'Use the busiest six minutes', detail: 'Enter the maximum combined transmitting seconds that can occur in any six-minute period.' },
       { title: 'Confirm frequency and antenna size', detail: 'The official method covers 1 MHz to 300 GHz and is strictly applicable to antennas no longer than half a wavelength.' },
       { title: 'Check the reflecting environment', detail: 'Seawater and metal can reflect more strongly than the calculator assumes and can make its distance too small.' },
-      { title: 'Measure from the antenna', detail: 'Apply the distance from the closest part of the antenna to every place where a member of the general public may be present.' },
+      { title: 'Measure from the antenna centre', detail: 'The official calculator defines its radius from the antenna centre. Confirm that every place where a member of the general public may be present remains outside that radius, and use a more detailed assessment when centre-based geometry is unsuitable.' },
       { title: 'Keep the record and reassess changes', detail: 'Retain inputs, result, source version, and controls. Reassess changes that may increase exposure.' }
     ]} limit="This simple method does not model complex installations, mobile devices, antenna pattern, multiple simultaneous transmitters, reactive coupling, terrain, buildings, or actual access control." />
 

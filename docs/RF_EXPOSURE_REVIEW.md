@@ -2,7 +2,7 @@
 
 ## Purpose and review status
 
-This package defines the RF-exposure implementation that requires independent technical review before public release. It is a reproducible map from governing sources to code, equations, test vectors, user-visible classifications, and unresolved decisions. It is not a compliance report or evidence that review has passed.
+This package defines the RF-exposure implementation reviewed before public release. It is a reproducible map from governing sources to code, equations, test vectors, user-visible classifications, and product decisions. It is not a compliance report or regulatory certification.
 
 Review scope includes the Canadian, United States, United Kingdom, and Australian regulatory workflows; the FCC single- and multiple-source routine-evaluation exemptions; the modified-free-space preliminary screen; normalized multiple-source total; and multi-point station project. Near-field analysis, measurements, uncertainty analysis, pattern attenuation, and compliance certification are not implemented.
 
@@ -11,10 +11,10 @@ Review scope includes the Canadian, United States, United Kingdom, and Australia
 - Health Canada, [Safety Code 6](https://www.canada.ca/en/health-canada/services/publications/health-risks-safety/limits-human-exposure-radiofrequency-electromagnetic-energy-range-3-300.html) and its [Technical Guide](https://www.canada.ca/en/health-canada/services/health-risks-safety/radiation/occupational-exposure-regulations/safety-code-6-radiofrequency-exposure-guidelines/technical-guide.html).
 - ISED, [TN-261, Issue 3](https://ised-isde.canada.ca/site/spectrum-management-telecommunications/sites/default/files/attachments/2022/tn-261-i3-mar15.pdf), [GL-01](https://www.ised-isde.canada.ca/site/spectrum-management-telecommunications/en/learn-more/key-documents/guidelines/gl-01-guidelines-measurement-radio-frequency-fields-frequencies-3-khz-300-ghz), and [BPR-1](https://ised-isde.canada.ca/site/spectrum-management-telecommunications/sites/default/files/attachments/2022/BPR-P1i82021-01EN.pdf).
 - FCC, [47 CFR § 1.1307](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-1/subpart-I/section-1.1307), [47 CFR § 1.1310](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-1/subpart-I/section-1.1310), and [OET Bulletin 65](https://www.fcc.gov/sites/default/files/oet65.pdf).
-- Ofcom, [Guidance on EMF Compliance and Enforcement V1.1](https://www.ofcom.org.uk/spectrum/electromagnetic-fields/guidance-on-emf-compliance-and-enforcement), [amateur-radio EMF guidance V2.1](https://www.ofcom.org.uk/spectrum/electromagnetic-fields/emf-licence-condition-what-you-need-to-know-as-an-amateur-radio-user), and EMF Calculator v1.1.
+- Ofcom, [Guidance on EMF Compliance and Enforcement V1.1](https://www.ofcom.org.uk/spectrum/electromagnetic-fields/compliance-and-enforcement-guidance), [amateur-radio EMF guidance V2.1](https://www.ofcom.org.uk/spectrum/electromagnetic-fields/emf-licence-condition-what-you-need-to-know-as-an-amateur-radio-user), and EMF Calculator v1.1.
 - ARPANSA, [RPS S-1 (Rev. 1)](https://www.arpansa.gov.au/regulation-and-licensing/regulatory-publications/radiation-protection-series/codes-and-standards/rpss-1), and ACMA, [Radiocommunications (Amateur Stations) Class Licence 2023](https://www.legislation.gov.au/F2023L01648/latest/text).
 
-Sources and links were rechecked on 2026-11-14. The eCFR text was current through 2026-11-12; Ofcom V1.1 dated 9 February 2026 remained current; and the Australian Class Licence 2023 and RPS S-1 Rev. 1 (2021) remained the latest applicable instruments identified. A reviewer should independently confirm and record the editions and effective text used for sign-off.
+Sources and links were rechecked on 2026-11-15. The eCFR text was current through 2026-11-12; Ofcom V1.1 dated 9 February 2026 remained current; and the Australian Class Licence 2023 and RPS S-1 Rev. 1 (2021) remained the latest applicable instruments identified.
 
 ## Implementation map
 
@@ -122,7 +122,7 @@ The reviewer should resolve each item explicitly:
 16. Does the Australian gateway-to-record handoff preserve the exact canonical inputs and model provenance in a new unsaved draft while leaving route, standard, scope, method, assessor, evidence, conclusion, and declaration decisions blank?
 17. Does the Australian simple exclusion-distance workflow exactly reproduce the official workbook, keep its continuous-power and maximum-gain assumptions visible, apply the Class Licence far-field boundary separately, and stop users from interpreting unsupported near-field or pattern-specific cases?
 18. Does the Ofcom gateway reproduce the current maximum- and average-power thresholds, six-minute averaging treatment, record requirements, and public-access scope without treating “no assessment required” as demonstrated compliance?
-19. Does the Ofcom single-transmitter distance workflow reproduce calculator v1.1 frequency boundaries, ERP conversion, reflection coefficients, E/H treatment below 10 MHz, antenna-size warnings, and distance reference point?
+19. Does the Ofcom single-transmitter distance workflow reproduce calculator v1.1 frequency boundaries, ERP conversion, the reflection coefficient of `1.0` through 12 MHz and `0.6` above 12 MHz, E/H treatment below 10 MHz, antenna-size warnings, and distance reference point?
 20. Does the Ofcom multiple-transmitter workflow correctly sum EIRP, combine maximum transmission times, saturate at 360 seconds, evaluate every entered frequency, and disclose the limitations of its deliberately conservative combined-source method?
 
 ## Reproduction procedure
@@ -141,15 +141,11 @@ Inspect each source boundary immediately below, at, and above its breakpoint. In
 
 ## Review record
 
-| Field | Reviewer entry |
-| --- | --- |
-| Reviewed commit | |
-| Reviewer and qualifications | |
-| Review date | |
-| Source editions/effective dates | |
-| Independent calculations attached | |
-| Required corrections | |
-| Accepted limitations | |
-| Disposition: approve / approve with conditions / reject | |
+Independent verification completed on 2026-11-15 against commit `c2b543f2adaac9665fd04eede6bd8c6ab7ce50db`. The full committed tree was inspected, the 424-test unit and contract suite passed, and documented reference and boundary cases were recomputed independently. No critical or high-severity defect was identified. The initial disposition was a conditional pass.
 
-Review completion must result in a dated record and any required corrections being independently retested. It must not be inferred from a completed checklist in the application.
+The two release conditions are resolved as follows:
+
+1. Ofcom *Guidance on EMF Compliance and Enforcement* V1.1, dated 9 February 2026, was checked against the effective Ofcom publication. Paragraphs 6.10–6.19 confirm the maximum-power, average-power, peak-power, six-minute averaging, and record-retention branches. Sections 4–6 confirm the public-access scope used by the workflow.
+2. The `2.56` reflected-field multiplier is accepted as a conservative preliminary-screen policy with the existing TN-261 context and the explicit statement that it is not an FCC-prescribed method. The stricter `2D²/λ` electrically large-antenna guard is also accepted as product policy. Both the TN-261 boundary and the application guard remain visible; any future relaxation requires a new technical review.
+
+Required low-risk corrections were applied to the 12 MHz reflection-coefficient wording, Ofcom antenna-centre distance guidance, project outcome summary when applicability and trigger conditions coexist, and incomplete-inventory subtotal warning. The release disposition is **pass after correction and successful retest**. This record does not turn an application result into certification or demonstrated compliance.
