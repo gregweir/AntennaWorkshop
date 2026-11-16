@@ -10,7 +10,7 @@ export const ANTENNA_TYPES = [
   'halo', 'skywire', 'hex-beam', 'v-beam', 'rhombic', 'vertical-half-rhombic', 'loaded-dipole',
   'trap-dipole', 'small-loop', 'inverted-v', 'efhw', 'tuner-fed-wire', 'ocfd', 'jpole', 'slim-jim', 'sleeve-dipole', 'moxon',
   'cubical-quad', 'axial-helix', 'discone', 'log-periodic', 'beverage', 'compact-receive', 'k9ay',
-  'loop-on-ground', 'active-receive-loop', 'yagi', 'loaded-vertical', 'ground-mounted-vertical',
+  'loop-on-ground', 'active-receive-loop', 'coaxial-collinear', 'yagi', 'loaded-vertical', 'ground-mounted-vertical',
   'ground-plane', 'full-wave-loop'
 ] as const;
 

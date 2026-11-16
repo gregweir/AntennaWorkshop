@@ -1011,13 +1011,13 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 39 designs')).toBeVisible();
+  await expect(page.getByText('2 of 40 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only', exact: true }).click();
-  await expect(page.getByText('5 of 39 designs')).toBeVisible();
+  await expect(page.getByText('6 of 40 designs')).toBeVisible();
   const beverageCard = page.locator('.design-picker').getByRole('button', { name: /Beverage/ });
   await expect(beverageCard).toBeVisible();
   await expect(beverageCard).toContainText('Receive family');
@@ -1027,7 +1027,7 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('39 of 39 designs')).toBeVisible();
+  await expect(page.getByText('40 of 40 designs')).toBeVisible();
 });
 
 test('keeps the antenna search control compact on a narrow screen', async ({ page }) => {
@@ -2389,6 +2389,47 @@ test('plans and explains rigid-sleeve and fold-back coaxial vertical dipoles', a
   await expect(page.getByRole('img', { name: 'Dimensioned sleeve or coaxial vertical dipole' })).toHaveCount(0);
   await page.getByRole('spinbutton', { name: 'Rigid sleeve inside diameter' }).fill('18');
   await expect(page.getByRole('img', { name: 'Dimensioned sleeve or coaxial vertical dipole' })).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
+test('plans source-specific coaxial collinear receiving constructions', async ({ page }) => {
+  await page.getByRole('button', { name: /Coaxial collinear · COCO/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Coaxial collinear receiving antenna' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Receive reference frequency' })).toHaveValue('1090.000');
+  const arrangement = page.getByRole('group', { name: 'Coaxial collinear source arrangement' });
+  await expect(arrangement.getByRole('button', { name: 'End-fed receiving' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('combobox', { name: 'Electrical half-wave coax sections' })).toHaveValue('8');
+  await expect(page.getByRole('spinbutton', { name: 'Coax velocity factor' })).toHaveValue('0.83');
+  await expect(page.getByRole('spinbutton', { name: 'Finished jacket gap at each junction' })).toHaveValue('3.175');
+  await expect(page.getByRole('img', { name: 'Dimensioned coaxial collinear construction diagram' })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Reproduce the documented eight-section receiving geometry');
+  await expect(page.locator('.result-summary')).toContainText('11.7 cm raw cut per coax section');
+  await expect(page.getByText('Published 1090 MHz reference')).toBeVisible();
+  await expect(page.getByRole('row', { name: /C1/ })).toBeVisible();
+  await expect(page.getByRole('row', { name: /C8/ })).toBeVisible();
+
+  const balancedButton = arrangement.getByRole('button', { name: 'Balanced COCO' });
+  await balancedButton.scrollIntoViewIfNeeded();
+  await balancedButton.click();
+  await expect(arrangement.getByRole('button', { name: 'Balanced COCO' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.result-summary')).toContainText('Balanced centre-fed COCO reference');
+  await expect(page.locator('.result-summary')).toContainText('Two shorted quarter-wave ends');
+  await expect(page.getByRole('combobox', { name: 'Electrical half-wave coax sections' }).locator('option')).toHaveCount(15);
+
+  await page.getByRole('spinbutton', { name: 'Coax velocity factor' }).fill('0.82');
+  await expect(page.getByText('Scaled starting geometry')).toBeVisible();
+  const startingValues = page.getByRole('region', { name: 'Coaxial-collinear construction inputs starting values' });
+  await expect(startingValues).toContainText('2 modified values');
+  await startingValues.getByRole('button').click();
+  await expect(arrangement.getByRole('button', { name: 'End-fed receiving' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('spinbutton', { name: 'Coax velocity factor' })).toHaveValue('0.83');
+
+  await page.getByText('Build and evaluate a coaxial collinear receiving antenna').click();
+  await expect(page.locator('.step-by-step-help')).toContainText('never connect this planner’s build to a transmitter');
+  await expect(page.getByText('Repeated cut lengths are not a demonstrated antenna pattern')).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);

@@ -10,12 +10,12 @@ import { ANTENNA_DESIGNS, filterAntennaDesigns, getGuidedDesigns } from './anten
 
 describe('antenna design catalog', () => {
   it('contains every design with searchable guidance metadata', () => {
-    expect(Object.keys(ANTENNA_DESIGNS)).toHaveLength(39);
+    expect(Object.keys(ANTENNA_DESIGNS)).toHaveLength(40);
     expect(Object.values(ANTENNA_DESIGNS).every((design) => design.tags.length > 0 && design.guidedGoals.length > 0)).toBe(true);
   });
 
   it('filters by category without hiding matching names', () => {
-    expect(filterAntennaDesigns('', 'receive')).toEqual(['beverage', 'compact-receive', 'k9ay', 'loop-on-ground', 'active-receive-loop']);
+    expect(filterAntennaDesigns('', 'receive')).toEqual(['beverage', 'compact-receive', 'k9ay', 'loop-on-ground', 'active-receive-loop', 'coaxial-collinear']);
     expect(filterAntennaDesigns('loop', 'receive')).toEqual(['k9ay', 'loop-on-ground', 'active-receive-loop']);
   });
 
@@ -33,6 +33,7 @@ describe('antenna design catalog', () => {
     expect(filterAntennaDesigns('countryman terminated', 'all')).toEqual(['t2fd']);
     expect(filterAntennaDesigns('w3edp tuner counterpoise', 'all')).toEqual(['tuner-fed-wire']);
     expect(filterAntennaDesigns('coaxial bazooka vertical', 'all')).toEqual(['sleeve-dipole']);
+    expect(filterAntennaDesigns('coco ads-b coaxial', 'all')).toEqual(['coaxial-collinear']);
   });
 
   it('returns transmit-capable designs for guided transmit goals', () => {
@@ -44,7 +45,7 @@ describe('antenna design catalog', () => {
     const transmit = getGuidedDesigns('transmit', 'all');
     const receive = getGuidedDesigns('receive', 'all');
     expect(transmit).toHaveLength(34);
-    expect(receive).toHaveLength(5);
+    expect(receive).toHaveLength(6);
     expect(transmit.some((type) => ANTENNA_DESIGNS[type].receiveOnly)).toBe(false);
     expect(receive.every((type) => ANTENNA_DESIGNS[type].receiveOnly)).toBe(true);
   });

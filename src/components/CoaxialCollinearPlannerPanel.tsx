@@ -1,0 +1,63 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright 2026 Tartanleaf.com Inc.
+ */
+
+import { useId } from 'react';
+import { COAXIAL_COLLINEAR_MODEL, type CoaxialCollinearMode, type calculateCoaxialCollinear } from '../calculators/coaxialCollinear';
+import { formatLength, type UnitSystem } from '../lib/units';
+import { HelpTip, StepByStepHelp } from './ContextHelp';
+
+type Result = ReturnType<typeof calculateCoaxialCollinear>;
+
+export function CoaxialCollinearGuide() {
+  return <StepByStepHelp title="Build and evaluate a coaxial collinear receiving antenna" intro="Use this sequence to keep transmission-line electrical length, alternating junction wiring, and the source configuration distinct. Experienced builders can leave the guide closed." steps={[
+    { title: 'Choose the sourced arrangement', detail: 'Use the balanced COCO option for the centre-fed research topology with shorted quarter-wave ends, or the end-fed option to reproduce or cautiously scale the documented eight-section 1090 MHz receiving build.' },
+    { title: 'Identify the exact coax', detail: 'Use the manufacturer value or measure velocity factor from the same cable lot. Foam and solid dielectric cables, connectors, water, crushing, and tight bends can change electrical length and loss.' },
+    { title: 'Cut every section long', detail: 'Keep the displayed finished electrical target separate from the longer raw cut. Label all sections and measure from one consistent electrical reference plane.' },
+    { title: 'Cross-connect every junction', detail: 'At each joint, connect the centre conductor of one section to the shield of the next and its shield to the next centre conductor. Preserve the entered gap and consistent overlap geometry.' },
+    { title: 'Inspect before enclosing', detail: 'Use magnification and an ohmmeter to find shield strands, unintended shorts, opens, or inconsistent joints. A continuity result alone does not verify RF phase or resonance.' },
+    { title: 'Model and measure the complete antenna', detail: 'Include joints, exposed conductors, feed, connector, enclosure, mast, supports, and feedline. Sweep the installed receiving system and compare signal-to-noise and pattern; never connect this planner’s build to a transmitter.' }
+  ]} limit="This receive-only planner supplies transmission-line cut targets and a construction schedule. It does not establish impedance, matching, gain, beamwidth, sidelobes, current distribution, common-mode isolation, bandwidth, structural safety, weatherproofing, or transmit power handling." />;
+}
+
+function NumericField({ label, tooltip, value, min, max, step, unit, help, onChange }: { label: string; tooltip: string; value: number; min: number; max: number; step: number; unit: string; help: string; onChange: (value: number) => void }) {
+  const id = useId();
+  const invalid = !Number.isFinite(value) || value < min || value > max;
+  return <div className={`field${invalid ? ' field-invalid' : ''}`}><span className="field-label-with-help"><label htmlFor={id}>{label}</label><HelpTip label={label}>{tooltip}</HelpTip></span><span className="input-with-unit"><input id={id} aria-label={label} aria-invalid={invalid || undefined} type="number" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} /><span>{unit}</span></span>{invalid && <small className="field-validation">Enter a value from {min} to {max} {unit}.</small>}<small>{help}</small></div>;
+}
+
+export function CoaxialCollinearControls({ mode, setMode, sectionCount, setSectionCount, coaxVelocityFactor, setCoaxVelocityFactor, cutAllowancePercent, setCutAllowancePercent, junctionGapMillimetres, setJunctionGapMillimetres, finishedSectionToleranceMillimetres, setFinishedSectionToleranceMillimetres }: { mode: CoaxialCollinearMode; setMode: (mode: CoaxialCollinearMode) => void; sectionCount: number; setSectionCount: (value: number) => void; coaxVelocityFactor: number; setCoaxVelocityFactor: (value: number) => void; cutAllowancePercent: number; setCutAllowancePercent: (value: number) => void; junctionGapMillimetres: number; setJunctionGapMillimetres: (value: number) => void; finishedSectionToleranceMillimetres: number; setFinishedSectionToleranceMillimetres: (value: number) => void }) {
+  const counts = mode === 'balanced-coco' ? Array.from({ length: 15 }, (_, index) => 4 + index * 2) : Array.from({ length: 15 }, (_, index) => 2 + index);
+  const chooseMode = (next: CoaxialCollinearMode) => { setMode(next); if (next === 'balanced-coco' && (sectionCount < 4 || sectionCount % 2 !== 0)) setSectionCount(Math.max(4, Math.min(32, sectionCount + sectionCount % 2))); if (next === 'end-fed-receive' && sectionCount > 16) setSectionCount(16); };
+  return <fieldset className="collinear-editor coaxial-collinear-editor">
+    <legend>COCO topology and cable construction</legend>
+    <div className="field collinear-source-arrangement"><span className="field-label-with-help"><span>Source arrangement</span><HelpTip label="Coaxial collinear source arrangement">The balanced research arrangement is centre-fed and uses two shorted quarter-wave coax end sections. The end-fed receiving arrangement follows the QST 1090 MHz construction with repeated coax sections, a bottom connector, and a terminal whip.</HelpTip></span><div className="segmented-control" role="group" aria-label="Coaxial collinear source arrangement"><button type="button" className={mode === 'end-fed-receive' ? 'is-selected' : ''} aria-pressed={mode === 'end-fed-receive'} onClick={() => chooseMode('end-fed-receive')}>End-fed receiving</button><button type="button" className={mode === 'balanced-coco' ? 'is-selected' : ''} aria-pressed={mode === 'balanced-coco'} onClick={() => chooseMode('balanced-coco')}>Balanced COCO</button></div><small>These are distinct source configurations, not interchangeable feed options for one proven antenna.</small></div>
+    <label className="field"><span className="field-label-with-help"><span>Electrical half-wave coax sections</span><HelpTip label="Electrical half-wave coax sections">Every repeated coax section is one-half wavelength electrically inside the selected cable. The balanced source uses an even count; the end-fed receiving worksheet supports 2–16 sections.</HelpTip></span><select aria-label="Electrical half-wave coax sections" value={sectionCount} onChange={(event) => setSectionCount(Number(event.target.value))}>{counts.map((count) => <option key={count} value={count}>{count} sections</option>)}</select><small>{sectionCount - 1} alternating centre-to-shield junctions are required.</small></label>
+    <NumericField label="Coax velocity factor" tooltip="Use a manufacturer value for the exact cable or measure a sample from the same lot. Velocity factor sizes electrical coax sections; it does not apply to free exposed conductors." value={coaxVelocityFactor} min={0.5} max={1} step={0.01} unit="ratio" help="The documented 1090 MHz RG-6 reference is reproduced with 0.83." onChange={setCoaxVelocityFactor} />
+    <NumericField label="Extra coax for trimming and joints" tooltip="Added to every coax section and each balanced-mode quarter-wave termination. It is cutting reserve, not a change to the finished electrical target." value={cutAllowancePercent} min={0} max={25} step={0.5} unit="%" help="Keep raw cuts and finished electrical lengths separate in the build record." onChange={setCutAllowancePercent} />
+    <NumericField label="Finished jacket gap at each junction" tooltip="Record the visible cable-jacket gap after the alternating joint is assembled. The ARRL receiving build uses approximately one eighth inch. This worksheet records the geometry but does not calculate its capacitance." value={junctionGapMillimetres} min={0} max={100} step={0.1} unit="mm" help="3.175 mm equals the documented one-eighth-inch gap." onChange={setJunctionGapMillimetres} />
+    <NumericField label="Finished section length tolerance" tooltip="Largest expected magnitude of physical length error after trimming. The phase value is transmission-line context only; it does not predict current phase or array pattern." value={finishedSectionToleranceMillimetres} min={0} max={1000} step={0.1} unit="mm" help="Applied to each electrical half-wave coax section." onChange={setFinishedSectionToleranceMillimetres} />
+  </fieldset>;
+}
+
+export function CoaxialCollinearConstruction({ result, unitSystem }: { result: Result; unitSystem: UnitSystem }) {
+  return <section className="collinear-commissioning" aria-labelledby="coco-schedule-title">
+    <div className="collinear-commissioning-heading"><div><p className="eyebrow">Cut and connection worksheet</p><h3 id="coco-schedule-title">Alternating coax-section schedule</h3></div><span className={result.isPublishedArrlReference ? 'analysis-fit analysis-fit-good' : 'analysis-fit analysis-fit-caution'}>{result.isPublishedArrlReference ? 'Published 1090 MHz reference' : 'Scaled starting geometry'}</span></div>
+    <dl className="collinear-phase-metrics"><div><dt>Possible phase error per section</dt><dd>±{result.possibleSectionPhaseErrorDegrees.toFixed(2)}°</dd></div><div><dt>Same-direction chain case</dt><dd>±{result.systematicChainPhaseErrorDegrees.toFixed(2)}°</dd></div><div><dt>Total recorded jacket gaps</dt><dd>{formatLength(result.totalJunctionGapMetres, unitSystem)}</dd></div><div><dt>Total coax raw cut</dt><dd>{formatLength(result.totalCoaxCutMetres, unitSystem)}</dd></div></dl>
+    <div className="table-scroll"><table><thead><tr><th>Section</th><th>Connection orientation</th><th>Raw cut</th><th>Finished electrical target</th><th>Next joint</th></tr></thead><tbody>{result.sectionSchedule.map((row) => <tr key={row.section}><th scope="row">C{row.section}</th><td>{row.polarity === 'A' ? 'Centre upward · shield downward' : 'Shield upward · centre downward'}</td><td>{formatLength(row.cutLengthMetres, unitSystem)}</td><td>{formatLength(row.finishedTargetMetres, unitSystem)}</td><td>{row.junctionAfter ? 'Cross centre ↔ shield' : 'Terminal section'}</td></tr>)}</tbody></table></div>
+    <p className="collinear-commissioning-note">The phase figures apply the entered physical tolerance to an ideal transmission-line wavelength. They do not include joint capacitance, conductor exposure, cable loss, enclosure dielectric, feed geometry, or coupling and are not antenna-current or pattern predictions.</p>
+  </section>;
+}
+
+export function CoaxialCollinearEducation() {
+  const model = COAXIAL_COLLINEAR_MODEL;
+  return <div className="explanation-grid">
+    <article><p className="eyebrow">Electrical construction</p><h3>Alternate centre and shield at every joint</h3><p>Each coax piece is an electrical half-wave transmission-line section. The conductors cross at every junction so successive external-current sections retain the intended phase relationship. Keep cable type, finished length, gap, overlap, bend radius, and enclosure consistent.</p></article>
+    <article><p className="eyebrow">Calculation</p><h3>Velocity factor belongs inside the coax</h3><p className="formula">λcoax = c ÷ f × VF · section = λcoax ÷ 2 · balanced end section = λcoax ÷ 4</p><p>The QST end-fed source uses a terminal conductor equal to its 4.5-inch coax-section target; the worksheet preserves that documented ratio without treating it as a general free-space whip equation.</p></article>
+    <article className="caution-card"><p className="eyebrow">Interpretation boundary</p><h3>Repeated cut lengths are not a demonstrated antenna pattern</h3><p>Small junction and enclosure changes accumulate through the chain. Model the exact assembly and measure its installed receiving response, feedline pickup, match, bandwidth, current distribution, and pattern. This planner is receive-only and supplies no transmit rating.</p></article>
+    <article className="provenance-card"><p className="eyebrow">Method and sources</p><h3>Model {model.version}</h3><p>NASA documents balanced COCO elements built from alternating half-wave coax sections, centre feeding, cable velocity factor, and one implementation’s shorted quarter-wave ends. ARRL supplies the practical eight-section 1090 MHz end-fed receiving construction, alternating joints, one-eighth-inch gaps, inspection, enclosure, and terminal whip.</p><ul>{model.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul><small>Model ID: {model.id} · Reviewed {model.reviewedOn}</small></article>
+  </div>;
+}
