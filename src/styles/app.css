@@ -14422,6 +14422,10 @@ body.diagram-view-open {
     right: 0;
   }
 
+  .context-help-panel {
+    width: min(16rem, calc(100vw - 3rem));
+  }
+
   .header-inner {
     gap: 0.75rem;
     min-height: 0;
