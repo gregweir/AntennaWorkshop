@@ -852,7 +852,16 @@ test('prints a saved plan as a complete project record with its restored build s
       };
     };
   });
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' }));
   await page.getByRole('button', { name: 'Print complete record' }).click();
+  const projectPreview = page.getByRole('dialog', { name: 'Printable folded dipole complete project record' });
+  await expect(projectPreview).toBeVisible();
+  await expect(projectPreview.locator('.print-preview-document')).toContainText('Printable folded dipole');
+  await expect(projectPreview.locator('.print-preview-document')).toContainText('Two equal 10.12 m conductors');
+  await expect(projectPreview.locator('.print-preview-document .antenna-project-print-record')).toBeVisible();
+  const lockedProjectScroll = await page.evaluate(() => Math.abs(Number.parseFloat(document.body.style.top)) || 0);
+  expect(lockedProjectScroll).toBeGreaterThan(500);
+  await projectPreview.getByRole('button', { name: 'Open print dialog' }).click();
   await expect.poll(() => page.evaluate(() => (window as typeof window & { projectPrintSnapshot?: Record<string, unknown> }).projectPrintSnapshot)).toMatchObject({
     printClass: true,
     heading: 'Equal-conductor folded dipole',
@@ -865,6 +874,22 @@ test('prints a saved plan as a complete project record with its restored build s
   expect(printedRecord).toContain('Installed verification');
   expect(printedRecord).toContain('Recheck after seasonal support movement');
   expect(printedRecord).toContain('does not demonstrate installed performance');
+  await page.waitForTimeout(100);
+  await expect(page.locator('body')).toHaveClass(/antenna-project-print/);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('body')).toHaveCSS('position', 'static');
+  await expect(page.locator('body')).toHaveCSS('top', 'auto');
+  await expect(page.locator('.antenna-plan-library .antenna-project-print-record')).toBeVisible();
+  const projectPdf = await page.pdf({ format: 'A4', printBackground: true });
+  const projectPdfSource = projectPdf.toString('latin1');
+  expect(projectPdf.length).toBeGreaterThan(40_000);
+  expect(projectPdfSource.match(/\/Type\s*\/Page\b/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+  expect(projectPdfSource.match(/\/Contents\b/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+  await page.emulateMedia({ media: 'screen' });
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await expect(page.locator('body')).not.toHaveClass(/antenna-project-print/);
+  await projectPreview.getByRole('button', { name: 'Close preview' }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(lockedProjectScroll);
 
   await page.emulateMedia({ media: 'print' });
   await page.evaluate(() => {
@@ -1307,21 +1332,87 @@ test('compares three antenna systems without ranking unmodelled performance', as
   await expect(page.locator('.comparison-card-current').getByRole('button', { name: 'Planner open' })).toBeDisabled();
 });
 
+test('opens the construction drawing as a bounded accessible dialog', async ({ page }) => {
+  const openButton = page.getByRole('button', { name: 'View larger' });
+  await openButton.click();
+  const dialog = page.getByRole('dialog', { name: 'Dipole construction drawing enlarged view' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS('position', 'fixed');
+  await expect(page.getByRole('button', { name: 'Close enlarged view' })).toBeFocused();
+  const geometry = await dialog.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, viewportWidth: innerWidth, viewportHeight: innerHeight };
+  });
+  expect(geometry.x).toBeGreaterThan(0);
+  expect(geometry.y).toBeGreaterThan(0);
+  expect(geometry.width).toBeGreaterThan(geometry.viewportWidth * 0.9);
+  expect(geometry.height).toBeGreaterThan(geometry.viewportHeight * 0.9);
+  await page.getByRole('button', { name: 'Zoom diagram in' }).click();
+  await expect(page.locator('.diagram-zoom-controls output')).toHaveText('125%');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(openButton).toBeFocused();
+  await expect(page.locator('body')).not.toHaveClass(/diagram-view-open/);
+});
+
 test('prints a focused antenna build sheet with dimensions and drawing', async ({ page }) => {
+  const printButton = page.getByRole('button', { name: 'Print build sheet' });
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' }));
+  await printButton.click();
+  const preview = page.getByRole('dialog', { name: 'Dipole build sheet' });
+  await expect(preview).toBeVisible();
+  await expect(preview.locator('.print-preview-document')).toContainText('Centre-fed half-wave dipole');
+  await expect(preview.locator('.print-preview-document .antenna-print-heading')).toBeVisible();
+  await expect(preview.locator('.print-preview-document .result-summary')).toBeVisible();
+  await expect(preview.locator('.print-preview-document .antenna-figure')).toBeVisible();
+  const lockedScroll = await page.evaluate(() => Math.abs(Number.parseFloat(document.body.style.top)) || 0);
+  expect(lockedScroll).toBeGreaterThan(500);
+  await expect(page.locator('body')).not.toHaveClass(/antenna-build-print/);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.print-preview-backdrop')).toBeHidden();
+  await page.emulateMedia({ media: 'screen' });
   await page.evaluate(() => {
     (window as typeof window & { antennaPrintCalls?: number }).antennaPrintCalls = 0;
     window.print = () => {
       const state = window as typeof window & { antennaPrintCalls?: number; antennaPrintDetailsOpen?: boolean };
-      state.antennaPrintCalls = 1;
+      state.antennaPrintCalls = (state.antennaPrintCalls ?? 0) + 1;
       state.antennaPrintDetailsOpen = document.querySelector<HTMLDetailsElement>('.result-supporting-details')?.open;
     };
   });
-  await page.getByRole('button', { name: 'Print build sheet' }).click();
+  await preview.getByRole('button', { name: 'Open print dialog' }).click();
   await expect.poll(() => page.evaluate(() => (window as typeof window & { antennaPrintCalls?: number }).antennaPrintCalls)).toBe(1);
   await expect.poll(() => page.evaluate(() => (window as typeof window & { antennaPrintDetailsOpen?: boolean }).antennaPrintDetailsOpen)).toBe(true);
+  await page.waitForTimeout(100);
+  await expect(page.locator('body')).toHaveClass(/antenna-build-print/);
   await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
-  await page.reload();
-  await page.getByRole('button', { name: 'Print build sheet' }).waitFor();
+  await expect(page.locator('body')).not.toHaveClass(/antenna-build-print/);
+  await expect(preview).toBeVisible();
+  await preview.getByRole('button', { name: 'Open print dialog' }).click();
+  await expect.poll(() => page.evaluate(() => (window as typeof window & { antennaPrintCalls?: number }).antennaPrintCalls)).toBe(2);
+  await expect(page.locator('body')).toHaveClass(/antenna-build-print/);
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await expect(page.locator('body')).not.toHaveClass(/antenna-build-print/);
+
+  const popupPromise = page.waitForEvent('popup');
+  await preview.getByRole('button', { name: 'Open printable copy' }).click();
+  const printableCopy = await popupPromise;
+  await expect(printableCopy.locator('body')).toContainText('Centre-fed half-wave dipole');
+  await expect(printableCopy.locator('body')).toHaveClass(/antenna-build-print/);
+  await expect(printableCopy.locator('.antenna-figure')).toBeVisible();
+  const fallbackPrint = printableCopy.getByRole('button', { name: 'Print or save' });
+  await expect(fallbackPrint).toBeVisible();
+  await printableCopy.evaluate(() => {
+    window.print = () => { document.body.dataset.fallbackPrintCalled = 'true'; };
+  });
+  await fallbackPrint.click();
+  await expect.poll(() => printableCopy.evaluate(() => document.body.dataset.fallbackPrintCalled)).toBe('true');
+  expect(await printableCopy.locator('link[rel="stylesheet"], style').count()).toBeGreaterThan(0);
+  await printableCopy.close();
+  await preview.getByRole('button', { name: 'Close preview' }).click();
+  await expect(preview).toHaveCount(0);
+  await expect(printButton).toBeFocused();
+  await expect(page.locator('.result-supporting-details')).not.toHaveAttribute('open', '');
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(lockedScroll);
 
   await page.emulateMedia({ media: 'print' });
   await page.evaluate(() => {
@@ -1354,6 +1445,46 @@ test('prints a focused antenna build sheet with dimensions and drawing', async (
   expect(printWidths.content).toBeLessThanOrEqual(printWidths.page);
   expect(printWidths.schedule).toBeLessThanOrEqual(printWidths.visual);
   await expect(page.locator('.lpda-schedule th')).toHaveCount(13);
+});
+
+test('keeps cloned SVG markers and clipping paths local to the copied drawing', async ({ page }) => {
+  await page.getByRole('button', { name: /V-beam/ }).click();
+  await expect(page.getByRole('img', { name: /Dimensioned V-beam directional wire antenna site plan/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Print build sheet' }).click();
+  const preview = page.getByRole('dialog', { name: 'V-beam build sheet' });
+  await expect(preview).toBeVisible();
+  const markerResult = await preview.locator('.print-preview-document svg').evaluate((svg) => {
+    const referenced = svg.querySelector<SVGElement>('[marker-end]');
+    const value = referenced?.getAttribute('marker-end') ?? '';
+    const id = value.match(/^url\(#(.+)\)$/)?.[1] ?? '';
+    const target = id ? svg.querySelector<SVGMarkerElement>(`#${CSS.escape(id)}`) : null;
+    return { id, targetFound: Boolean(target), fill: target?.querySelector('path')?.style.fill ?? '' };
+  });
+  expect(markerResult.id).toMatch(/^print-preview-/);
+  expect(markerResult.targetFound).toBe(true);
+  expect(markerResult.fill).not.toBe('');
+  await preview.getByRole('button', { name: 'Close preview' }).click();
+
+  await page.getByRole('button', { name: /Feedline & matching/ }).click();
+  await page.getByRole('button', { name: /Measured sweep/ }).click();
+  await page.locator('input[type="file"]').first().setInputFiles({
+    name: 'clip-check.s1p', mimeType: 'text/plain',
+    buffer: Buffer.from('# MHz S RI R 50\n14.0 0.4 0\n14.2 0.1 0\n14.4 0.35 0')
+  });
+  const clipResult = await page.evaluate(async () => {
+    const modulePath = '/antennas/src/components/PrintPreviewDialog.tsx';
+    const module = await import(/* @vite-ignore */ modulePath) as typeof import('../src/components/PrintPreviewDialog');
+    const content = module.capturePrintPreview('Clip reference check', 'clip-reference-check', ['.sweep-smith-figure']);
+    const host = document.createElement('div');
+    host.innerHTML = content.html;
+    const svg = host.querySelector('svg');
+    const referenced = svg?.querySelector<SVGElement>('[clip-path]');
+    const value = referenced?.getAttribute('clip-path') ?? '';
+    const id = value.match(/^url\(#(.+)\)$/)?.[1] ?? '';
+    return { id, targetFound: Boolean(id && svg?.querySelector(`#${CSS.escape(id)}`)) };
+  });
+  expect(clipResult.id).toMatch(/^print-preview-/);
+  expect(clipResult.targetFound).toBe(true);
 });
 
 test('separates build dimensions, assumptions, references, and field verification', async ({ page }) => {
@@ -2832,8 +2963,19 @@ test('imports and explores a local one-port Touchstone sweep', async ({ page }) 
     window.print = () => { document.body.dataset.sweepPrintCalled = 'true'; };
   });
   await page.getByRole('button', { name: 'Print measurement summary' }).click();
+  const sweepPreview = page.getByRole('dialog', { name: '20 m dipole final tuning' });
+  await expect(sweepPreview).toBeVisible();
+  await expect(sweepPreview.locator('.print-preview-document')).toContainText('NanoVNA calibrated at the feedpoint');
+  await expect(sweepPreview.locator('.print-preview-document .sweep-print-report')).toBeVisible();
+  await expect(sweepPreview.locator('.print-preview-document .sweep-print-heading')).toBeVisible();
+  await expect(sweepPreview.locator('.print-preview-document .sweep-print-field').first()).toBeVisible();
+  await sweepPreview.getByRole('button', { name: 'Open print dialog' }).click();
   await expect.poll(() => page.evaluate(() => document.body.dataset.sweepPrintCalled)).toBe('true');
-  await expect.poll(() => page.evaluate(() => document.body.classList.contains('sweep-report-print'))).toBe(false);
+  await page.waitForTimeout(100);
+  await expect(page.locator('body')).toHaveClass(/sweep-report-print/);
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await expect(page.locator('body')).not.toHaveClass(/sweep-report-print/);
+  await sweepPreview.getByRole('button', { name: 'Close preview' }).click();
 
   const marker = page.getByLabel('Sweep inspection point');
   await marker.fill('0');

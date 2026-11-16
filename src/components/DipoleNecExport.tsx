@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from 'react';
 import { generateNec2Dipole, NEC2_DIPOLE_EXPORT_MODEL, type Nec2DipoleGround } from '../calculators/nec2Dipole';
+import { downloadBlob } from '../lib/download';
 
 interface Props { frequencyMHz: number; finishedSpanMetres: number; wavelengthMetres: number }
 
@@ -25,12 +26,7 @@ export function DipoleNecExport({ frequencyMHz, finishedSpanMetres, wavelengthMe
   }, [frequencyMHz, spanMetres, heightMetres, diameterMillimetres, segmentCount, ground]);
   const download = () => {
     if (!result.model) return;
-    const url = URL.createObjectURL(new Blob([result.model.deck], { type: 'text/plain;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `dipole-${frequencyMHz.toFixed(3).replace('.', '-')}-mhz.nec`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([result.model.deck], { type: 'text/plain;charset=utf-8' }), `dipole-${frequencyMHz.toFixed(3).replace('.', '-')}-mhz.nec`);
   };
   return <details className="dipole-nec-export">
     <summary><span><strong>Export a bounded NEC-2 dipole model</strong><small>One straight wire · one centre source · one frequency</small></span></summary>

@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { lazy, Suspense, useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { findBandForFrequency, formatFrequencyRange, getBandSource, getBandsForJurisdiction } from '../bands/catalog';
 import { ANTENNA_MODELS, calculateBasicYagi, calculateEfhw, calculateFanDipole, calculateFullWaveLoop, calculateGroundMountedVertical, calculateGroundPlane, calculateInvertedV, calculateJpole, calculateMoxon, calculateOcfd, calculateSlimJim, type BasicYagiVariant, type DeltaLoopFeedMode, type DeltaLoopOrientation, type EfhwDeployment, type EfhwSloperFeedPosition, type LoopShape } from '../calculators/designs';
 import { calculateLargestAntennaDimension } from '../calculators/antennaEnvelope';
@@ -63,6 +63,7 @@ import { MatchingTuningLesson } from './MatchingTuningLesson';
 import { GroundEffectsLesson } from './GroundEffectsLesson';
 import { SwrEvidenceLesson } from './SwrEvidenceLesson';
 import { DipoleNecExport } from './DipoleNecExport';
+import { capturePrintPreview, PrintPreviewDialog, type PrintPreviewContent } from './PrintPreviewDialog';
 
 const AntennaDesignComparison = lazy(() => import('./AntennaDesignComparison').then((module) => ({ default: module.AntennaDesignComparison })));
 const AntennaResultSummary = lazy(() => import('./AntennaResultSummary').then((module) => ({ default: module.AntennaResultSummary })));
@@ -200,6 +201,9 @@ interface SpecializedStartingValues {
 export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, setUnitSystem, advancedOpen, setAdvancedOpen, explanationDepth, setExplanationDepth, initialAntennaType, onAntennaTypeChange, onContinueToSystem, onAnalyzeSweep, onOpenImpedanceExplorer }: Props) {
   const [antennaType, setAntennaType] = useState<AntennaType>(initialAntennaType);
   const [comparisonRequest, setComparisonRequest] = useState<AntennaType[] | null>(null);
+  const [drawingOpenRequest, setDrawingOpenRequest] = useState(0);
+  const [printPreview, setPrintPreview] = useState<PrintPreviewContent | null>(null);
+  const printDetailsRef = useRef<HTMLDetailsElement[]>([]);
   const [frequencyText, setFrequencyText] = useState(initialAntennaType === 'g5rv' ? '14.150' : initialAntennaType === 'linked-dipole' ? '7.100' : initialAntennaType === 'tuner-fed-wire' ? '3.600' : initialAntennaType === 'sleeve-dipole' ? '146.000' : initialAntennaType === 'coaxial-collinear' ? '1090.000' : initialAntennaType === 'small-loop' || initialAntennaType === 'log-periodic' || initialAntennaType === 'active-receive-loop' ? '14.000' : '14.200');
   const [foldedDipoleSpacingMetres, setFoldedDipoleSpacingMetres] = useState(0.15);
   const [foldedDipoleReferenceResistanceOhms, setFoldedDipoleReferenceResistanceOhms] = useState(73);
@@ -1082,40 +1086,27 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
     selectDesign(type);
     globalThis.requestAnimationFrame?.(() => document.getElementById('calculator-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
+  const closePrintPreview = () => {
+    printDetailsRef.current.forEach((details) => details.removeAttribute('open'));
+    printDetailsRef.current = [];
+    setPrintPreview(null);
+  };
+
+  const preparePrintPreview = (title: string, printClass: string, selectors: string[]) => {
+    printDetailsRef.current.forEach((details) => details.removeAttribute('open'));
+    printDetailsRef.current = [...document.querySelectorAll<HTMLDetailsElement>('.result-supporting-details:not([open])')];
+    printDetailsRef.current.forEach((details) => details.setAttribute('open', ''));
+    setPrintPreview(capturePrintPreview(title, printClass, selectors));
+  };
+
   const printBuildSheet = () => {
-    const printClass = 'antenna-build-print';
-    const closedDetails = [...document.querySelectorAll<HTMLDetailsElement>('.result-supporting-details:not([open])')];
-    const cleanup = () => {
-      document.body.classList.remove(printClass);
-      closedDetails.forEach((details) => details.removeAttribute('open'));
-    };
-    document.body.classList.add(printClass);
-    closedDetails.forEach((details) => details.setAttribute('open', ''));
-    window.addEventListener('afterprint', cleanup, { once: true });
-    try {
-      window.print();
-    } finally {
-      window.setTimeout(cleanup, 0);
-    }
+    preparePrintPreview(`${ANTENNA_DESIGNS[antennaType].short} build sheet`, 'antenna-build-print', ['.antenna-print-heading', '.result-summary', '.antenna-print-diagram']);
   };
 
   const printCompleteProjectRecord = (plan: AntennaPlan) => {
     openAntennaPlan(plan);
-    const printClass = 'antenna-project-print';
     globalThis.requestAnimationFrame?.(() => globalThis.requestAnimationFrame?.(() => {
-      const closedDetails = [...document.querySelectorAll<HTMLDetailsElement>('.result-supporting-details:not([open])')];
-      const cleanup = () => {
-        document.body.classList.remove(printClass);
-        closedDetails.forEach((details) => details.removeAttribute('open'));
-      };
-      document.body.classList.add(printClass);
-      closedDetails.forEach((details) => details.setAttribute('open', ''));
-      window.addEventListener('afterprint', cleanup, { once: true });
-      try {
-        window.print();
-      } finally {
-        window.setTimeout(cleanup, 0);
-      }
+      preparePrintPreview(`${plan.name} complete project record`, 'antenna-project-print', ['.antenna-project-print-record', '.antenna-print-heading', '.result-summary', '.antenna-print-diagram']);
     }));
   };
 
@@ -1829,7 +1820,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
         </form>
 
         <div className="visual-panel" id="design-drawing">
-          <DiagramControls label={`${ANTENNA_DESIGNS[antennaType].short} construction drawing`} help="Dimensions are calculated starting points; the drawing is not to scale. Enlarge it to zoom and pan, then verify the finished antenna by measurement." />
+          <DiagramControls label={`${ANTENNA_DESIGNS[antennaType].short} construction drawing`} help="Dimensions are calculated starting points; the drawing is not to scale. Enlarge it to zoom and pan, then verify the finished antenna by measurement." openRequest={drawingOpenRequest} />
           <div className="antenna-print-diagram">
           {calculation?.type === 'dipole' && <DipoleDiagram totalMetres={calculation.value.cutTotalMetres} legMetres={calculation.value.cutLegMetres} frequencyMHz={frequencyMHz} unitSystem={unitSystem} />}
           {calculation?.type === 'folded-dipole' && <Suspense fallback={<div className="diagram-placeholder" role="status">Loading folded-dipole drawing…</div>}><FoldedDipoleDiagram spanMetres={calculation.value.cutSpanMetres} spacingMetres={calculation.value.conductorSpacingMetres} unitSystem={unitSystem} /></Suspense>}
@@ -1879,7 +1870,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
 
       {calculation && <aside className="mobile-work-summary" aria-label="Current antenna working summary">
         <div><small>{ANTENNA_DESIGNS[antennaType].short} · {activeBand?.label ?? `${frequencyMHz.toFixed(3)} MHz`}</small><strong>Max {formatLength(largestAntennaDimension(calculation, loopShape), unitSystem)}</strong></div>
-        <button type="button" onClick={() => document.getElementById('design-drawing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>View drawing</button>
+        <button type="button" aria-controls="design-drawing" aria-haspopup="dialog" onClick={() => setDrawingOpenRequest((request) => request + 1)}>Enlarge drawing</button>
       </aside>}
 
       {(calculation?.type === 'loop-on-ground' || calculation?.type === 'active-receive-loop') && <section className="receive-family-comparison" aria-labelledby="receive-family-heading">
@@ -2177,6 +2168,7 @@ export function AntennaWorkbench({ jurisdiction, setJurisdiction, unitSystem, se
           <small>Model ID: {model.id} · Reviewed {model.reviewedOn}</small>
         </article>
       </div>}
+      {printPreview && <PrintPreviewDialog content={printPreview} onClose={closePrintPreview} />}
     </section>
   );
 }

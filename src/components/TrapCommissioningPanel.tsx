@@ -7,6 +7,7 @@
 
 import { useId, useMemo, useRef, useState } from 'react';
 import { calculateTrapCommissioning, TRAP_COMMISSIONING_MODEL } from '../calculators/trapCommissioning';
+import { downloadBlob } from '../lib/download';
 import { deleteTrapCommissioningRecord, loadTrapCommissioningRecords, parseTrapCommissioningRecord, saveTrapCommissioningRecord, serializeTrapCommissioningRecord, trapCommissioningRecordFilename, TRAP_RECORD_VERSION, type TrapCommissioningRecord } from '../projects/trapCommissioningRecords';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
 
@@ -182,12 +183,7 @@ export function TrapCommissioningPanel({ targetInductanceMicrohenries, targetCap
   const downloadRecord = () => {
     try {
       const record = buildRecord(new Date().toISOString());
-      const url = URL.createObjectURL(new Blob([serializeTrapCommissioningRecord(record)], { type: 'application/json' }));
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = trapCommissioningRecordFilename(record.title);
-      anchor.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(new Blob([serializeTrapCommissioningRecord(record)], { type: 'application/json' }), trapCommissioningRecordFilename(record.title));
       setRecordMessage('JSON measurement record downloaded');
     } catch {
       setRecordMessage('The record could not be downloaded. Check the measurement fields.');

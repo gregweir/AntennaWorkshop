@@ -17,6 +17,7 @@ import { EXPOSURE_SCREEN_MODEL } from '../calculators/exposureScreen';
 import { compareExposureScenarioInputs, compareExposureScenarios } from '../calculators/exposureScenarioComparison';
 import { calculateAssessmentChecklist, type AssessmentEvidenceTarget } from '../calculators/exposureAssessmentChecklist';
 import { feetToMetres, formatCoordinate, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
+import { downloadBlob } from '../lib/download';
 import {
   createExposureProjectFile,
   deleteExposureProjectFile,
@@ -236,14 +237,7 @@ export function ExposureProjectPanel({ jurisdiction, environment, unitSystem, on
 
   const exportProject = () => {
     const file = createExposureProjectFile(projectData, currentProjectId);
-    const url = URL.createObjectURL(new Blob([serializeExposureProjectFile(file)], { type: 'application/json' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = exposureProjectFilename(file.project.title);
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([serializeExposureProjectFile(file)], { type: 'application/json' }), exposureProjectFilename(file.project.title));
     setStorageMessage('Portable project copy exported.');
   };
 

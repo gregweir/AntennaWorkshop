@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ANTENNA_DESIGNS, type AntennaType } from '../lib/antennaDesignCatalog';
+import { downloadBlob } from '../lib/download';
 import type { UnitSystem } from '../lib/units';
 import {
   ANTENNA_PLAN_KIND,
@@ -385,12 +386,7 @@ export function AntennaPlanLibrary({ antennaType, jurisdiction, unitSystem, mode
 
   const downloadSelected = () => {
     if (!selected) return;
-    const url = URL.createObjectURL(new Blob([serializeAntennaPlan(selected)], { type: 'application/json' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = antennaPlanFilename(selected.name);
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([serializeAntennaPlan(selected)], { type: 'application/json' }), antennaPlanFilename(selected.name));
     setMessage('Portable JSON plan downloaded');
   };
 

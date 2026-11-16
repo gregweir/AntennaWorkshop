@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { calculateExposureSensitivity, defaultExposureSensitivityRange, type ExposureSensitivitySample, type ExposureSensitivityVariable } from '../calculators/exposureSensitivity';
 import { feetToMetres, formatLength, metresToFeet, type UnitSystem } from '../lib/units';
+import { downloadBlob } from '../lib/download';
 import { exposureSensitivityCsvFilename, serializeExposureSensitivityCsv } from '../projects/exposureSensitivityCsv';
 import type { ExposureProjectData } from '../projects/exposureProjectFiles';
 
@@ -107,14 +108,7 @@ export function ExposureSensitivityExplorer({ project, unitSystem }: Props) {
       : sample.totalFractionOfReferenceLevel < analysis.screeningTriggerFraction ? 'Below trigger' : 'Above trigger';
   const downloadCsv = () => {
     const csv = serializeExposureSensitivityCsv(analysis, { sourceLabel, pointLabel, variableLabel: variableLabels[variable], unitSystem });
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = exposureSensitivityCsvFilename(project.title, variable);
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), exposureSensitivityCsvFilename(project.title, variable));
     setDownloadMessage(`Downloaded ${analysis.samples.length} sensitivity samples and ${analysis.thresholdCrossings.length} interpolated ${analysis.thresholdCrossings.length === 1 ? 'crossing' : 'crossings'} as CSV.`);
   };
 

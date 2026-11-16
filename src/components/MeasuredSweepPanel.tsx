@@ -9,11 +9,13 @@ import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { formatFrequencyRange, getBandsForJurisdiction, type AmateurBand } from '../bands/catalog';
 import { estimateTouchstoneThresholdWindows, nearestTouchstonePoint, nearestTouchstonePointIndex, parseTouchstoneS1p, summarizeTouchstoneRanges, summarizeTouchstoneSweep, type TouchstonePoint, type TouchstoneSweep, type TouchstoneSweepSummary, type TouchstoneThresholdWindow } from '../lib/touchstone';
 import { serializeTouchstoneComparisonCsv, touchstoneReportFilename } from '../lib/touchstoneReport';
+import { downloadBlob } from '../lib/download';
 import type { JurisdictionCode } from '../regulations/catalog';
 import { StepByStepHelp } from './ContextHelp';
 import { SweepSmithChart } from './SweepSmithChart';
 import type { MeasurementSweepHandoff } from '../workflows/measurementWorkflow';
 import type { AntennaPlanMeasurementAnalysis } from '../projects/antennaPlans';
+import { capturePrintPreview, PrintPreviewDialog, type PrintPreviewContent } from './PrintPreviewDialog';
 
 interface Props {
   jurisdiction: JurisdictionCode;
@@ -42,6 +44,7 @@ export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onInco
   const [downloadMessage, setDownloadMessage] = useState('');
   const [linkedContext, setLinkedContext] = useState<MeasurementSweepHandoff | null>(incomingSweep);
   const [planSaveMessage, setPlanSaveMessage] = useState('');
+  const [printPreview, setPrintPreview] = useState<PrintPreviewContent | null>(null);
 
   useEffect(() => {
     if (!incomingSweep) return;
@@ -130,27 +133,12 @@ export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onInco
     if (!sweep) return;
     const context = { title: reportTitle, calibrationContext, referenceState, comparisonState };
     const csv = serializeTouchstoneComparisonCsv(context, { fileName, sweep }, comparison ? { fileName: comparisonFileName, sweep: comparison } : null);
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = touchstoneReportFilename(reportTitle || fileName.replace(/\.s1p$/i, ''));
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), touchstoneReportFilename(reportTitle || fileName.replace(/\.s1p$/i, '')));
     setDownloadMessage(`Downloaded ${sweep.points.length.toLocaleString()} reference ${sweep.points.length === 1 ? 'point' : 'points'}${comparison ? ' with nearest comparison samples' : ''} as CSV.`);
   }
 
   function printReport() {
-    const printClass = 'sweep-report-print';
-    const cleanup = () => document.body.classList.remove(printClass);
-    document.body.classList.add(printClass);
-    window.addEventListener('afterprint', cleanup, { once: true });
-    try {
-      window.print();
-    } finally {
-      window.setTimeout(cleanup, 0);
-    }
+    setPrintPreview(capturePrintPreview(reportTitle || fileName || 'Measured sweep', 'sweep-report-print', ['.sweep-print-report']));
   }
 
   function saveAnalysisToPlan() {
@@ -279,6 +267,7 @@ export default function MeasuredSweepPanel({ jurisdiction, incomingSweep, onInco
       </div>
       <SweepPrintReport title={reportTitle} calibrationContext={calibrationContext} referenceState={referenceState} comparisonState={comparisonState} reference={sweep} referenceName={fileName} referenceAnalysis={analysis} selected={selected} comparison={comparison} comparisonName={comparisonFileName} comparisonAnalysis={comparisonAnalysis} comparisonSelected={selectedComparison} threshold={swrThreshold} thresholdWindows={thresholdWindows} comparisonThresholdWindows={comparisonThresholdWindows} />
     </>}
+    {printPreview && <PrintPreviewDialog content={printPreview} onClose={() => setPrintPreview(null)} />}
   </div>;
 }
 

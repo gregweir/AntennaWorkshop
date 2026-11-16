@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ACMA_ASSESSMENT_MODEL, type AcmaAssessmentHandoff } from '../calculators/acmaAssessment';
+import { downloadBlob } from '../lib/download';
 import { ACMA_ASSESSMENT_ROUTES, ACMA_ASSESSMENT_STANDARDS, evaluateAcmaEvidence } from '../calculators/acmaEvidence';
 import { acmaRecordRequiredGaps, createAcmaAssessmentRecord, createAcmaAssessmentRecordFromHandoff, deleteAcmaAssessmentRecord, loadAcmaAssessmentRecords, parseAcmaAssessmentRecord, restoreAcmaAssessmentRevision, saveAcmaAssessmentRecord, serializeAcmaAssessmentRecord, type AcmaAssessmentRecord } from '../projects/acmaAssessmentRecords';
 import { HelpTip, StepByStepHelp } from './ContextHelp';
@@ -78,13 +79,7 @@ export function AcmaAssessmentRecordPanel({ incomingAssessment, onAssessmentCons
     setMessage('Saved record deleted from this device');
   };
   const download = () => {
-    const blob = new Blob([serializeAcmaAssessmentRecord(record)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename(record.title);
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([serializeAcmaAssessmentRecord(record)], { type: 'application/json' }), filename(record.title));
     setMessage('JSON record copy downloaded');
   };
   const importRecord = async (file?: File) => {

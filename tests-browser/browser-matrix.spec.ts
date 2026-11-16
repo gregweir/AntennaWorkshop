@@ -79,15 +79,62 @@ test('supports keyboard entry and remains within the viewport', async ({ page, i
       page.getByRole('button', { name: /Antenna designs/ }),
       page.getByRole('button', { name: /Feedline & matching/ }),
       page.getByRole('button', { name: 'Change design' }),
-      page.getByRole('button', { name: 'View drawing' })
+      page.getByRole('button', { name: 'Enlarge drawing' })
     ];
     for (const target of touchTargets) {
       const bounds = await target.boundingBox();
       expect(bounds?.height ?? 0).toBeGreaterThanOrEqual(44);
       expect(bounds?.width ?? 0).toBeGreaterThanOrEqual(44);
     }
-    await page.getByRole('button', { name: 'View drawing' }).click();
-    await expect(page.locator('#design-drawing')).toBeInViewport();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const originalViewport = page.viewportSize();
+    const openDrawing = page.getByRole('button', { name: 'Enlarge drawing' });
+    await openDrawing.click();
+    const dialog = page.getByRole('dialog', { name: /construction drawing enlarged view/ });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveCSS('position', 'fixed');
+    await expect(page.getByRole('button', { name: 'Close enlarged view' })).toBeFocused();
+    await expect(page.locator('body')).toHaveClass(/diagram-view-open/);
+    await expect(page.locator('body')).toHaveCSS('position', 'fixed');
+    const portraitBounds = await dialog.boundingBox();
+    expect(Math.abs((portraitBounds?.width ?? 0) - (originalViewport?.width ?? 0))).toBeLessThanOrEqual(1);
+    expect(Math.abs((portraitBounds?.height ?? 0) - (originalViewport?.height ?? 0))).toBeLessThanOrEqual(1);
+    await page.getByRole('button', { name: 'Zoom diagram in' }).click();
+    await expect(page.locator('.diagram-zoom-controls output')).toHaveText('125%');
+
+    await page.setViewportSize({ width: 844, height: 390 });
+    const landscapeBounds = await dialog.boundingBox();
+    expect(landscapeBounds?.width ?? 0).toBeGreaterThanOrEqual(828);
+    expect(landscapeBounds?.height ?? 0).toBeGreaterThanOrEqual(374);
+    expect(landscapeBounds?.width ?? 0).toBeLessThanOrEqual(844);
+    expect(landscapeBounds?.height ?? 0).toBeLessThanOrEqual(390);
+    await expect(page.getByRole('button', { name: 'Close enlarged view' })).toBeInViewport();
+    if (originalViewport) await page.setViewportSize(originalViewport);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(openDrawing).toBeFocused();
+    await expect(page.locator('body')).not.toHaveClass(/diagram-view-open/);
+    await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
+
+    const printBuildSheet = page.getByRole('button', { name: 'Print build sheet' });
+    await printBuildSheet.click();
+    const printPreview = page.getByRole('dialog', { name: /build sheet/ });
+    await expect(printPreview).toBeVisible();
+    await expect(printPreview.locator('.antenna-print-heading')).toBeVisible();
+    await expect(printPreview.locator('.result-summary')).toBeVisible();
+    await expect(printPreview.locator('.antenna-figure')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Close preview' })).toBeFocused();
+    await expect(page.locator('body')).toHaveClass(/print-preview-open/);
+    await expect(page.locator('body')).toHaveCSS('position', 'fixed');
+    const previewBounds = await printPreview.boundingBox();
+    expect(Math.abs((previewBounds?.width ?? 0) - (originalViewport?.width ?? 0))).toBeLessThanOrEqual(1);
+    expect(Math.abs((previewBounds?.height ?? 0) - (originalViewport?.height ?? 0))).toBeLessThanOrEqual(1);
+    await page.getByRole('button', { name: 'Close preview' }).click();
+    await expect(printPreview).toHaveCount(0);
+    await expect(printBuildSheet).toBeFocused();
+    await expect(page.locator('body')).not.toHaveClass(/print-preview-open/);
+    await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
+
     await page.getByText('Compare antenna designs', { exact: true }).click();
     await expect(page.locator('.comparison-card')).toHaveCount(3);
     const comparisonDimensions = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
