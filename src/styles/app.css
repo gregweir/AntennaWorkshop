@@ -14418,6 +14418,12 @@ body.diagram-view-open {
     font-size: 17px;
   }
 
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   .input-panel .context-help-panel {
     right: 0;
   }
