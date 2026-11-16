@@ -27,9 +27,17 @@ export interface GroundMountedVerticalInput extends CommonDesignInput {
   radialLengthMultiplier: number;
 }
 
+export type EfhwDeployment = 'horizontal' | 'sloper' | 'inverted-l';
+export type EfhwSloperFeedPosition = 'lower' | 'upper';
+
 export interface EfhwInput extends CommonDesignInput {
   transformerRatio: number;
   estimatedEndImpedanceOhms: number;
+  deployment: EfhwDeployment;
+  baseHeightMetres: number;
+  sloperAngleDegrees: number;
+  sloperFeedPosition: EfhwSloperFeedPosition;
+  invertedLVerticalPercent: number;
 }
 
 export interface OcfdInput extends CommonDesignInput {
@@ -134,8 +142,8 @@ export const ANTENNA_MODELS = {
   },
   efhw: {
     id: 'end-fed-half-wave',
-    version: '1.0.0',
-    reviewedOn: '2026-11-11',
+    version: '1.1.0',
+    reviewedOn: '2026-11-16',
     sources: [
       {
         title: 'ARRL — End-Fed Half-Wave Antenna Kit',
@@ -390,10 +398,54 @@ export function calculateEfhw(input: EfhwInput) {
   if (!Number.isFinite(input.estimatedEndImpedanceOhms) || input.estimatedEndImpedanceOhms < 200 || input.estimatedEndImpedanceOhms > 20_000) {
     throw new RangeError('Estimated end impedance must be between 200 and 20,000 ohms.');
   }
+  if (!['horizontal', 'sloper', 'inverted-l'].includes(input.deployment)) {
+    throw new RangeError('EFHW deployment must be horizontal, sloper, or inverted-L.');
+  }
+  if (!Number.isFinite(input.baseHeightMetres) || input.baseHeightMetres < 0 || input.baseHeightMetres > 10_000) {
+    throw new RangeError('EFHW reference height must be between zero and 10,000 metres.');
+  }
+  if (!Number.isFinite(input.sloperAngleDegrees) || input.sloperAngleDegrees < 5 || input.sloperAngleDegrees > 80) {
+    throw new RangeError('EFHW sloper angle must be between 5 and 80 degrees.');
+  }
+  if (!['lower', 'upper'].includes(input.sloperFeedPosition)) {
+    throw new RangeError('EFHW sloper feed position must be lower or upper.');
+  }
+  if (!Number.isFinite(input.invertedLVerticalPercent) || input.invertedLVerticalPercent < 10 || input.invertedLVerticalPercent > 90) {
+    throw new RangeError('EFHW inverted-L vertical percentage must be between 10 and 90 percent.');
+  }
   const lengths = commonLengths(input, 0.5);
+  const designRadiatorMetres = lengths.resonantLengthMetres;
+  const sloperAngleRadians = input.sloperAngleDegrees * Math.PI / 180;
+  const sloperRiseMetres = designRadiatorMetres * Math.sin(sloperAngleRadians);
+  const sloperSpanMetres = designRadiatorMetres * Math.cos(sloperAngleRadians);
+  const invertedLVerticalMetres = designRadiatorMetres * input.invertedLVerticalPercent / 100;
+  const invertedLHorizontalMetres = designRadiatorMetres - invertedLVerticalMetres;
+  const feedpointHeightMetres = input.deployment === 'sloper' && input.sloperFeedPosition === 'upper'
+    ? input.baseHeightMetres + sloperRiseMetres
+    : input.baseHeightMetres;
+  const farEndHeightMetres = input.deployment === 'horizontal'
+    ? input.baseHeightMetres
+    : input.deployment === 'inverted-l'
+      ? input.baseHeightMetres + invertedLVerticalMetres
+      : input.sloperFeedPosition === 'lower'
+        ? input.baseHeightMetres + sloperRiseMetres
+        : input.baseHeightMetres;
   return {
     ...lengths,
     radiatorMetres: lengths.cutLengthMetres,
+    designRadiatorMetres,
+    deployment: input.deployment,
+    deploymentLabel: input.deployment === 'horizontal' ? 'Horizontal' : input.deployment === 'sloper' ? 'Sloper' : 'Inverted-L',
+    feedpointHeightMetres,
+    farEndHeightMetres,
+    highestWireHeightMetres: Math.max(feedpointHeightMetres, farEndHeightMetres),
+    lowestWireHeightMetres: Math.min(feedpointHeightMetres, farEndHeightMetres),
+    horizontalSpanMetres: input.deployment === 'horizontal' ? designRadiatorMetres : input.deployment === 'sloper' ? sloperSpanMetres : invertedLHorizontalMetres,
+    verticalSectionMetres: input.deployment === 'inverted-l' ? invertedLVerticalMetres : input.deployment === 'sloper' ? sloperRiseMetres : 0,
+    horizontalSectionMetres: input.deployment === 'inverted-l' ? invertedLHorizontalMetres : input.deployment === 'horizontal' ? designRadiatorMetres : sloperSpanMetres,
+    sloperAngleDegrees: input.deployment === 'sloper' ? input.sloperAngleDegrees : null,
+    sloperFeedPosition: input.deployment === 'sloper' ? input.sloperFeedPosition : null,
+    invertedLVerticalPercent: input.deployment === 'inverted-l' ? input.invertedLVerticalPercent : null,
     transformedImpedanceOhms: input.estimatedEndImpedanceOhms / input.transformerRatio,
     turnsRatio: Math.sqrt(input.transformerRatio),
     harmonicFrequenciesMHz: [1, 2, 3, 4].map((multiple) => ({

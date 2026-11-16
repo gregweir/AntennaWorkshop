@@ -99,8 +99,13 @@ export function AntennaResultSummary({ calculation, unitSystem, radialCount, loo
     headline = 'Cut two equal sloping legs'; primary = `${formatLength(calculation.value.legMetres, unitSystem)} each`;
     details = [['Endpoint span', formatLength(calculation.value.endpointSpanMetres, unitSystem)], ['Vertical drop', formatLength(calculation.value.apexDropMetres, unitSystem)]];
   } else if (calculation.type === 'efhw') {
-    headline = 'Cut one half-wave radiator'; primary = formatLength(calculation.value.radiatorMetres, unitSystem);
-    details = [['Nominal transformed impedance', `${calculation.value.transformedImpedanceOhms.toFixed(1)} Ω`], ['Transformer turns ratio', `${calculation.value.turnsRatio.toFixed(2)} : 1`]];
+    headline = `Plan one ${calculation.value.deploymentLabel.toLowerCase()} half-wave wire`; primary = `${formatLength(calculation.value.radiatorMetres, unitSystem)} cut length`;
+    const layoutDetails: Array<[string, string]> = calculation.value.deployment === 'inverted-l'
+      ? [['Vertical section', formatLength(calculation.value.verticalSectionMetres, unitSystem)], ['Horizontal section', formatLength(calculation.value.horizontalSectionMetres, unitSystem)]]
+      : calculation.value.deployment === 'sloper'
+        ? [['Wire angle', `${calculation.value.sloperAngleDegrees!.toFixed(0)}°`], ['Transformer position', `${calculation.value.sloperFeedPosition!} end`]]
+        : [];
+    details = [['Finished target wire', formatLength(calculation.value.designRadiatorMetres, unitSystem)], ['Horizontal site span', formatLength(calculation.value.horizontalSpanMetres, unitSystem)], ['Transformer feedpoint height', formatLength(calculation.value.feedpointHeightMetres, unitSystem)], ['Far wire-end height', formatLength(calculation.value.farEndHeightMetres, unitSystem)], ...layoutDetails, ['Nominal transformed impedance', `${calculation.value.transformedImpedanceOhms.toFixed(1)} Ω`], ['Transformer turns ratio', `${calculation.value.turnsRatio.toFixed(2)} : 1`], ['Installed match, common mode, multiband response, pattern, structure, and exposure', 'Not inferred · install, measure, and assess']];
   } else if (calculation.type === 'tuner-fed-wire') {
     headline = calculation.value.isW3edpPreset ? 'Cut the documented W3EDP wire pair' : 'Cut the entered end-fed wire system';
     primary = `${formatLength(calculation.value.radiatorCutMetres, unitSystem)} radiator`;

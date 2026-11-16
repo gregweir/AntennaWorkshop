@@ -83,9 +83,17 @@ describe('additional antenna calculators', () => {
       lengthCorrectionFactor: 0.95,
       trimAllowancePercent: 2.5,
       transformerRatio: 49,
-      estimatedEndImpedanceOhms: 2450
+      estimatedEndImpedanceOhms: 2450,
+      deployment: 'horizontal',
+      baseHeightMetres: 8,
+      sloperAngleDegrees: 30,
+      sloperFeedPosition: 'lower',
+      invertedLVerticalPercent: 40
     });
     expect(result.radiatorMetres).toBeCloseTo(20.557951, 6);
+    expect(result.designRadiatorMetres).toBeCloseTo(result.resonantLengthMetres, 12);
+    expect(result.horizontalSpanMetres).toBeCloseTo(result.designRadiatorMetres, 12);
+    expect(result.highestWireHeightMetres).toBe(8);
     expect(result.transformedImpedanceOhms).toBe(50);
     expect(result.turnsRatio).toBe(7);
     result.harmonicFrequenciesMHz.forEach((item, index) => {
@@ -93,8 +101,26 @@ describe('additional antenna calculators', () => {
     });
   });
 
+  it('plans sloper and inverted-L EFHW support geometry without changing wire length', () => {
+    const common = { frequencyMHz: 7.1, lengthCorrectionFactor: 0.95, trimAllowancePercent: 2.5, transformerRatio: 49, estimatedEndImpedanceOhms: 2450, baseHeightMetres: 2, sloperAngleDegrees: 30, sloperFeedPosition: 'lower' as const, invertedLVerticalPercent: 40 };
+    const sloper = calculateEfhw({ ...common, deployment: 'sloper' });
+    const invertedL = calculateEfhw({ ...common, deployment: 'inverted-l' });
+    expect(sloper.horizontalSpanMetres).toBeCloseTo(sloper.designRadiatorMetres * Math.cos(Math.PI / 6), 12);
+    expect(sloper.farEndHeightMetres).toBeCloseTo(2 + sloper.designRadiatorMetres * 0.5, 12);
+    expect(invertedL.verticalSectionMetres).toBeCloseTo(invertedL.designRadiatorMetres * 0.4, 12);
+    expect(invertedL.horizontalSectionMetres).toBeCloseTo(invertedL.designRadiatorMetres * 0.6, 12);
+    expect(invertedL.verticalSectionMetres + invertedL.horizontalSectionMetres).toBeCloseTo(invertedL.designRadiatorMetres, 12);
+    expect(sloper.radiatorMetres).toBeCloseTo(invertedL.radiatorMetres, 12);
+    const upperFed = calculateEfhw({ ...common, deployment: 'sloper', sloperFeedPosition: 'upper' });
+    expect(upperFed.feedpointHeightMetres).toBeCloseTo(2 + upperFed.verticalSectionMetres, 12);
+    expect(upperFed.farEndHeightMetres).toBe(2);
+  });
+
   it('rejects unsupported EFHW transformer assumptions', () => {
-    expect(() => calculateEfhw({ frequencyMHz: 7.1, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, transformerRatio: 2, estimatedEndImpedanceOhms: 2450 })).toThrow(RangeError);
+    const common = { frequencyMHz: 7.1, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, transformerRatio: 49, estimatedEndImpedanceOhms: 2450, deployment: 'horizontal' as const, baseHeightMetres: 2, sloperAngleDegrees: 30, sloperFeedPosition: 'lower' as const, invertedLVerticalPercent: 40 };
+    expect(() => calculateEfhw({ ...common, transformerRatio: 2 })).toThrow(RangeError);
+    expect(() => calculateEfhw({ ...common, deployment: 'unsupported' as never })).toThrow(RangeError);
+    expect(() => calculateEfhw({ ...common, baseHeightMetres: -1 })).toThrow(RangeError);
   });
 
   it('calculates unequal OCFD legs and nominal transformation', () => {
