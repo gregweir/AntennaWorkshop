@@ -40,6 +40,7 @@ describe('antenna design catalog', () => {
   it('returns transmit-capable designs for guided transmit goals', () => {
     expect(getGuidedDesigns('transmit', 'vertical-footprint')).toEqual(['jpole', 'slim-jim', 'sleeve-dipole', 'discone', 'loaded-vertical', 'ground-mounted-vertical', 'ground-plane']);
     expect(getGuidedDesigns('transmit', 'limited-space')).toEqual(['loaded-dipole', 'small-loop', 'tuner-fed-wire', 'sleeve-dipole', 'loaded-vertical']);
+    expect(getGuidedDesigns('transmit', 'portable-field')).toEqual(['dipole', 'linked-dipole', 'doublet', 'inverted-v', 'efhw', 'tuner-fed-wire', 'sleeve-dipole', 'ground-plane']);
   });
 
   it('keeps receive-only designs out of transmit results', () => {

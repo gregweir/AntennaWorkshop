@@ -982,6 +982,20 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await expect(page.getByRole('heading', { name: 'What will this antenna be used for?' })).toBeVisible();
   await expect(page.getByLabel('Guided antenna choice step 1 of 3')).toBeVisible();
 
+  await page.getByRole('button', { name: /Transmitting and receiving/ }).click();
+  await page.getByRole('button', { name: /Portable or field use/ }).click();
+  await expect(page.getByRole('heading', { name: '8 construction planners to review' })).toBeVisible();
+  await expect(page.getByText('Your path: Transmitting and receiving → Portable or field use')).toBeVisible();
+  const portableChecks = page.getByRole('complementary', { name: 'Portable antenna planning checks' });
+  await expect(portableChecks).toContainText('Supports and footprint');
+  await expect(portableChecks).toContainText('Band changes');
+  await expect(portableChecks).toContainText('Feed and safety');
+  await expect(portableChecks).toContainText('not guaranteed matching');
+  await expect(page.getByRole('button', { name: /Linked dipole/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Ground plane/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Back to site or goal' }).click();
+  await page.getByRole('button', { name: 'Back to purpose' }).click();
+
   await page.getByRole('button', { name: /Dedicated receiving/ }).click();
   await expect(page.getByRole('heading', { name: 'Which site or operating goal matters most?' })).toBeVisible();
   await expect(page.getByLabel('Guided antenna choice step 2 of 3')).toBeVisible();

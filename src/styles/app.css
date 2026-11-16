@@ -889,6 +889,39 @@ select {
   margin-top: 0.9rem;
 }
 
+.guided-portable-note {
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent-technical) 45%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-technical) 6%, var(--bg-elevated));
+}
+
+.guided-portable-note strong,
+.guided-portable-note p {
+  margin: 0;
+}
+
+.guided-portable-note ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 0.65rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guided-portable-note li {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.guided-portable-note p {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
 .guided-result-actions {
   display: flex;
   justify-content: space-between;
@@ -13595,6 +13628,10 @@ body.diagram-view-open {
 
   .guided-choice-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guided-portable-note ul {
+    grid-template-columns: 1fr;
   }
 
   .receive-selector-intro,
