@@ -14418,6 +14418,10 @@ body.diagram-view-open {
     font-size: 17px;
   }
 
+  .input-panel .context-help-panel {
+    right: 0;
+  }
+
   .header-inner {
     gap: 0.75rem;
     min-height: 0;
