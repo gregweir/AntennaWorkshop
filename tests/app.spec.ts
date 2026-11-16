@@ -685,11 +685,13 @@ test('restores everyday wire and vertical planners without changing design frequ
   await changeDesign(/Ground plane/);
   await page.getByRole('spinbutton', { name: 'Number of radials' }).fill('6');
   await page.getByRole('spinbutton', { name: 'Radial slope below horizontal' }).fill('30');
-  const groundPlane = page.getByRole('region', { name: 'Elevated-radial inputs starting values' });
-  await expect(groundPlane).toContainText('2 modified values');
+  await page.getByRole('spinbutton', { name: 'Feedpoint height above local surface' }).fill('6');
+  const groundPlane = page.getByRole('region', { name: 'Elevated-radial deployment inputs starting values' });
+  await expect(groundPlane).toContainText('3 modified values');
   await groundPlane.getByRole('button').click();
   await expect(page.getByRole('spinbutton', { name: 'Number of radials' })).toHaveValue('4');
   await expect(page.getByRole('spinbutton', { name: 'Radial slope below horizontal' })).toHaveValue('45');
+  await expect(page.getByRole('spinbutton', { name: 'Feedpoint height above local surface' })).toHaveValue('4');
 
   await changeDesign(/Full-wave/);
   await page.getByLabel('Loop shape', { exact: true }).selectOption('triangle');
@@ -2373,13 +2375,19 @@ test('switches among graphical antenna designs and updates construction results'
 
   await selectAntenna(/Ground plane/);
   await expect(page.getByLabel('Number of radials', { exact: true })).toHaveValue('4');
+  await expect(page.getByRole('spinbutton', { name: 'Feedpoint height above local surface' })).toHaveValue('4');
   await expect(page.getByRole('img', { name: /Dimensioned quarter-wave ground-plane/ })).toBeVisible();
   await expect(page.locator('.result-summary')).toContainText('4 radial wires');
+  await expect(page.locator('.result-summary')).toContainText('Radial-end height relative to local surface');
   await expect(page.getByText('Set the radial slope')).toBeHidden();
   await page.getByText('Build an elevated ground plane').click();
   await expect(page.getByText('Set the radial slope')).toBeVisible();
   await page.getByLabel('Help: Radial slope below horizontal').click();
   await expect(page.getByRole('note').filter({ hasText: 'Radial slope below horizontal' })).toContainText('actual result depends on the complete installation');
+  await page.getByRole('spinbutton', { name: 'Feedpoint height above local surface' }).fill('1');
+  await expect(page.getByRole('complementary', { name: 'Ground-plane deployment advisories' })).toContainText('at or below the local reference surface');
+  await expect(page.locator('.result-summary')).toContainText('-6.268 m');
+  await expect(page.locator('.caution-card').filter({ hasText: 'Calculated heights are not clearance approval' })).toBeVisible();
 
   await selectAntenna(/Full-wave/);
   await page.getByLabel('Loop shape', { exact: true }).selectOption('triangle');

@@ -7,7 +7,7 @@
 
 import type { LoopShape } from '../calculators/designs';
 import { classifyResultEvidence, isSupportingResult, type ResultEvidenceKind } from '../lib/resultEvidence';
-import { formatLength, type UnitSystem } from '../lib/units';
+import { formatCoordinate, formatLength, type UnitSystem } from '../lib/units';
 import type { Calculation } from './AntennaWorkbench';
 import { ResultEvidenceBadge } from './ResultEvidenceGuide';
 
@@ -171,7 +171,7 @@ export function AntennaResultSummary({ calculation, unitSystem, radialCount, loo
     details = [[`${calculation.value.radialCount} radial wires`, formatLength(calculation.value.totalRadialWireMetres, unitSystem)], ['Each radial', formatLength(calculation.value.radialMetres, unitSystem)], ['Radial-field diameter', formatLength(calculation.value.radialFieldDiameterMetres, unitSystem)], ['Total conductor', formatLength(calculation.value.totalConductorMetres, unitSystem)]];
   } else if (calculation.type === 'ground-plane') {
     headline = 'Cut radiator and radials'; primary = `${formatLength(calculation.value.radiatorMetres, unitSystem)} each`;
-    details = [[`${radialCount} radial wires`, formatLength(calculation.value.totalRadialWireMetres, unitSystem)], ['Footprint diameter', formatLength(calculation.value.footprintDiameterMetres, unitSystem)]];
+    details = [[`${radialCount} radial wires`, formatLength(calculation.value.totalRadialWireMetres, unitSystem)], ['Footprint diameter', formatLength(calculation.value.footprintDiameterMetres, unitSystem)], ['Entered feedpoint height', formatLength(calculation.value.feedpointHeightMetres, unitSystem)], ['Radiator-tip height', formatLength(calculation.value.radiatorTopHeightMetres, unitSystem)], ['Radial vertical drop', formatLength(calculation.value.radialDropMetres, unitSystem)], ['Radial-end height relative to local surface', formatCoordinate(calculation.value.radialEndHeightMetres, unitSystem)], ['Minimum feedpoint height to keep radial ends above the reference surface', formatLength(calculation.value.minimumFeedpointHeightMetres, unitSystem)]];
   } else {
     headline = loopShape === 'triangle' ? 'Cut one continuous delta loop' : 'Cut one continuous loop'; primary = formatLength(calculation.value.perimeterMetres, unitSystem);
     details = [[loopShape === 'circle' ? 'Diameter' : 'Each side', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Resonant perimeter', formatLength(calculation.value.resonantLengthMetres, unitSystem)]];

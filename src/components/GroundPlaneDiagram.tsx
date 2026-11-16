@@ -5,7 +5,7 @@
  * Copyright 2026 Tartanleaf.com Inc.
  */
 
-import { formatLength, type UnitSystem } from '../lib/units';
+import { formatCoordinate, formatLength, type UnitSystem } from '../lib/units';
 import { DiagramDefinitions, DiagramGrid, Feedpoint, SvgDimension } from './diagram/DiagramPrimitives';
 
 interface Props {
@@ -14,15 +14,18 @@ interface Props {
   footprintDiameterMetres: number;
   radialCount: number;
   slopeDegrees: number;
+  feedpointHeightMetres: number;
+  radialEndHeightMetres: number;
+  radiatorTopHeightMetres: number;
   unitSystem: UnitSystem;
 }
 
-export function GroundPlaneDiagram({ radiatorMetres, radialMetres, footprintDiameterMetres, radialCount, slopeDegrees, unitSystem }: Props) {
+export function GroundPlaneDiagram({ radiatorMetres, radialMetres, footprintDiameterMetres, radialCount, slopeDegrees, feedpointHeightMetres, radialEndHeightMetres, radiatorTopHeightMetres, unitSystem }: Props) {
   return (
     <figure className="antenna-figure">
       <svg className="dipole-diagram" viewBox="0 0 760 330" role="img" aria-labelledby="gp-title gp-desc">
         <title id="gp-title">Dimensioned quarter-wave ground-plane antenna</title>
-        <desc id="gp-desc">One vertical radiator and {radialCount} equal radials sloping {slopeDegrees} degrees below horizontal.</desc>
+        <desc id="gp-desc">One vertical radiator and {radialCount} equal radials sloping {slopeDegrees} degrees below horizontal from a feedpoint {formatLength(feedpointHeightMetres, unitSystem)} above the entered local surface.</desc>
         <DiagramDefinitions prefix="gp" />
         <DiagramGrid />
         <g className="antenna-wire">
@@ -40,7 +43,7 @@ export function GroundPlaneDiagram({ radiatorMetres, radialMetres, footprintDiam
           <text x="525" y="225">slope · {slopeDegrees}°</text>
         </g>
       </svg>
-      <figcaption>Side/perspective construction view · Radials are shown schematically and the drawing is not to scale.</figcaption>
+      <figcaption>Side/perspective construction view · Radials are shown schematically and the drawing is not to scale. Entered height geometry: feedpoint {formatLength(feedpointHeightMetres, unitSystem)}, radial ends {formatCoordinate(radialEndHeightMetres, unitSystem)}, radiator tip {formatLength(radiatorTopHeightMetres, unitSystem)} relative to the local reference surface.</figcaption>
     </figure>
   );
 }

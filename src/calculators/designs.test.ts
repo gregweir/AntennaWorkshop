@@ -27,11 +27,15 @@ describe('additional antenna calculators', () => {
       lengthCorrectionFactor: 0.95,
       trimAllowancePercent: 2.5,
       radialCount: 4,
-      radialSlopeDegrees: 45
+      radialSlopeDegrees: 45,
+      feedpointHeightMetres: 2
     });
     expect(result.radiatorMetres).toBeCloseTo(0.499868, 6);
     expect(result.totalRadialWireMetres).toBeCloseTo(result.radialMetres * 4, 10);
     expect(result.footprintDiameterMetres).toBeCloseTo(Math.SQRT2 * result.radialMetres, 10);
+    expect(result.radialEndHeightMetres).toBeCloseTo(2 - result.radialDropMetres, 10);
+    expect(result.radiatorTopHeightMetres).toBeCloseTo(2 + result.radiatorMetres, 10);
+    expect(result.warnings).toEqual([]);
   });
 
   it('converts loop perimeter into dimensions for each supported shape', () => {
@@ -60,8 +64,16 @@ describe('additional antenna calculators', () => {
 
   it('rejects geometry outside supported limits', () => {
     expect(() => calculateInvertedV({ frequencyMHz: 7, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, includedAngleDegrees: 20 })).toThrow(RangeError);
-    expect(() => calculateGroundPlane({ frequencyMHz: 7, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, radialCount: 2, radialSlopeDegrees: 45 })).toThrow(RangeError);
+    expect(() => calculateGroundPlane({ frequencyMHz: 7, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, radialCount: 2, radialSlopeDegrees: 45, feedpointHeightMetres: 4 })).toThrow(RangeError);
+    expect(() => calculateGroundPlane({ frequencyMHz: 7, lengthCorrectionFactor: 0.95, trimAllowancePercent: 0, radialCount: 4, radialSlopeDegrees: 45, feedpointHeightMetres: 0 })).toThrow(RangeError);
     expect(() => calculateFullWaveLoop({ frequencyMHz: 7, lengthCorrectionFactor: 1.02, trimAllowancePercent: 0, shape: 'triangle', deltaFeedMode: 'diagonal' as never })).toThrow(RangeError);
+  });
+
+  it('flags an elevated ground-plane deployment whose radial ends reach the reference surface', () => {
+    const result = calculateGroundPlane({ frequencyMHz: 7.1, lengthCorrectionFactor: 0.95, trimAllowancePercent: 2.5, radialCount: 4, radialSlopeDegrees: 45, feedpointHeightMetres: 4 });
+    expect(result.radialEndHeightMetres).toBeLessThan(0);
+    expect(result.minimumFeedpointHeightMetres).toBeCloseTo(result.radialDropMetres, 12);
+    expect(result.warnings).toHaveLength(1);
   });
 
   it('calculates a ground-mounted quarter-wave vertical and radial field', () => {

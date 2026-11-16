@@ -20,6 +20,7 @@ export interface InvertedVInput extends CommonDesignInput {
 export interface GroundPlaneInput extends CommonDesignInput {
   radialCount: number;
   radialSlopeDegrees: number;
+  feedpointHeightMetres: number;
 }
 
 export interface GroundMountedVerticalInput extends CommonDesignInput {
@@ -97,8 +98,8 @@ export const ANTENNA_MODELS = {
   },
   groundPlane: {
     id: 'quarter-wave-ground-plane',
-    version: '1.0.0',
-    reviewedOn: '2026-11-11',
+    version: '2.0.0',
+    reviewedOn: '2026-11-16',
     sources: [
       {
         title: 'ARRL — Some Plain Facts About Multiband Vertical Antennas',
@@ -323,15 +324,28 @@ export function calculateGroundPlane(input: GroundPlaneInput) {
   if (!Number.isFinite(input.radialSlopeDegrees) || input.radialSlopeDegrees < 0 || input.radialSlopeDegrees > 60) {
     throw new RangeError('Radial slope must be between zero and 60 degrees.');
   }
+  if (!Number.isFinite(input.feedpointHeightMetres) || input.feedpointHeightMetres <= 0 || input.feedpointHeightMetres > 1_000) {
+    throw new RangeError('Feedpoint height must be greater than zero and no more than 1,000 metres.');
+  }
   const lengths = commonLengths(input, 0.25);
   const slopeRadians = input.radialSlopeDegrees * Math.PI / 180;
+  const radialDropMetres = lengths.cutLengthMetres * Math.sin(slopeRadians);
+  const radialEndHeightMetres = input.feedpointHeightMetres - radialDropMetres;
+  const warnings = radialEndHeightMetres <= 0
+    ? ['The entered radial slope and feedpoint height place the radial endpoints at or below the local reference surface. Raise the feedpoint, reduce the slope, or revise the deployment geometry.']
+    : [];
   return {
     ...lengths,
     radiatorMetres: lengths.cutLengthMetres,
     radialMetres: lengths.cutLengthMetres,
     totalRadialWireMetres: lengths.cutLengthMetres * input.radialCount,
     footprintDiameterMetres: 2 * lengths.cutLengthMetres * Math.cos(slopeRadians),
-    radialDropMetres: lengths.cutLengthMetres * Math.sin(slopeRadians)
+    radialDropMetres,
+    feedpointHeightMetres: input.feedpointHeightMetres,
+    radiatorTopHeightMetres: input.feedpointHeightMetres + lengths.cutLengthMetres,
+    radialEndHeightMetres,
+    minimumFeedpointHeightMetres: radialDropMetres,
+    warnings
   };
 }
 
