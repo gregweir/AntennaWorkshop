@@ -14,6 +14,7 @@ export const ANTENNA_PLAN_VERSION = 2 as const;
 export const ANTENNA_PLAN_LIBRARY_KEY = 'radiobook:antenna-workshop:antenna-plans:v1';
 export const ANTENNA_PLAN_LIBRARY_LIMIT = 50;
 export const ANTENNA_PLAN_MEASUREMENT_LIMIT = 24;
+export const ANTENNA_PLAN_WORKSPACE_FIELD_LIMIT = 220;
 
 export const ANTENNA_PROJECT_STAGES = ['choose', 'plan', 'build', 'measure', 'tune', 'verify', 'document'] as const;
 export type AntennaProjectStage = typeof ANTENNA_PROJECT_STAGES[number];
@@ -248,7 +249,7 @@ function normalisePlan(value: unknown): AntennaPlan | null {
     || !['CA', 'US', 'GB', 'AU'].includes(jurisdiction)
     || (unitSystem !== 'metric' && unitSystem !== 'imperial')
     || !progress || !buildRecord || !measurements
-    || workspaceEntries.length < 2 || workspaceEntries.length > 180
+    || workspaceEntries.length < 2 || workspaceEntries.length > ANTENNA_PLAN_WORKSPACE_FIELD_LIMIT
     || workspaceEntries.some(([key, entry]) => !/^[a-z][A-Za-z0-9]*$/.test(key) || !isPlanValue(entry))) return null;
 
   return {

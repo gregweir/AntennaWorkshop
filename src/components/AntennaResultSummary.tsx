@@ -25,6 +25,20 @@ export function AntennaResultSummary({ calculation, unitSystem, radialCount, loo
     headline = `Cut ${calculation.value.elements.length} equal wire pairs`; primary = formatLength(calculation.value.totalWireMetres, unitSystem);
     details = calculation.value.elements.map((element) => [`${element.frequencyMHz.toFixed(3)} MHz · each leg`, formatLength(element.cutLegMetres, unitSystem)]);
     details.push(['Longest installed span', formatLength(calculation.value.longestSpanMetres, unitSystem)]);
+  } else if (calculation.type === 'linked-dipole') {
+    headline = `Cut ${calculation.value.segments.length} symmetric segment pairs`; primary = `${formatLength(calculation.value.totalWireCutMetres, unitSystem)} total wire`;
+    details = [
+      ['Operating configurations', `${calculation.value.configurations.length}`],
+      ['Link pairs per side', `${calculation.value.linkCountPerSide}`],
+      ['Shortest inner state', `${calculation.value.highestFrequencyMHz.toFixed(3)} MHz`],
+      ['Longest complete state', `${calculation.value.lowestFrequencyMHz.toFixed(3)} MHz`],
+      ...calculation.value.segments.map((segment) => [`${segment.id} raw cut · each side`, formatLength(segment.cutEachSideMetres, unitSystem)] as [string, string]),
+      ['Lowest-band support span', formatLength(calculation.value.supportSpanMetres, unitSystem)],
+      ['Endpoint drop from centre support', formatLength(calculation.value.endpointDropMetres, unitSystem)],
+      ['Mechanical route per complete leg', formatLength(calculation.value.longestMechanicalLegRouteMetres, unitSystem)],
+      ['Entered open-link gap', `${calculation.value.linkGapMillimetres.toFixed(0)} mm · mechanical record only`],
+      ['Installed impedance, match, bandwidth, efficiency, common mode, contact heating, and pattern', 'Not inferred · measure every state']
+    ];
   } else if (calculation.type === 'doublet') {
     headline = 'Cut two equal legs and route balanced line'; primary = `${formatLength(calculation.value.cutLegMetres, unitSystem)} each`;
     details = [['Total radiator', formatLength(calculation.value.cutTotalMetres, unitSystem)], ['Balanced-line route', formatLength(calculation.value.balancedLineLengthMetres, unitSystem)], [`Electrical length at ${calculation.value.lineCheckFrequencyMHz.toFixed(3)} MHz`, `${calculation.value.feedlineElectricalWavelengths.toFixed(3)} λ · ${calculation.value.feedlineElectricalDegrees.toFixed(1)}°`], ['Eighth-wave line adjustment', formatLength(calculation.value.eighthWaveAdjustmentMetres, unitSystem)], ['Total conductor', formatLength(calculation.value.totalConductorMetres, unitSystem)]];
@@ -158,7 +172,7 @@ export function AntennaResultSummary({ calculation, unitSystem, radialCount, loo
     details = [[loopShape === 'circle' ? 'Diameter' : 'Each side', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Resonant perimeter', formatLength(calculation.value.resonantLengthMetres, unitSystem)]];
     if (loopShape === 'triangle' && calculation.value.triangleHeightMetres !== null && calculation.value.feedpointDistanceFromApexMetres !== null) details.push(['Ideal support span', formatLength(calculation.value.primaryDimensionMetres, unitSystem)], ['Ideal triangle height', formatLength(calculation.value.triangleHeightMetres, unitSystem)], ['Selected orientation', calculation.value.deltaOrientation === 'apex-up' ? 'Apex up' : 'Apex down'], ['Published feed arrangement', calculation.value.feedArrangement], ['Feedpoint along wire from apex', formatLength(calculation.value.feedpointDistanceFromApexMetres, unitSystem)], ['Installed impedance, polarization, and pattern', 'Not inferred · model and measure']);
   }
-  if (calculation.type !== 'hex-beam') details.push([calculation.type === 'trap-dipole' ? 'Lower-band free-space wavelength' : calculation.type === 'small-loop' || calculation.type === 'log-periodic' || calculation.type === 'active-receive-loop' ? 'Lower-edge free-space wavelength' : calculation.type === 'fan-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
+  if (calculation.type !== 'hex-beam') details.push([calculation.type === 'trap-dipole' ? 'Lower-band free-space wavelength' : calculation.type === 'small-loop' || calculation.type === 'log-periodic' || calculation.type === 'active-receive-loop' ? 'Lower-edge free-space wavelength' : calculation.type === 'fan-dipole' || calculation.type === 'linked-dipole' || calculation.type === 'doublet' ? 'Lowest-band free-space wavelength' : 'Free-space wavelength', formatLength(calculation.value.wavelengthMetres, unitSystem)]);
   const classified = details.map(([term, value]) => ({ term, value, kind: classifyResultEvidence(term, value) }));
   const buildResults = classified.filter(({ kind, term }) => kind === 'calculated' && !isSupportingResult(term));
   const supportingResults = classified.filter(({ kind, term }) => kind === 'calculated' && isSupportingResult(term));

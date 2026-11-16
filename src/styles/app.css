@@ -8723,6 +8723,7 @@ select {
 }
 
 .fan-frequency-editor,
+.linked-dipole-editor,
 .doublet-system-editor,
 .loaded-antenna-editor,
 .small-loop-editor,
@@ -8745,6 +8746,7 @@ select {
 }
 
 .fan-frequency-editor legend,
+.linked-dipole-editor legend,
 .doublet-system-editor legend,
 .loaded-antenna-editor legend,
 .small-loop-editor legend,
@@ -9156,7 +9158,9 @@ select {
 }
 
 .fan-frequency-editor > p,
-.fan-frequency-editor > small {
+.fan-frequency-editor > small,
+.linked-dipole-editor > p,
+.linked-dipole-editor > small {
   margin: 0;
   color: var(--text-secondary);
   font-size: 0.78rem;
@@ -9187,6 +9191,137 @@ select {
 
 .fan-frequency-editor > .secondary-button {
   justify-self: start;
+}
+
+.linked-dipole-editor {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.linked-frequency-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.linked-frequency-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.55rem;
+}
+
+.linked-frequency-row label {
+  align-self: center;
+  font-weight: 750;
+}
+
+.linked-dipole-editor button {
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--accent-technical);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-technical);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.linked-dipole-editor > .secondary-button {
+  justify-self: start;
+}
+
+.linked-construction-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.linked-construction-fields .field {
+  min-width: 0;
+  margin: 0;
+}
+
+.linked-dipole-construction {
+  margin-top: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-surface) 92%, var(--tl-light-sage));
+}
+
+.linked-construction-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.linked-construction-heading h3,
+.linked-construction-heading p,
+.linked-construction-note {
+  margin: 0;
+}
+
+.linked-dipole-construction h4 {
+  margin-bottom: 0.5rem;
+}
+
+.linked-dipole-construction .table-scroll {
+  margin-top: 0.8rem;
+  overflow-x: auto;
+}
+
+.linked-dipole-construction table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  background: var(--bg-surface);
+  font-size: 0.76rem;
+}
+
+.linked-dipole-construction th,
+.linked-dipole-construction td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.linked-dipole-construction thead th {
+  background: var(--tl-navy);
+  color: var(--tl-cream);
+  font-family: var(--font-mono);
+}
+
+.linked-construction-note {
+  padding-top: 0.8rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.linked-dipole-diagram .linked-segment line {
+  stroke: var(--tl-coral);
+  stroke-linecap: round;
+  stroke-width: 7;
+}
+
+.linked-dipole-diagram .linked-segment > text,
+.linked-dipole-diagram .linked-joint text,
+.linked-dipole-diagram .linked-legend text {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.linked-dipole-diagram .linked-joint circle {
+  fill: var(--bg-surface);
+  stroke: var(--accent-technical);
+  stroke-width: 4;
+}
+
+.linked-dipole-diagram .linked-legend rect {
+  fill: color-mix(in srgb, var(--bg-surface) 92%, var(--tl-light-sage));
+  stroke: var(--border-strong);
 }
 
 .fan-dipole-diagram .antenna-wire line {
@@ -13921,8 +14056,14 @@ body.diagram-view-open {
     grid-template-columns: 1fr;
   }
 
-  .fan-frequency-row .quiet-button {
+  .fan-frequency-row .quiet-button,
+  .linked-frequency-row .quiet-button {
     justify-self: start;
+  }
+
+  .linked-frequency-row,
+  .linked-construction-fields {
+    grid-template-columns: 1fr;
   }
 
   .fcc-exemption-diagram {

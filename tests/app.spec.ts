@@ -1011,13 +1011,13 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 40 designs')).toBeVisible();
+  await expect(page.getByText('2 of 41 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only', exact: true }).click();
-  await expect(page.getByText('6 of 40 designs')).toBeVisible();
+  await expect(page.getByText('6 of 41 designs')).toBeVisible();
   const beverageCard = page.locator('.design-picker').getByRole('button', { name: /Beverage/ });
   await expect(beverageCard).toBeVisible();
   await expect(beverageCard).toContainText('Receive family');
@@ -1027,7 +1027,7 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('40 of 40 designs')).toBeVisible();
+  await expect(page.getByText('41 of 41 designs')).toBeVisible();
 });
 
 test('keeps the antenna search control compact on a narrow screen', async ({ page }) => {
@@ -1379,6 +1379,35 @@ test('builds a guided multiband fan dipole and exposes Australian bands', async 
   await expect(page.getByText('Tune from highest frequency downward')).toBeVisible();
   await page.getByRole('button', { name: 'Remove fan dipole wire pair 3' }).click();
   await expect(page.locator('.result-summary')).toContainText('Cut 2 equal wire pairs');
+});
+
+test('plans and explains a linked multiband portable dipole', async ({ page }) => {
+  await page.getByRole('button', { name: /Linked dipole/ }).click();
+  await expect(page.getByRole('heading', { name: 'Linked multiband portable dipole' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency' })).toHaveValue('7.100');
+  await expect(page.getByLabel('Linked dipole band 2 frequency')).toHaveValue('14.200');
+  await expect(page.getByLabel('Linked dipole band 3 frequency')).toHaveValue('28.400');
+  await expect(page.getByRole('img', { name: /Dimensioned linked multiband dipole/ })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('Cut 3 symmetric segment pairs');
+  await expect(page.locator('.linked-dipole-construction')).toContainText('S1');
+  await expect(page.locator('.linked-dipole-construction')).toContainText('S3');
+  await expect(page.locator('.linked-dipole-construction')).toContainText('Open the first link on both sides');
+  await expect(page.locator('.linked-dipole-construction')).toContainText('Close every link on both sides');
+
+  await page.getByRole('spinbutton', { name: 'Finished gap at each open link' }).fill('75');
+  await page.getByRole('spinbutton', { name: 'Included support angle' }).fill('100');
+  await expect(page.locator('.result-summary')).toContainText('75 mm · mechanical record only');
+  await page.getByRole('button', { name: 'Restore linked-dipole construction inputs' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Finished gap at each open link' })).toHaveValue('50');
+  await expect(page.getByRole('spinbutton', { name: 'Included support angle' })).toHaveValue('120');
+
+  await expect(page.getByText('Operate links safely')).toBeHidden();
+  await page.getByText('Build and tune a linked multiband dipole').click();
+  await expect(page.getByText('Operate links safely')).toBeVisible();
+  await expect(page.getByText(/Remove transmit power before approaching or changing a link/)).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
 });
 
 test('plans a balanced-line doublet without inventing a tuner-side impedance', async ({ page }) => {

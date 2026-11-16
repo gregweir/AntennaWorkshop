@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ANTENNA_PLAN_KIND,
+  ANTENNA_PLAN_WORKSPACE_FIELD_LIMIT,
   ANTENNA_PLAN_VERSION,
   antennaPlanFilename,
   deleteAntennaPlan,
@@ -107,6 +108,9 @@ describe('antenna plan files', () => {
     expect(() => parseAntennaPlan(JSON.stringify({ ...plan, schemaVersion: 99 }), 'new', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
     expect(() => parseAntennaPlan(JSON.stringify({ ...plan, measurements: [{ ...plan.measurements[0], sweep: { ...plan.measurements[0].sweep, sha256: 'not-a-digest' } }] }), 'new', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
     expect(() => parseAntennaPlan(JSON.stringify({ ...plan, measurements: [plan.measurements[0], plan.measurements[0]] }), 'new', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
+    const largestWorkspace = Object.fromEntries(Array.from({ length: ANTENNA_PLAN_WORKSPACE_FIELD_LIMIT }, (_, index) => [`s${index}`, index]));
+    expect(parseAntennaPlan(JSON.stringify({ ...plan, workspace: largestWorkspace }), 'bounded', '2026-11-14T14:00:00.000Z').workspace).toHaveProperty(`s${ANTENNA_PLAN_WORKSPACE_FIELD_LIMIT - 1}`);
+    expect(() => parseAntennaPlan(JSON.stringify({ ...plan, workspace: { ...largestWorkspace, overflow: true } }), 'overflow', '2026-11-14T14:00:00.000Z')).toThrow(/supported antenna plan/);
   });
 
   it('restores only values compatible with the current workspace shape', () => {
