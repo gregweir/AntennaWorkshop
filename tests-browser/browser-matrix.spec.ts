@@ -75,6 +75,7 @@ test('supports keyboard entry and remains within the viewport', async ({ page, i
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 
   if (isMobile) {
+    await expect(page.locator('html')).toHaveCSS('font-size', '17px');
     const touchTargets = [
       page.getByRole('button', { name: /Antenna designs/ }),
       page.getByRole('button', { name: /Feedline & matching/ }),
