@@ -10,7 +10,7 @@ import { ANTENNA_DESIGNS, filterAntennaDesigns, getGuidedDesigns } from './anten
 
 describe('antenna design catalog', () => {
   it('contains every design with searchable guidance metadata', () => {
-    expect(Object.keys(ANTENNA_DESIGNS)).toHaveLength(38);
+    expect(Object.keys(ANTENNA_DESIGNS)).toHaveLength(39);
     expect(Object.values(ANTENNA_DESIGNS).every((design) => design.tags.length > 0 && design.guidedGoals.length > 0)).toBe(true);
   });
 
@@ -32,17 +32,18 @@ describe('antenna design catalog', () => {
     expect(filterAntennaDesigns('sloping wire counterpoise', 'all')).toEqual(['vertical-half-rhombic']);
     expect(filterAntennaDesigns('countryman terminated', 'all')).toEqual(['t2fd']);
     expect(filterAntennaDesigns('w3edp tuner counterpoise', 'all')).toEqual(['tuner-fed-wire']);
+    expect(filterAntennaDesigns('coaxial bazooka vertical', 'all')).toEqual(['sleeve-dipole']);
   });
 
   it('returns transmit-capable designs for guided transmit goals', () => {
-    expect(getGuidedDesigns('transmit', 'vertical-footprint')).toEqual(['jpole', 'slim-jim', 'discone', 'loaded-vertical', 'ground-mounted-vertical', 'ground-plane']);
-    expect(getGuidedDesigns('transmit', 'limited-space')).toEqual(['loaded-dipole', 'small-loop', 'tuner-fed-wire', 'loaded-vertical']);
+    expect(getGuidedDesigns('transmit', 'vertical-footprint')).toEqual(['jpole', 'slim-jim', 'sleeve-dipole', 'discone', 'loaded-vertical', 'ground-mounted-vertical', 'ground-plane']);
+    expect(getGuidedDesigns('transmit', 'limited-space')).toEqual(['loaded-dipole', 'small-loop', 'tuner-fed-wire', 'sleeve-dipole', 'loaded-vertical']);
   });
 
   it('keeps receive-only designs out of transmit results', () => {
     const transmit = getGuidedDesigns('transmit', 'all');
     const receive = getGuidedDesigns('receive', 'all');
-    expect(transmit).toHaveLength(33);
+    expect(transmit).toHaveLength(34);
     expect(receive).toHaveLength(5);
     expect(transmit.some((type) => ANTENNA_DESIGNS[type].receiveOnly)).toBe(false);
     expect(receive.every((type) => ANTENNA_DESIGNS[type].receiveOnly)).toBe(true);

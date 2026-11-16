@@ -1011,13 +1011,13 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await page.getByRole('tab', { name: /Workbench/ }).click();
   const search = page.getByRole('searchbox', { name: 'Search designs' });
   await search.fill('shortened coil');
-  await expect(page.getByText('2 of 38 designs')).toBeVisible();
+  await expect(page.getByText('2 of 39 designs')).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded dipole/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Loaded vertical/ })).toBeVisible();
 
   await search.fill('');
   await page.getByRole('button', { name: 'Receive only', exact: true }).click();
-  await expect(page.getByText('5 of 38 designs')).toBeVisible();
+  await expect(page.getByText('5 of 39 designs')).toBeVisible();
   const beverageCard = page.locator('.design-picker').getByRole('button', { name: /Beverage/ });
   await expect(beverageCard).toBeVisible();
   await expect(beverageCard).toContainText('Receive family');
@@ -1027,7 +1027,7 @@ test('offers guided and searchable workbench antenna selection', async ({ page }
   await search.fill('no matching antenna phrase');
   await expect(page.getByText('No matching designs')).toBeVisible();
   await page.getByRole('button', { name: 'Show all designs' }).click();
-  await expect(page.getByText('38 of 38 designs')).toBeVisible();
+  await expect(page.getByText('39 of 39 designs')).toBeVisible();
 });
 
 test('keeps the antenna search control compact on a narrow screen', async ({ page }) => {
@@ -2352,6 +2352,43 @@ test('plans a W3EDP or custom tuner-fed end-fed wire as a complete system', asyn
   await page.getByText('Build and commission a tuner-fed end-fed wire').click();
   await expect(page.locator('.step-by-step-help')).toContainText('mains protective earth is not a substitute');
   await expect(page.getByText('Physical wire with electrical-length context')).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+});
+
+test('plans and explains rigid-sleeve and fold-back coaxial vertical dipoles', async ({ page }) => {
+  await page.getByRole('button', { name: /Sleeve · coaxial dipole/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Sleeve or coaxial vertical dipole' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Design frequency' })).toHaveValue('146.000');
+  const construction = page.getByRole('group', { name: 'Sleeve dipole construction' });
+  await expect(construction.getByRole('button', { name: 'Rigid sleeve' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('spinbutton', { name: 'Feedline outside diameter' })).toHaveValue('10.3');
+  await expect(page.getByRole('spinbutton', { name: 'Rigid sleeve inside diameter' })).toHaveValue('18');
+  await expect(page.getByRole('img', { name: 'Dimensioned sleeve or coaxial vertical dipole' })).toBeVisible();
+  await expect(page.locator('.result-summary')).toContainText('50.0 cm per cut element');
+  await expect(page.locator('.result-summary')).toContainText('Not used for external radiator lengths');
+
+  await construction.getByRole('button', { name: 'Fold-back braid' }).click();
+  await expect(construction.getByRole('button', { name: 'Fold-back braid' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('spinbutton', { name: 'Rigid sleeve inside diameter' })).toHaveCount(0);
+  await expect(page.locator('.result-summary')).toContainText('Coax shield braid folded over jacket');
+
+  const startingValues = page.getByRole('region', { name: 'Sleeve-dipole construction inputs starting values' });
+  await expect(startingValues).toContainText('1 modified value');
+  await startingValues.getByRole('button').click();
+  await expect(construction.getByRole('button', { name: 'Rigid sleeve' })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByText('Build and tune a sleeve or coaxial vertical dipole').click();
+  await expect(page.locator('.step-by-step-help')).toContainText('measure common-mode current below the sleeve');
+  await expect(page.getByText('Corrected free-space quarter waves—not coax line length')).toBeVisible();
+
+  await page.getByRole('spinbutton', { name: 'Rigid sleeve inside diameter' }).fill('10');
+  await expect(page.getByText('Rigid sleeve inside diameter must be greater than the feedline outside diameter.')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Dimensioned sleeve or coaxial vertical dipole' })).toHaveCount(0);
+  await page.getByRole('spinbutton', { name: 'Rigid sleeve inside diameter' }).fill('18');
+  await expect(page.getByRole('img', { name: 'Dimensioned sleeve or coaxial vertical dipole' })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
