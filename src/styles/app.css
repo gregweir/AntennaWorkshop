@@ -10471,7 +10471,13 @@ path.loading-coil {
 }
 
 .receive-selector-fields .field {
+  min-width: 0;
   margin: 0;
+}
+
+.receive-selector-fields select {
+  width: 100%;
+  min-width: 0;
 }
 
 .receive-selector-permissions {

@@ -2198,6 +2198,24 @@ test('matches receive planners to explicit site and system constraints', async (
   await expect(page.getByText('Results compare topology, sourced starting dimensions, and required subsystems only.')).toBeVisible();
 });
 
+test('keeps receive-selector controls within their columns on narrow screens', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.getByText('Compare receive antennas against my site').click();
+
+  const directionControl = page.getByLabel('Receive-antenna direction-control need');
+  const groundReturns = page.getByLabel('Receive-antenna ground-return allowance');
+  const [directionBox, groundBox] = await Promise.all([
+    directionControl.boundingBox(),
+    groundReturns.boundingBox()
+  ]);
+
+  expect(directionBox).not.toBeNull();
+  expect(groundBox).not.toBeNull();
+  expect(directionBox!.x + directionBox!.width).toBeLessThanOrEqual(groundBox!.x);
+  await expect(directionControl).toBeInViewport();
+  await expect(groundReturns).toBeInViewport();
+});
+
 test('switches among graphical antenna designs and updates construction results', async ({ page }) => {
   const selectAntenna = async (name: RegExp) => {
     const changeDesign = page.getByRole('button', { name: 'Change design' });
